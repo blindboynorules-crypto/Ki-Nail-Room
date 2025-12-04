@@ -32,7 +32,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
 
             {/* Main Headline */}
             <h1 className="font-serif leading-tight mb-5 w-full">
-              <span className="block text-lg md:text-xl text-gray-500 font-light mb-2 font-sans">
+              <span className="block text-lg md:text-xl text-gray-500 font-light mb-2 font-vn tracking-wide">
                 Đến chơi và làm móng xinh với
               </span>
               <span className="block text-4xl md:text-6xl font-black text-chestnut-700 tracking-tight leading-none mb-3 drop-shadow-sm">
@@ -45,7 +45,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
             </h1>
 
             {/* Description */}
-            <p className="text-sm md:text-base text-gray-600 mb-8 max-w-md leading-relaxed font-sans font-light">
+            <p className="text-sm md:text-base text-gray-600 mb-8 max-w-md leading-relaxed font-vn font-light">
               Nơi mang lại vẻ đẹp nhẹ nhàng, tinh tế và trendy nhất cho đôi bàn tay của bạn.
             </p>
 
@@ -55,7 +55,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 href={MESSENGER_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center px-7 py-3 bg-chestnut-600 text-white rounded-full font-medium hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base"
+                className="group flex items-center justify-center px-7 py-3 bg-chestnut-600 text-white rounded-full font-medium font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base"
               >
                 Đặt Lịch Ngay
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -64,7 +64,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               {/* Hotline Button - Updated */}
               <a 
                 href="tel:0919979763"
-                className="flex items-center justify-center px-7 py-3 bg-white text-chestnut-600 border border-chestnut-200 rounded-full font-medium hover:bg-vanilla-50 transition-all shadow-sm active:scale-95 text-sm md:text-base"
+                className="flex items-center justify-center px-7 py-3 bg-white text-chestnut-600 border border-chestnut-200 rounded-full font-medium font-vn hover:bg-vanilla-50 transition-all shadow-sm active:scale-95 text-sm md:text-base"
               >
                 <Phone className="mr-2 h-4 w-4 text-chestnut-500" />
                 Hotline: 0919.979.763

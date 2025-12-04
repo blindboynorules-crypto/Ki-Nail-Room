@@ -60,7 +60,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               <button
                 key={link.name}
                 onClick={() => handleNavClick(link.id)}
-                className="text-gray-600 hover:text-chestnut-500 font-medium transition-colors duration-200 text-sm tracking-wide"
+                className="text-gray-600 hover:text-chestnut-500 font-medium font-vn transition-colors duration-200 text-sm tracking-wide"
               >
                 {link.name.toUpperCase()}
               </button>
@@ -69,7 +69,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               href={MESSENGER_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-chestnut-500 text-white px-5 py-1.5 rounded-full font-medium hover:bg-chestnut-600 transition shadow-md shadow-chestnut-200 text-sm inline-block"
+              className="bg-chestnut-500 text-white px-5 py-1.5 rounded-full font-medium font-vn hover:bg-chestnut-600 transition shadow-md shadow-chestnut-200 text-sm inline-block"
             >
               Đặt Lịch
             </a>
@@ -96,7 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               <button
                 key={link.name}
                 onClick={() => handleNavClick(link.id)}
-                className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-chestnut-600 hover:bg-vanilla-100 active:bg-vanilla-200 transition-colors"
+                className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium font-vn text-gray-700 hover:text-chestnut-600 hover:bg-vanilla-100 active:bg-vanilla-200 transition-colors"
               >
                 {link.name}
               </button>
@@ -105,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               href={MESSENGER_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-center px-4 py-3 text-chestnut-600 font-bold text-base bg-chestnut-50 rounded-xl mt-4 border border-chestnut-200"
+              className="block w-full text-center px-4 py-3 text-chestnut-600 font-bold text-base bg-chestnut-50 rounded-xl mt-4 border border-chestnut-200 font-vn"
             >
               Đặt Lịch Ngay
             </a>
