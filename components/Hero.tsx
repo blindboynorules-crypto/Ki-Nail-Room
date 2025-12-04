@@ -84,6 +84,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     src="https://drive.google.com/thumbnail?id=1XSy0IKZ_D_bUcfHrmADzfctEuIkeCWIM&sz=w1000" 
                     alt="Ki Nail Room Style" 
                     className="w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-105"
+                    referrerPolicy="no-referrer"
                     onError={(e) => {
                       e.currentTarget.src = "https://images.unsplash.com/photo-1632515904036-7c0871239c0f?q=80&w=1000&auto=format&fit=crop";
                     }}

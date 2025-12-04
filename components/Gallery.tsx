@@ -122,9 +122,12 @@ const Gallery: React.FC = () => {
 
     return {
         transform: `perspective(1000px) translateX(${xTranslate}) scale(${scale}) rotateY(${rotateY})`,
+        WebkitTransform: `perspective(1000px) translateX(${xTranslate}) scale(${scale}) rotateY(${rotateY})`, // Fix for iOS Safari
         opacity,
         zIndex,
         transition: 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        WebkitBackfaceVisibility: 'hidden' as 'hidden', // Fix for iOS flickering
+        backfaceVisibility: 'hidden' as 'hidden',
     };
   };
 
@@ -179,6 +182,7 @@ const Gallery: React.FC = () => {
                                     src={getDriveThumbnail(url)} 
                                     alt={`Ki Nail Room Art ${idx + 1}`}
                                     className="w-full h-full object-cover pointer-events-none"
+                                    referrerPolicy="no-referrer"
                                 />
                                 
                                 {/* Active Card Overlay Text */}
