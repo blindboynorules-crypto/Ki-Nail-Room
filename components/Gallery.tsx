@@ -1,0 +1,213 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { GALLERY_IMAGES } from '../constants';
+import { Camera, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const Gallery: React.FC = () => {
+  const [activeIndex, setActiveIndex] = useState(2); // Start with a middle image
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const touchEndRef = useRef(0);
+
+  // Hàm chuyển đổi link Google Drive
+  const getDriveThumbnail = (url: string) => {
+    try {
+      const match = url.match(/\/d\/(.+?)(\/|$)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+      }
+      return url; 
+    } catch (e) {
+      return url;
+    }
+  };
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) < GALLERY_IMAGES.length ? prev + 1 : 0);
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1) >= 0 ? prev - 1 : GALLERY_IMAGES.length - 1);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    setIsDragging(true);
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    setStartX(clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDragging) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    touchEndRef.current = clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const distance = startX - touchEndRef.current;
+    const minSwipeDistance = 50;
+
+    if (touchEndRef.current !== 0) { // Ensure a move actually happened
+        if (distance > minSwipeDistance) {
+            handleNext();
+        } else if (distance < -minSwipeDistance) {
+            handlePrev();
+        }
+    }
+    touchEndRef.current = 0;
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          if (e.key === 'ArrowRight') handleNext();
+          if (e.key === 'ArrowLeft') handlePrev();
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+
+  const getCardStyle = (index: number) => {
+    const distance = index - activeIndex;
+    const isActive = distance === 0;
+    
+    // Logic for 3D Carousel positioning
+    // We only show a window of images around the active one to prevent DOM clutter visual overlap issues
+    // But for a true carousel feel with few images, we can render all but hide distant ones.
+    
+    let xTranslate = '0%';
+    let scale = 1;
+    let opacity = 1;
+    let zIndex = 10;
+    let rotateY = '0deg';
+
+    if (isActive) {
+        xTranslate = '0%';
+        scale = 1;
+        opacity = 1;
+        zIndex = 50;
+        rotateY = '0deg';
+    } else if (distance === 1) {
+        xTranslate = '60%';
+        scale = 0.85;
+        opacity = 0.7;
+        zIndex = 40;
+        rotateY = '-15deg';
+    } else if (distance === -1) {
+        xTranslate = '-60%';
+        scale = 0.85;
+        opacity = 0.7;
+        zIndex = 40;
+        rotateY = '15deg';
+    } else if (distance === 2) {
+        xTranslate = '110%';
+        scale = 0.7;
+        opacity = 0.4;
+        zIndex = 30;
+        rotateY = '-25deg';
+    } else if (distance === -2) {
+        xTranslate = '-110%';
+        scale = 0.7;
+        opacity = 0.4;
+        zIndex = 30;
+        rotateY = '25deg';
+    } else {
+        // Hide distant cards visually but keep them in DOM for smooth transition
+        opacity = 0;
+        scale = 0.5;
+        zIndex = 0;
+        xTranslate = distance > 0 ? '200%' : '-200%';
+    }
+
+    return {
+        transform: `perspective(1000px) translateX(${xTranslate}) scale(${scale}) rotateY(${rotateY})`,
+        opacity,
+        zIndex,
+        transition: 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)',
+    };
+  };
+
+  return (
+    <section id="gallery" className="py-16 md:py-24 bg-vanilla-50 border-t border-chestnut-100 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10 md:mb-16">
+           <div className="inline-flex items-center justify-center p-2 mb-4 bg-white rounded-full shadow-md shadow-chestnut-200 border border-chestnut-50">
+             <Camera className="h-6 w-6 text-chestnut-600" />
+           </div>
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
+            Thư Viện Ảnh
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto font-menu text-lg">
+            Những tác phẩm nghệ thuật được thực hiện bởi đội ngũ Ki Nail Room, và từ các học viên.
+          </p>
+        </div>
+
+        {/* 3D Carousel Container */}
+        <div className="relative h-[450px] md:h-[600px] flex items-center justify-center select-none"
+             onTouchStart={handleTouchStart}
+             onTouchMove={handleTouchMove}
+             onTouchEnd={handleTouchEnd}
+             onMouseDown={handleTouchStart}
+             onMouseMove={handleTouchMove}
+             onMouseUp={handleTouchEnd}
+             onMouseLeave={handleTouchEnd}
+        >
+            {/* Nav Buttons (Desktop) */}
+            <button onClick={handlePrev} className="absolute left-4 md:left-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block">
+                <ChevronLeft className="w-8 h-8" />
+            </button>
+            <button onClick={handleNext} className="absolute right-4 md:right-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block">
+                <ChevronRight className="w-8 h-8" />
+            </button>
+
+            {/* Cards */}
+            <div className="relative w-full max-w-[300px] md:max-w-[400px] h-[400px] md:h-[550px] flex items-center justify-center">
+                {GALLERY_IMAGES.map((url, idx) => {
+                    const style = getCardStyle(idx);
+                    const isActive = idx === activeIndex;
+                    
+                    return (
+                        <div 
+                            key={idx}
+                            className="absolute top-0 left-0 w-full h-full cursor-pointer"
+                            style={style}
+                            onClick={() => setActiveIndex(idx)}
+                        >
+                            <div className={`relative w-full h-full rounded-3xl overflow-hidden bg-chestnut-100 ${isActive ? 'shadow-[0_20px_50px_-12px_rgba(77,35,30,0.6)]' : 'shadow-lg'}`}>
+                                <img 
+                                    src={getDriveThumbnail(url)} 
+                                    alt={`Ki Nail Room Art ${idx + 1}`}
+                                    className="w-full h-full object-cover pointer-events-none"
+                                />
+                                
+                                {/* Active Card Overlay Text */}
+                                {isActive && (
+                                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-chestnut-900/90 via-chestnut-900/40 to-transparent flex items-end justify-center">
+                                        <h3 className="text-2xl font-serif font-bold text-white tracking-wide">Ki Nail Room</h3>
+                                    </div>
+                                )}
+                                
+                                {/* Inactive Overlay (Darken) */}
+                                {!isActive && (
+                                    <div className="absolute inset-0 bg-chestnut-900/20 pointer-events-none transition-colors"></div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+        
+        {/* Mobile Swipe Hint */}
+        <div className="text-center mt-4 md:hidden animate-pulse">
+             <span className="text-chestnut-400 text-sm font-menu flex items-center justify-center gap-2">
+                <ChevronLeft className="w-4 h-4" /> Lướt để xem thêm <ChevronRight className="w-4 h-4" />
+             </span>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Gallery;

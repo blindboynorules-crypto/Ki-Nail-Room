@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tiệm Nail Xinh - Beauty & Care</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&family=Quicksand:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['"Playfair Display"', 'serif'],
+              sans: ['"Lato"', 'sans-serif'],
+              menu: ['"Quicksand"', 'sans-serif'], // Font cho nội dung menu
+              script: ['"Dancing Script"', 'cursive'], // Font cho tiêu đề menu
+            },
+            colors: {
+              chestnut: {
+                50: '#fcf6f5',
+                100: '#f7ebe9',
+                200: '#edcfca',
+                300: '#e0a89f',
+                400: '#cf7666',
+                500: '#964B34', // Base Chestnut
+                600: '#853e2a',
+                700: '#6f3223',
+                800: '#5c2a1f',
+                900: '#4d231e',
+              },
+              vanilla: {
+                50: '#fbfaf4', // Very light background
+                100: '#f7f4e3',
+                200: '#f1e8c0',
+                300: '#E9DF9E', // Base Vanilla
+                400: '#e0d278',
+                500: '#c8b24d',
+                900: '#75631e',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      html {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+      /* Prevent iOS zoom on input focus */
+      input, textarea {
+        font-size: 16px !important;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-vanilla-50 text-gray-800 font-sans antialiased selection:bg-chestnut-200 selection:text-chestnut-900">
+    <div id="root"></div>
+  </body>
+</html>
