@@ -68,4 +68,5 @@ export const GALLERY_IMAGES = [
   "https://drive.google.com/file/d/1KI6jBUxvWa5QBv4_wg8M9vuu_cNSTldi/view?usp=drive_link",
   "https://drive.google.com/file/d/10Gm6a6u-ac0Jt_yWY_2Re6fHVIk520We/view?usp=drive_link",
   "https://drive.google.com/file/d/1KURH1odyouvU2Jh-dVJ7YhAIJMUJLxIe/view?usp=drive_link",
+  "https://drive.google.com/file/d/1gS5wuHzMyPz4392AlkgaNdnSvA2yc-9U/view?usp=sharing",
 ];
