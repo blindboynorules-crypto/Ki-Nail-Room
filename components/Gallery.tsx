@@ -159,7 +159,7 @@ const Gallery: React.FC = () => {
             Thư Viện Ảnh
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto font-menu text-lg">
-            Những tác phẩm nghệ thuật được thực hiện bởi đội ngũ Ki Nail Room, và từ các học viên.
+            Mẫu do học viên thực hiện dưới sự hướng dẫn của giảng viên.
           </p>
         </div>
 
