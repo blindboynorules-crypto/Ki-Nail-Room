@@ -87,20 +87,42 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   const imagePart = await fileToGenerativePart(imageFile);
   
   const prompt = `
-    Đóng vai là thợ nail chuyên nghiệp tại Ki Nail Room. Phân tích ảnh và báo giá JSON.
-    
-    BẢNG GIÁ:
-    1. NỀN: Cắt da 30k (luôn có) + Sơn Gel 80k.
-    2. FORM: Móng ngắn (0k), Up keo (80k), Up base (120k), Đắp gel (200k).
-    3. ART: Mắt mèo/Tráng gương (+70k/bộ), Ombre (+70k/bộ), Vẽ đơn giản (10k/ngón), Vẽ hoạt hình (25k/ngón).
-    4. CHARM: Đá nhỏ (15k/ngón), Đá full (40k/ngón), Charm to (20k/cái).
+    Bạn là AI chuyên gia của Ki Nail Room.
 
-    Yêu cầu: Trả về JSON hợp lệ (không markdown \`\`\`json).
-    Format:
+    NHIỆM VỤ QUAN TRỌNG NHẤT (BẮT BUỘC):
+    Hãy nhìn vào bức ảnh và xác định xem đây có phải là hình ảnh liên quan đến làm móng (Nail) không?
+    - Chấp nhận: Bàn tay, Bàn chân, Móng tay, Móng chân, Mẫu Nail Art, Móng giả (Nail Box), Dụng cụ làm nail.
+    - TỪ CHỐI: Khuôn mặt người, Đồ ăn, Phong cảnh, Xe cộ, Thú cưng, Quần áo (không rõ tay), hoặc ảnh đen thui/mờ không rõ.
+
+    NẾU KHÔNG PHẢI ẢNH NAIL:
+    Trả về JSON duy nhất:
     {
-      "items": [{ "item": "Tên", "cost": 10000, "reason": "Chi tiết" }],
-      "totalEstimate": 100000,
-      "note": "Nhận xét ngắn."
+      "error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"
+    }
+
+    NẾU LÀ ẢNH NAIL -> TIẾN HÀNH BÁO GIÁ:
+    Dựa trên BẢNG GIÁ sau để tính toán (ước lượng):
+    1. CƠ BẢN: Cắt da 30k (luôn cộng) + Sơn Gel 80k.
+    2. FORM: Móng ngắn/tự nhiên (0k), Up keo (80k), Up base (120k), Đắp gel (200k).
+    3. ART (Trang trí): 
+       - Mắt mèo/Tráng gương: +70k/bộ.
+       - Ombre/Loang: +70k/bộ.
+       - Vẽ đơn giản: 10k/ngón.
+       - Vẽ hoạt hình/chi tiết: 25k/ngón.
+    4. CHARM/ĐÁ: 
+       - Đá nhỏ/ít: 15k/ngón.
+       - Đá full móng/Khối to: 40k/ngón.
+       - Charm nơ/bướm: 20k/cái.
+
+    Yêu cầu trả về JSON báo giá (nếu là ảnh nail):
+    {
+      "items": [
+        { "item": "Cắt da & Sửa móng", "cost": 30000, "reason": "Dịch vụ cơ bản" },
+        { "item": "Sơn Gel trơn", "cost": 80000, "reason": "Sơn nền" },
+        ... các mục khác tìm thấy ...
+      ],
+      "totalEstimate": 150000,
+      "note": "Nhận xét ngắn gọn về mẫu (VD: Mẫu ombre hồng thạch đính đá sang chảnh...)"
     }
   `;
 
@@ -127,19 +149,32 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
 
     if (result.text) {
         try {
-            return JSON.parse(result.text) as PricingResult;
-        } catch (e) {
+            const data = JSON.parse(result.text);
+            
+            // Kiểm tra xem AI có từ chối ảnh không (trường hợp trả về key "error")
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            return data as PricingResult;
+        } catch (e: any) {
+            // Nếu là lỗi do mình throw ở trên (data.error) thì ném tiếp ra ngoài để hiển thị
+            if (e.message && e.message.includes("Xin lỗi bạn")) {
+                throw e;
+            }
             console.error("JSON Parse Error:", result.text);
-            throw new Error("AI trả về dữ liệu không đúng định dạng JSON. Vui lòng thử lại.");
+            throw new Error("AI trả về dữ liệu không đúng định dạng. Vui lòng thử lại ảnh khác.");
         }
     }
-    throw new Error("AI không trả về kết quả nào (Empty response).");
+    throw new Error("AI không phản hồi.");
   } catch (error: any) {
     console.error("Vision AI Error Detail:", error);
-    // Extract meaningful error message
     let msg = error.message || "Lỗi không xác định";
-    if (msg.includes("403")) msg = "Lỗi xác thực (403): API Key không hợp lệ hoặc đã hết hạn mức.";
-    if (msg.includes("400")) msg = "Lỗi yêu cầu (400): Ảnh không hợp lệ hoặc sai định dạng.";
+    
+    // Customize generic errors
+    if (msg.includes("403")) msg = "Lỗi xác thực (403): API Key không hợp lệ.";
+    if (msg.includes("400")) msg = "Ảnh không hợp lệ hoặc sai định dạng.";
+    
     throw new Error(msg);
   }
 };

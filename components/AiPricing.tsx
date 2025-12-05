@@ -70,7 +70,7 @@ const AiPricing: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative">
             <Camera className="h-8 w-8 text-chestnut-600" />
-            <span className="absolute -top-2 -right-6 bg-chestnut-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Beta</span>
+            <span className="absolute -top-2 -right-10 bg-chestnut-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">v2.1</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             AI Báo Giá Nhanh
@@ -164,9 +164,9 @@ const AiPricing: React.FC = () => {
             </button>
             
             {error && (
-              <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-start font-menu text-sm border border-red-100 animate-fade-in">
-                <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" /> 
-                <span>{error}</span>
+              <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-start font-menu text-sm border border-red-100 animate-fade-in shadow-sm">
+                <AlertCircle className="h-5 w-5 mr-3 shrink-0 mt-0.5" /> 
+                <span className="font-medium">{error}</span>
               </div>
             )}
           </div>
@@ -231,7 +231,7 @@ const AiPricing: React.FC = () => {
                             href="https://m.me/kinailroom" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="flex items-center justify-center px-5 py-2.5 bg-chestnut-600 text-white text-xs md:text-sm font-bold rounded-full hover:bg-chestnut-700 transition-colors shadow-md shadow-chestnut-200"
+                            className="flex items-center justify-center px-5 py-2.5 bg-chestnut-600 text-white text-xs md:text-sm font-bold rounded-full hover:bg-chestnut-700 transition-colors shadow-md shadow-chestnut-200 animate-pulse"
                          >
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Liên Hệ Trực Tiếp
