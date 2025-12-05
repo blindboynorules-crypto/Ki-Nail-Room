@@ -7,4 +7,9 @@ export default defineConfig({
   server: {
     host: true,
   },
+  define: {
+    // This allows the client-side code to access process.env.API_KEY
+    // Safely fallback to empty string if undefined during build
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || "")
+  }
 });

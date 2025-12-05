@@ -24,3 +24,16 @@ export interface Testimonial {
   comment: string;
   rating: number;
 }
+
+// Pricing AI Types
+export interface PriceLineItem {
+  item: string;
+  cost: number;
+  reason: string; // Giải thích ngắn gọn (VD: 2 ngón x 10k)
+}
+
+export interface PricingResult {
+  items: PriceLineItem[];
+  totalEstimate: number;
+  note: string;
+}

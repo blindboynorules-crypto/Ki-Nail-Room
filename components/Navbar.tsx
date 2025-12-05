@@ -11,6 +11,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
   const navLinks = [
     { name: 'Trang Chủ', id: 'home' },
     { name: 'Dịch Vụ', id: 'services' },
+    { name: 'Báo Giá AI', id: 'ai-pricing' }, // New Link
     { name: 'Đào Tạo', id: 'training' },
     { name: 'Thư Viện', id: 'gallery' },
   ];
@@ -24,7 +25,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
   const LOGO_URL = "https://drive.google.com/thumbnail?id=1Bc9vIFq3TEVqwYvjX8iQ2qHgaEpZhzT1&sz=w500";
 
   return (
-    <nav className="fixed w-full z-50 bg-vanilla-50/95 backdrop-blur-md shadow-sm border-b border-chestnut-100 transition-all duration-300">
+    <nav className="fixed w-full z-[100] bg-vanilla-50/95 backdrop-blur-md shadow-sm border-b border-chestnut-100 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
           

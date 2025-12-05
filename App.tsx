@@ -1,22 +1,47 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
+import AiPricing from './components/AiPricing';
 import Training from './components/Training';
 import Gallery from './components/Gallery';
 import Footer from './components/Footer';
 
+type ViewState = 'home' | 'ai-pricing';
+
 const App: React.FC = () => {
-  
-  const handleScrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+  const [currentView, setCurrentView] = useState<ViewState>('home');
+
+  const handleNavigation = (id: string) => {
+    if (id === 'ai-pricing') {
+      setCurrentView('ai-pricing');
+      window.scrollTo(0, 0);
+    } else {
+      // Nếu đang ở trang AI Pricing mà muốn về section của trang chủ
+      if (currentView !== 'home') {
+        setCurrentView('home');
+        // Đợi render xong trang home rồi mới cuộn
+        setTimeout(() => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.scrollTo(0, 0);
+          }
+        }, 100);
+      } else {
+        // Đang ở trang chủ rồi thì cuộn luôn
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo(0, 0);
+        }
+      }
     }
   };
 
   useEffect(() => {
-    // Add smooth scrolling for HTML
     document.documentElement.style.scrollBehavior = 'smooth';
     return () => {
       document.documentElement.style.scrollBehavior = 'auto';
@@ -25,13 +50,20 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-vanilla-50 flex flex-col">
-      <Navbar onNavigate={handleScrollToSection} />
+      <Navbar onNavigate={handleNavigation} />
       
       <main className="flex-grow">
-        <Hero onCtaClick={() => handleScrollToSection('contact')} />
-        <Services />
-        <Training />
-        <Gallery />
+        {currentView === 'home' ? (
+          <>
+            <Hero onCtaClick={() => handleNavigation('contact')} />
+            <Services />
+            {/* AiPricing removed from here */}
+            <Training />
+            <Gallery />
+          </>
+        ) : (
+          <AiPricing />
+        )}
       </main>
 
       <Footer />

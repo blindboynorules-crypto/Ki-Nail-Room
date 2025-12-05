@@ -73,8 +73,7 @@ const Gallery: React.FC = () => {
     const isActive = distance === 0;
     
     // Logic for 3D Carousel positioning
-    // We only show a window of images around the active one to prevent DOM clutter visual overlap issues
-    // But for a true carousel feel with few images, we can render all but hide distant ones.
+    // Reduced z-index values to avoid overlapping with Navbar (which is z-[100])
     
     let xTranslate = '0%';
     let scale = 1;
@@ -86,31 +85,31 @@ const Gallery: React.FC = () => {
         xTranslate = '0%';
         scale = 1;
         opacity = 1;
-        zIndex = 50;
+        zIndex = 30; // Reduced from 50
         rotateY = '0deg';
     } else if (distance === 1) {
         xTranslate = '60%';
         scale = 0.85;
         opacity = 0.7;
-        zIndex = 40;
+        zIndex = 20; // Reduced from 40
         rotateY = '-15deg';
     } else if (distance === -1) {
         xTranslate = '-60%';
         scale = 0.85;
         opacity = 0.7;
-        zIndex = 40;
+        zIndex = 20; // Reduced from 40
         rotateY = '15deg';
     } else if (distance === 2) {
         xTranslate = '110%';
         scale = 0.7;
         opacity = 0.4;
-        zIndex = 30;
+        zIndex = 10; // Reduced from 30
         rotateY = '-25deg';
     } else if (distance === -2) {
         xTranslate = '-110%';
         scale = 0.7;
         opacity = 0.4;
-        zIndex = 30;
+        zIndex = 10; // Reduced from 30
         rotateY = '25deg';
     } else {
         // Hide distant cards visually but keep them in DOM for smooth transition
