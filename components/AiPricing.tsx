@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle, Check, Copy, Hand } from 'lucide-react';
+import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle, Check, Copy, Hand, ArrowRight, ClipboardPaste } from 'lucide-react';
 import { analyzeNailImage, isAiAvailable } from '../services/geminiService';
 import { uploadToCloudinary } from '../services/cloudinaryService';
 import { PricingResult } from '../types';
@@ -13,7 +13,10 @@ const AiPricing: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  
+  // Change isCopied to a step state: 'initial' | 'copied'
+  const [contactStep, setContactStep] = useState<'initial' | 'copied'>('initial');
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -31,7 +34,7 @@ const AiPricing: React.FC = () => {
       setResult(null); // Reset result when new file selected
       setUploadedImageUrl(null);
       setError(null);
-      setIsCopied(false);
+      setContactStep('initial');
     }
   };
 
@@ -42,6 +45,7 @@ const AiPricing: React.FC = () => {
     setError(null);
     setResult(null);
     setUploadedImageUrl(null);
+    setContactStep('initial');
 
     try {
       // Chạy song song: Vừa phân tích AI, vừa upload ảnh lên Cloudinary
@@ -69,30 +73,34 @@ const AiPricing: React.FC = () => {
     setResult(null);
     setUploadedImageUrl(null);
     setError(null);
-    setIsCopied(false);
+    setContactStep('initial');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleContact = () => {
+  const handleCopyAndPrepare = () => {
     if (!result) return;
 
-    const imageUrlText = uploadedImageUrl ? `\n\n🖼️ ẢNH MẪU KHÁCH CHỌN: ${uploadedImageUrl}` : '\n(Khách chưa gửi ảnh)';
+    const imageUrlText = uploadedImageUrl ? `\n\nMẪU DESIGN CỦA BẠN ĐÃ CHỌN: ${uploadedImageUrl}` : '\n(Khách chưa gửi ảnh)';
     const itemsText = result.items.map(i => `- ${i.item}: ${formatCurrency(i.cost)}`).join('\n');
     
     // Soạn nội dung tin nhắn chi tiết
-    const message = `Chào Ki Nail Room, mình muốn làm mẫu này:${imageUrlText}\n\n💰 BÁO GIÁ AI ƯỚC TÍNH: ${formatCurrency(result.totalEstimate)}\n\n📝 Chi tiết dịch vụ AI gợi ý:\n${itemsText}\n\n👉 Shop kiểm tra và báo giá chính xác giúp mình nhé!`;
+    const message = `Chào Ki Nail Room, mình muốn làm mẫu này:${imageUrlText}\n\n💰 BÁO GIÁ AI ƯỚC TÍNH: ${formatCurrency(result.totalEstimate)}\n\nChi tiết dịch vụ do AI của KiNail gợi ý:\n${itemsText}\n\nShop kiểm tra và báo giá chính xác giúp mình nhé!`;
 
     // Copy vào clipboard
     navigator.clipboard.writeText(message).then(() => {
-      setIsCopied(true);
-      // Mở Messenger sau 1 giây
-      setTimeout(() => {
-        window.open("https://m.me/kinailroom", "_blank");
-        setIsCopied(false); // Reset trạng thái sau khi mở
-      }, 1500);
+      setContactStep('copied');
+    }).catch(() => {
+       // Fallback nếu trình duyệt chặn copy
+       setContactStep('copied');
     });
+  };
+
+  const handleOpenMessenger = () => {
+     window.open("https://m.me/kinailroom", "_blank");
+     // Reset sau khi mở xong để khách có thể copy lại nếu muốn
+     setTimeout(() => setContactStep('initial'), 5000);
   };
 
   const formatCurrency = (amount: number) => {
@@ -107,7 +115,7 @@ const AiPricing: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative animate-float">
             <Bot className="h-8 w-8 text-chestnut-600" />
-            <span className="absolute -top-2 -right-10 bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">v2.2</span>
+            <span className="absolute -top-2 -right-10 bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">v2.4</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             AI Báo Giá Nhanh
@@ -264,34 +272,33 @@ const AiPricing: React.FC = () => {
                             <span className="font-bold text-red-400 block mb-1 uppercase tracking-wide">Lưu ý quan trọng</span>
                             Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
                          </p>
-                         <button 
-                            onClick={handleContact}
-                            disabled={isCopied}
-                            className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 ${
-                              isCopied 
-                                ? 'bg-emerald-500 shadow-emerald-200 scale-105' 
-                                : 'bg-chestnut-600 hover:bg-chestnut-700 shadow-chestnut-200 animate-pulse hover:scale-105'
-                            }`}
-                         >
-                            {isCopied ? (
-                              <>
-                                <Check className="w-5 h-5 mr-2" />
-                                Đã copy! Đang mở Messenger...
-                              </>
-                            ) : (
-                              <>
-                                <MessageCircle className="w-5 h-5 mr-2" />
-                                <span className="mr-1">Gửi Báo Giá cho KiNailRoom</span>
-                                {uploadedImageUrl && <span className="text-[10px] opacity-80 font-normal bg-black/20 px-1.5 rounded ml-1">Kèm Ảnh</span>}
-                              </>
-                            )}
-                         </button>
                          
-                         {/* Clearer Copy Instruction */}
-                         <div className="mt-3 flex items-start gap-2 bg-vanilla-100 p-2.5 rounded-xl border border-vanilla-200 w-full animate-pulse-slow">
-                            <Copy className="w-4 h-4 text-chestnut-500 mt-0.5 shrink-0" />
-                            <p className="text-xs text-chestnut-800 font-menu text-left leading-snug">
-                               <span className="font-bold">Mẹo nhỏ:</span> Nội dung đã được copy sẵn. Khi qua Messenger, nàng nhớ bấm <span className="font-bold underline decoration-chestnut-400">"Dán" (Paste)</span> để gửi ngay cho shop nha! 💖
+                         {contactStep === 'initial' ? (
+                            <button 
+                                onClick={handleCopyAndPrepare}
+                                className="w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 bg-chestnut-600 hover:bg-chestnut-700 shadow-chestnut-200 hover:scale-105"
+                            >
+                                <Copy className="w-5 h-5 mr-2" />
+                                <span className="mr-1">Copy Báo Giá & Chuẩn bị Gửi</span>
+                            </button>
+                         ) : (
+                            <button 
+                                onClick={handleOpenMessenger}
+                                className="w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200 animate-pulse"
+                            >
+                                <MessageCircle className="w-5 h-5 mr-2" />
+                                <span>Mở Messenger ngay (Đã Copy)</span>
+                                <ArrowRight className="w-4 h-4 ml-1" />
+                            </button>
+                         )}
+                         
+                         {/* Friendly Paste Instruction */}
+                         <div className="mt-3 flex items-start gap-2 bg-vanilla-100 p-3 rounded-xl border border-vanilla-200 w-full animate-pulse-slow">
+                            <div className="bg-white p-1 rounded-full shadow-sm shrink-0">
+                                <ClipboardPaste className="w-4 h-4 text-chestnut-600" />
+                            </div>
+                            <p className="text-xs text-chestnut-800 font-menu text-left leading-relaxed">
+                               Sau khi bấm nút trên, bạn sẽ được chuyển thẳng qua ứng dụng Messenger. Việc còn lại bạn chỉ cần bấm <span className="font-bold text-chestnut-600 bg-white px-1.5 py-0.5 rounded border border-chestnut-100 shadow-sm mx-0.5">Dán (Paste)</span> nội dung vào ô chat gửi cho Ki Nail là được nha! 🥰
                             </p>
                          </div>
                       </div>

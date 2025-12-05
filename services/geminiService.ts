@@ -87,39 +87,44 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   const imagePart = await fileToGenerativePart(imageFile);
   
   const prompt = `
-    Bạn là AI chuyên gia của Ki Nail Room.
+    Bạn là AI chuyên gia thẩm định giá của Ki Nail Room (Phong cách Hàn-Nhật).
 
-    NHIỆM VỤ QUAN TRỌNG NHẤT (BẮT BUỘC):
-    Hãy nhìn vào bức ảnh và xác định xem đây có phải là hình ảnh liên quan đến làm móng (Nail) không?
-    - Chấp nhận: Bàn tay, Bàn chân, Móng tay, Móng chân, Mẫu Nail Art, Móng giả (Nail Box), Dụng cụ làm nail.
-    - TỪ CHỐI: Khuôn mặt người, Đồ ăn, Phong cảnh, Xe cộ, Thú cưng, Quần áo (không rõ tay), hoặc ảnh đen thui/mờ không rõ.
+    NHIỆM VỤ 1: KIỂM DUYỆT NỘI DUNG (QUAN TRỌNG)
+    Hãy nhìn vào bức ảnh và xác định: Đây có phải là ảnh liên quan đến Móng tay, Móng chân, Bàn tay, Bàn chân hoặc Mẫu Nail Art không?
+    - Nếu KHÔNG (Ví dụ: Ảnh selfie mặt người, đồ ăn, phong cảnh, xe cộ...): 
+      -> Trả về JSON lỗi ngay lập tức: {"error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"}
 
-    NẾU KHÔNG PHẢI ẢNH NAIL:
-    Trả về JSON duy nhất:
-    {
-      "error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"
-    }
+    NHIỆM VỤ 2: BÁO GIÁ CHI TIẾT (NẾU LÀ ẢNH NAIL)
+    Dựa trên BẢNG GIÁ NIÊM YẾT sau đây. 
+    
+    QUY TẮC NHẤT QUÁN (ĐỂ TRÁNH SAI SỐ):
+    - Temperature đã được set về 0. Bạn hãy cư xử như một cỗ máy tính tiền, không sáng tạo giá.
+    - Nếu hình ảnh mờ hoặc không rõ ràng -> LUÔN CHỌN MỨC GIÁ THẤP NHẤT hoặc BỎ QUA.
+    - Không được bịa đặt các dịch vụ không có trong ảnh.
 
-    NẾU LÀ ẢNH NAIL -> TIẾN HÀNH BÁO GIÁ:
-    Dựa trên BẢNG GIÁ sau để tính toán (ước lượng):
-    1. CƠ BẢN: Cắt da 30k (luôn cộng) + Sơn Gel 80k.
-    2. FORM: Móng ngắn/tự nhiên (0k), Up keo (80k), Up base (120k), Đắp gel (200k).
-    3. ART (Trang trí): 
-       - Mắt mèo/Tráng gương: +70k/bộ.
-       - Ombre/Loang: +70k/bộ.
-       - Vẽ đơn giản: 10k/ngón.
-       - Vẽ hoạt hình/chi tiết: 25k/ngón.
-    4. CHARM/ĐÁ: 
-       - Đá nhỏ/ít: 15k/ngón.
-       - Đá full móng/Khối to: 40k/ngón.
-       - Charm nơ/bướm: 20k/cái.
+    BẢNG GIÁ:
+    1. CƠ BẢN (Luôn có): Cắt da 30k + Sơn Gel 80k. (Tổng nền: 110k)
+    2. FORM MÓNG:
+       - Nếu móng trông tự nhiên/ngắn: 0k.
+       - Nếu móng dài, nhìn giống móng giả (úp): 80k (Up keo).
+       - Nếu móng rất dài, cầu kỳ (đắp gel): 200k.
+    3. ART (TRANG TRÍ):
+       - Tráng gương / Mắt mèo: +70k (tính theo bộ).
+       - Ombre / Loang màu: +70k (tính theo bộ).
+       - Vẽ: 
+         + Vẽ nét đơn giản (tim, hoa nhỏ, đường kẻ): 10k/ngón.
+         + Vẽ hoạt hình/chi tiết (gấu, thỏ, nơ vẽ): 25k/ngón.
+    4. CHARM / ĐÁ:
+       - Đá nhỏ (vài viên): 15k/ngón.
+       - Đá full móng / Đá khối to: 40k/ngón.
+       - Charm nổi (Nơ, Bướm, Gấu...): 20k/cái.
 
-    Yêu cầu trả về JSON báo giá (nếu là ảnh nail):
+    Yêu cầu trả về JSON chuẩn:
     {
       "items": [
         { "item": "Cắt da & Sửa móng", "cost": 30000, "reason": "Dịch vụ cơ bản" },
         { "item": "Sơn Gel trơn", "cost": 80000, "reason": "Sơn nền" },
-        ... các mục khác tìm thấy ...
+        ... các mục tìm thấy ...
       ],
       "totalEstimate": 150000,
       "note": "Nhận xét ngắn gọn về mẫu (VD: Mẫu ombre hồng thạch đính đá sang chảnh...)"
@@ -137,6 +142,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       },
       config: {
         responseMimeType: "application/json",
+        temperature: 0, // QUAN TRỌNG: Giúp AI trả lời nhất quán, không ngẫu nhiên
         // Setting safety settings to BLOCK_NONE to avoid false positives on hand images
         safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
