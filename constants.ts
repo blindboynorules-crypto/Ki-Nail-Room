@@ -55,11 +55,10 @@ export const TESTIMONIALS: Testimonial[] = [
   { id: 3, name: "Thảo Vy", comment: "Giá cả hợp lý so với chất lượng. Sẽ quay lại ủng hộ tiệm dài dài.", rating: 4 },
 ];
 
-// Dán danh sách link ảnh Google Drive của bạn vào đây
+// Danh sách ảnh cho mục Thư Viện (3D Carousel)
 export const GALLERY_IMAGES = [
-  "https://drive.google.com/file/d/1xuBeF9qvjU0GOyqUFLbHoovHiSrWpIES/view?usp=drive_link", // Ảnh mẫu 1
-  "https://drive.google.com/file/d/1MA-Jt2lvvXO5gkV43SpHxWpK7YpEmNYs/view?usp=drive_link",    // Ảnh mẫu 2
-  // Thêm link ảnh của bạn vào dưới dòng này, nhớ đặt trong dấu ngoặc kép "" và có dấu phẩy , ở cuối
+  "https://drive.google.com/file/d/1xuBeF9qvjU0GOyqUFLbHoovHiSrWpIES/view?usp=drive_link",
+  "https://drive.google.com/file/d/1MA-Jt2lvvXO5gkV43SpHxWpK7YpEmNYs/view?usp=drive_link",
   "https://drive.google.com/file/d/1o3f6AnOTuBYwpSVyct3W0jx0EaH1SWsr/view?usp=drive_link",
   "https://drive.google.com/file/d/1NqbQ62rM_h44zX30R7KdqyQ-5SxxrhCm/view?usp=drive_link",
   "https://drive.google.com/file/d/1zB7ATU7gDq3qxFXAoA7iQC0xyVNvqHEY/view?usp=drive_link",
@@ -69,4 +68,20 @@ export const GALLERY_IMAGES = [
   "https://drive.google.com/file/d/10Gm6a6u-ac0Jt_yWY_2Re6fHVIk520We/view?usp=drive_link",
   "https://drive.google.com/file/d/1KURH1odyouvU2Jh-dVJ7YhAIJMUJLxIe/view?usp=drive_link",
   "https://drive.google.com/file/d/1gS5wuHzMyPz4392AlkgaNdnSvA2yc-9U/view?usp=sharing",
+];
+
+// Danh sách ảnh cho Carousel lướt ngang ở phần Dịch Vụ
+// [HƯỚNG DẪN]: Hãy dán các đường dẫn ảnh Google Drive mới của bạn vào bên dưới,
+// thay thế cho các đường dẫn mẫu hiện có. Nhớ để trong dấu ngoặc kép "" và cách nhau bằng dấu phẩy.
+export const SERVICE_SHOWCASE_IMAGES = [
+  "https://drive.google.com/file/d/1OZStHoRM7VX57CJd6D78YdEIp1x8J4ds/view?usp=drive_link",
+"https://drive.google.com/file/d/1pJlXBjnLOh_dXLy1tH7B0-eLuFUrUeKG/view?usp=drive_link",
+"https://drive.google.com/file/d/1x0CmoxhPeqS_pHcgwjRD1jqV86-QzDP2/view?usp=drive_link",
+"https://drive.google.com/file/d/1wRxt6sgceT5jdzcGsfgv0mTVfOM3DKTo/view?usp=drive_link",
+"https://drive.google.com/file/d/15sCJXfCyRmslIoF8rMSMWS1kQjkOqcfM/view?usp=drive_link",
+"https://drive.google.com/file/d/1lggbigwRD45bl-Er2gal1iFeGTR-bTaz/view?usp=drive_link",
+"https://drive.google.com/file/d/1luCdEoZLJm0au2b9o5Cyesjs-NjiV1YO/view?usp=drive_link",
+"https://drive.google.com/file/d/1k96jj3Gav_URRIWykLlk5ojAurJ6F9DQ/view?usp=drive_link",
+"https://drive.google.com/file/d/13VCuoTnWwXTS-c-rvnbP2IjbqmYGt2uF/view?usp=drive_link",
+"https://drive.google.com/file/d/19UiaYYRRKpzv7x2qLYv6rAgNkDIAjcZh/view?usp=drive_link",
 ];

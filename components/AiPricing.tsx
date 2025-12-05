@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Sparkles, X, Receipt, Camera, Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Upload, Sparkles, X, Receipt, Camera, Loader2, AlertCircle, AlertTriangle, MessageCircle } from 'lucide-react';
 import { analyzeNailImage, isAiAvailable } from '../services/geminiService';
 import { PricingResult } from '../types';
 
@@ -24,7 +24,7 @@ const AiPricing: React.FC = () => {
       const file = e.target.files[0];
       setSelectedImage(file);
       setPreviewUrl(URL.createObjectURL(file));
-      setResult(null);
+      setResult(null); // Reset result when new file selected
       setError(null);
     }
   };
@@ -94,7 +94,7 @@ const AiPricing: React.FC = () => {
             </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className={`transition-all duration-500 ease-in-out ${result ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 'max-w-xl mx-auto'}`}>
           
           {/* Upload Section */}
           <div className="space-y-6">
@@ -171,31 +171,31 @@ const AiPricing: React.FC = () => {
             )}
           </div>
 
-          {/* Result Section */}
-          <div className="relative">
-             {/* Receipt UI */}
-             <div className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 relative overflow-hidden min-h-[400px] flex flex-col">
-                {/* Decorative Elements */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-chestnut-300 via-vanilla-300 to-chestnut-300"></div>
-                <div className="absolute -right-16 -top-16 w-32 h-32 bg-vanilla-100 rounded-full blur-3xl opacity-50"></div>
+          {/* Result Section - Only visible when result is available */}
+          {result && (
+            <div className="relative animate-fade-in">
+               {/* Receipt UI */}
+               <div className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 relative overflow-hidden min-h-[400px] flex flex-col">
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-chestnut-300 via-vanilla-300 to-chestnut-300"></div>
+                  <div className="absolute -right-16 -top-16 w-32 h-32 bg-vanilla-100 rounded-full blur-3xl opacity-50"></div>
 
-                <div className="flex items-center justify-between mb-8 pb-6 border-b border-dashed border-gray-200">
-                   <div className="flex items-center">
-                      <div className="p-2 bg-chestnut-50 rounded-lg mr-3">
-                         <Receipt className="h-6 w-6 text-chestnut-600" />
-                      </div>
-                      <div>
-                         <h3 className="font-serif font-bold text-xl text-gray-800">Hóa Đơn Tạm Tính</h3>
-                         <p className="text-xs text-gray-400 font-sans tracking-wider uppercase">KI NAIL ROOM ESTIMATE</p>
-                      </div>
-                   </div>
-                   <div className="text-right">
-                      <p className="text-sm text-gray-500">{new Date().toLocaleDateString('vi-VN')}</p>
-                   </div>
-                </div>
+                  <div className="flex items-center justify-between mb-8 pb-6 border-b border-dashed border-gray-200">
+                     <div className="flex items-center">
+                        <div className="p-2 bg-chestnut-50 rounded-lg mr-3">
+                           <Receipt className="h-6 w-6 text-chestnut-600" />
+                        </div>
+                        <div>
+                           <h3 className="font-serif font-bold text-xl text-gray-800">Hóa Đơn Tạm Tính</h3>
+                           <p className="text-xs text-gray-400 font-sans tracking-wider uppercase">KI NAIL ROOM ESTIMATE</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="text-sm text-gray-500">{new Date().toLocaleDateString('vi-VN')}</p>
+                     </div>
+                  </div>
 
-                {result ? (
-                   <div className="animate-fade-in flex-grow flex flex-col">
+                  <div className="flex-grow flex flex-col">
                       <div className="space-y-4 mb-6 flex-grow">
                          {result.items.map((item, idx) => (
                             <div key={idx} className="flex justify-between items-start font-menu text-gray-700">
@@ -222,23 +222,25 @@ const AiPricing: React.FC = () => {
                          </p>
                       </div>
 
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                         <p className="text-[11px] md:text-xs text-gray-500 text-center font-sans leading-relaxed">
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col items-center">
+                         <p className="text-[11px] md:text-xs text-gray-500 text-center font-sans leading-relaxed mb-3">
                             <span className="font-bold text-red-400 block mb-1 uppercase tracking-wide">Lưu ý quan trọng</span>
-                            Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể chênh lệch tùy thuộc vào tình trạng móng thật của quý khách tại tiệm.
+                            Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
                          </p>
+                         <a 
+                            href="https://m.me/kinailroom" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center px-5 py-2.5 bg-chestnut-600 text-white text-xs md:text-sm font-bold rounded-full hover:bg-chestnut-700 transition-colors shadow-md shadow-chestnut-200"
+                         >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Liên Hệ Trực Tiếp
+                         </a>
                       </div>
                    </div>
-                ) : (
-                   <div className="flex-grow flex flex-col items-center justify-center text-gray-300 space-y-4 py-12">
-                      <Receipt className="h-16 w-16 opacity-20" />
-                      <p className="text-sm font-menu text-center max-w-[200px]">
-                         Kết quả phân tích sẽ hiển thị tại đây...
-                      </p>
-                   </div>
-                )}
-             </div>
-          </div>
+               </div>
+            </div>
+          )}
 
         </div>
       </div>
