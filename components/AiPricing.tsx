@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Sparkles, X, Receipt, Camera, Loader2, AlertCircle, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle } from 'lucide-react';
 import { analyzeNailImage, isAiAvailable } from '../services/geminiService';
 import { PricingResult } from '../types';
 
@@ -69,8 +69,8 @@ const AiPricing: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative">
-            <Camera className="h-8 w-8 text-chestnut-600" />
-            <span className="absolute -top-2 -right-10 bg-chestnut-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">v2.1</span>
+            <Bot className="h-8 w-8 text-chestnut-600" />
+            <span className="absolute -top-2 -right-10 bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">v2.2</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             AI Báo Giá Nhanh
