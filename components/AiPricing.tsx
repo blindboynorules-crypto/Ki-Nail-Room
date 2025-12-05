@@ -1,15 +1,19 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle, Check, Copy } from 'lucide-react';
 import { analyzeNailImage, isAiAvailable } from '../services/geminiService';
+import { uploadToCloudinary } from '../services/cloudinaryService';
 import { PricingResult } from '../types';
 
 const AiPricing: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<PricingResult | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,7 +29,9 @@ const AiPricing: React.FC = () => {
       setSelectedImage(file);
       setPreviewUrl(URL.createObjectURL(file));
       setResult(null); // Reset result when new file selected
+      setUploadedImageUrl(null);
       setError(null);
+      setIsCopied(false);
     }
   };
 
@@ -35,10 +41,19 @@ const AiPricing: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setResult(null);
+    setUploadedImageUrl(null);
 
     try {
-      const pricingData = await analyzeNailImage(selectedImage);
+      // Chạy song song: Vừa phân tích AI, vừa upload ảnh lên Cloudinary
+      // Điều này giúp tiết kiệm thời gian chờ đợi của khách
+      const [pricingData, cloudUrl] = await Promise.all([
+        analyzeNailImage(selectedImage),
+        uploadToCloudinary(selectedImage)
+      ]);
+
       setResult(pricingData);
+      setUploadedImageUrl(cloudUrl);
+      
     } catch (err: any) {
       console.error(err);
       // Display the actual error message from the service
@@ -52,10 +67,32 @@ const AiPricing: React.FC = () => {
     setSelectedImage(null);
     setPreviewUrl(null);
     setResult(null);
+    setUploadedImageUrl(null);
     setError(null);
+    setIsCopied(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleContact = () => {
+    if (!result) return;
+
+    const imageUrlText = uploadedImageUrl ? `\nLink ảnh mẫu: ${uploadedImageUrl}` : '';
+    const itemsText = result.items.map(i => `- ${i.item}: ${formatCurrency(i.cost)}`).join('\n');
+    
+    // Soạn nội dung tin nhắn
+    const message = `Chào Ki Nail Room, mình muốn làm mẫu này:${imageUrlText}\n\nAI Dự tính khoảng: ${formatCurrency(result.totalEstimate)}\nChi tiết:\n${itemsText}\n\nShop tư vấn chính xác giúp mình nhé!`;
+
+    // Copy vào clipboard
+    navigator.clipboard.writeText(message).then(() => {
+      setIsCopied(true);
+      // Mở Messenger sau 1 giây
+      setTimeout(() => {
+        window.open("https://m.me/kinailroom", "_blank");
+        setIsCopied(false); // Reset trạng thái sau khi mở
+      }, 1000);
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -227,15 +264,31 @@ const AiPricing: React.FC = () => {
                             <span className="font-bold text-red-400 block mb-1 uppercase tracking-wide">Lưu ý quan trọng</span>
                             Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
                          </p>
-                         <a 
-                            href="https://m.me/kinailroom" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center px-5 py-2.5 bg-chestnut-600 text-white text-xs md:text-sm font-bold rounded-full hover:bg-chestnut-700 transition-colors shadow-md shadow-chestnut-200 animate-pulse hover:scale-105 active:scale-95"
+                         <button 
+                            onClick={handleContact}
+                            disabled={isCopied}
+                            className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold rounded-full transition-all shadow-md active:scale-95 ${
+                              isCopied 
+                                ? 'bg-emerald-500 shadow-emerald-200 scale-105' 
+                                : 'bg-chestnut-600 hover:bg-chestnut-700 shadow-chestnut-200 animate-pulse hover:scale-105'
+                            }`}
                          >
-                            <MessageCircle className="w-4 h-4 mr-2" />
-                            Liên Hệ Trực Tiếp
-                         </a>
+                            {isCopied ? (
+                              <>
+                                <Check className="w-5 h-5 mr-2" />
+                                Đã copy! Đang mở Messenger...
+                              </>
+                            ) : (
+                              <>
+                                <MessageCircle className="w-5 h-5 mr-2" />
+                                <span className="mr-1">Bấm GỬI BÁO GIÁ CHO KINAILROOM</span>
+                                {uploadedImageUrl && <span className="text-[10px] opacity-80 font-normal bg-black/20 px-1.5 rounded ml-1">Kèm Ảnh</span>}
+                              </>
+                            )}
+                         </button>
+                         <p className="text-[10px] text-gray-400 mt-2 font-menu">
+                            *Hệ thống sẽ copy báo giá và mở Messenger. Bạn chỉ cần bấm "Dán" (Paste) để gửi.
+                         </p>
                       </div>
                    </div>
                </div>
