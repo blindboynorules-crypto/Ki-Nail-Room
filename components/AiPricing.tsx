@@ -115,7 +115,7 @@ const AiPricing: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative animate-float">
             <Bot className="h-8 w-8 text-chestnut-600" />
-            <span className="absolute -top-2 -right-10 bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">v2.4</span>
+            <span className="absolute -top-2 -right-10 bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">v3.1</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             AI Báo Giá Nhanh
@@ -247,7 +247,7 @@ const AiPricing: React.FC = () => {
                                <div className="pr-4">
                                   <p className="font-semibold text-gray-800">{item.item}</p>
                                   <p className="text-xs text-gray-500 italic mt-0.5">{item.reason}</p>
-                               </div>
+                                </div>
                                <span className="font-bold whitespace-nowrap">{formatCurrency(item.cost)}</span>
                             </div>
                          ))}
@@ -279,7 +279,7 @@ const AiPricing: React.FC = () => {
                                 className="w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 bg-chestnut-600 hover:bg-chestnut-700 shadow-chestnut-200 hover:scale-105"
                             >
                                 <Copy className="w-5 h-5 mr-2" />
-                                <span className="mr-1">Copy Báo Giá & Chuẩn bị Gửi</span>
+                                <span className="mr-1">Gửi Báo Giá cho KiNailRoom</span>
                             </button>
                          ) : (
                             <button 

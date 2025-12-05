@@ -89,45 +89,106 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   const prompt = `
     Bạn là AI chuyên gia thẩm định giá của Ki Nail Room (Phong cách Hàn-Nhật).
 
-    NHIỆM VỤ 1: KIỂM DUYỆT NỘI DUNG (QUAN TRỌNG)
+    NHIỆM VỤ 1: KIỂM DUYỆT NỘI DUNG
     Hãy nhìn vào bức ảnh và xác định: Đây có phải là ảnh liên quan đến Móng tay, Móng chân, Bàn tay, Bàn chân hoặc Mẫu Nail Art không?
     - Nếu KHÔNG (Ví dụ: Ảnh selfie mặt người, đồ ăn, phong cảnh, xe cộ...): 
-      -> Trả về JSON lỗi ngay lập tức: {"error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"}
+      -> Trả về JSON lỗi: {"error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"}
 
     NHIỆM VỤ 2: BÁO GIÁ CHI TIẾT (NẾU LÀ ẢNH NAIL)
-    Dựa trên BẢNG GIÁ NIÊM YẾT sau đây. 
     
-    QUY TẮC NHẤT QUÁN (ĐỂ TRÁNH SAI SỐ):
-    - Temperature đã được set về 0. Bạn hãy cư xử như một cỗ máy tính tiền, không sáng tạo giá.
-    - Nếu hình ảnh mờ hoặc không rõ ràng -> LUÔN CHỌN MỨC GIÁ THẤP NHẤT hoặc BỎ QUA.
-    - Không được bịa đặt các dịch vụ không có trong ảnh.
+    *** VÍ DỤ VÀNG SỐ 1 (CASE STUDY CHUẨN - HÃY HỌC THEO):
+    Khách gửi ảnh mẫu: Tay làm móng úp, có sơn gel màu, vẽ french đầu móng 6 ngón, vẽ hoa đơn giản 5 ngón, đính 14 viên đá nhỏ rải rác.
+    => AI phải tính ra kết quả tương tự như sau:
+    1. Up móng base: 120.000 VNĐ
+    2. Sơn gel: 80.000 VNĐ
+    3. French (6 ngón x 10.000): 60.000 VNĐ
+    4. Vẽ đơn giản (5 ngón x 15.000): 75.000 VNĐ
+    5. Đá nhỏ (14 viên x 3.000): 42.000 VNĐ
+    => TỔNG CỘNG: 377.000 VNĐ
 
-    BẢNG GIÁ:
-    1. CƠ BẢN (Luôn có): Cắt da 30k + Sơn Gel 80k. (Tổng nền: 110k)
-    2. FORM MÓNG:
-       - Nếu móng trông tự nhiên/ngắn: 0k.
-       - Nếu móng dài, nhìn giống móng giả (úp): 80k (Up keo).
-       - Nếu móng rất dài, cầu kỳ (đắp gel): 200k.
-    3. ART (TRANG TRÍ):
-       - Tráng gương / Mắt mèo: +70k (tính theo bộ).
-       - Ombre / Loang màu: +70k (tính theo bộ).
-       - Vẽ: 
-         + Vẽ nét đơn giản (tim, hoa nhỏ, đường kẻ): 10k/ngón.
-         + Vẽ hoạt hình/chi tiết (gấu, thỏ, nơ vẽ): 25k/ngón.
-    4. CHARM / ĐÁ:
-       - Đá nhỏ (vài viên): 15k/ngón.
-       - Đá full móng / Đá khối to: 40k/ngón.
-       - Charm nổi (Nơ, Bướm, Gấu...): 20k/cái.
+    *** VÍ DỤ VÀNG SỐ 2 (CASE STUDY NÂNG CAO - OMBRE & TRÁNG GƯƠNG):
+    Khách gửi ảnh mẫu: Móng úp form base nhọn, sơn ombre loang màu toàn bộ, có tráng gương toàn bộ, đính 4 viên đá nhỏ và 10 viên đá phối (loại vừa).
+    => AI phải tính như sau:
+    1. Up móng base: 120.000 VNĐ
+    2. Sơn gel: 80.000 VNĐ
+    3. Ombre bộ: 70.000 VNĐ
+    4. Tráng gương bộ: 70.000 VNĐ
+    5. Đá nhỏ (4 viên x 3.000): 12.000 VNĐ
+    6. Đá phối (10 viên x 4.000): 40.000 VNĐ
+    => TỔNG CỘNG: 392.000 VNĐ
 
-    Yêu cầu trả về JSON chuẩn:
+    *** VÍ DỤ VÀNG SỐ 3 (CASE STUDY HỖN HỢP - SƠN THÊM MÀU & MIX DESIGN):
+    Khách gửi ảnh mẫu: Tay sơn gel (sơn 2 màu khác nhau trên bàn tay), có 2 ngón vẽ French, 2 ngón trang trí kết hợp (vừa vẽ vừa có phụ kiện nhỏ).
+    => AI phải tính như sau:
+    1. Sơn gel: 80.000 VNĐ
+    2. Sơn thêm 1 màu: 10.000 VNĐ
+    3. French (2 ngón x 10.000): 20.000 VNĐ
+    4. Trang trí vẽ + phụ kiện nhỏ (2 ngón x 20.000): 40.000 VNĐ
+    => TỔNG CỘNG: 150.000 VNĐ
+
+    *** VÍ DỤ VÀNG SỐ 4 (CASE STUDY VẼ GEL & NHIỀU MÀU):
+    Khách gửi ảnh mẫu: Tay sơn gel phối 3 màu trở lên (ví dụ xanh, đen, trắng), có 6 ngón vẽ hoạ tiết gel (như bò sữa, vân đá, hoặc hình khối).
+    => AI phải tính như sau:
+    1. Sơn gel: 80.000 VNĐ
+    2. Sơn thêm 2 màu: 20.000 VNĐ
+    3. Vẽ gel (6 ngón x 20.000): 120.000 VNĐ
+    => TỔNG CỘNG: 220.000 VNĐ
+
+    *** VÍ DỤ VÀNG SỐ 5 (CASE STUDY NHŨ VÀNG & VẼ NỔI TRÁNG GƯƠNG):
+    Khách gửi ảnh mẫu: Tay làm móng úp base, sơn gel tông đen lì kết hợp nhũ vàng, 8 ngón có đi nhũ vàng/dát vàng ở chân hoặc đầu móng, 2 ngón vẽ gân nổi tráng gương vàng kim loại.
+    => AI phải tính như sau:
+    1. Up móng base: 120.000 VNĐ
+    2. Sơn gel: 80.000 VNĐ
+    3. Sơn thêm 1 màu: 10.000 VNĐ
+    4. Nhũ vàng (8 ngón x 10.000): 80.000 VNĐ
+    5. Vẽ nổi + tráng gương (2 ngón x 15.000): 30.000 VNĐ
+    => TỔNG CỘNG: 320.000 VNĐ
+
+    *** BẢNG GIÁ CHI TIẾT & QUY TẮC TÍNH:
+
+    1. DỊCH VỤ NỀN & FORM (Luôn kiểm tra):
+       - Cắt da/Sửa móng: 30.000 VNĐ (Mặc định thêm vào trừ khi ảnh mẫu là móng giả trưng bày).
+       - Sơn Gel trơn (1 màu chủ đạo): 80.000 VNĐ.
+       - Up móng keo (Form thường): 80.000 VNĐ.
+       - Up móng base (Form chuẩn/đẹp): 120.000 VNĐ. (Ưu tiên chọn loại này nếu móng nhìn tự nhiên, đẹp).
+       - Nối móng đắp gel (Rất dày/dài): 200.000 VNĐ.
+
+    2. MÀU SẮC (Sơn thêm màu):
+       - Sơn thêm 1 màu (Tổng 2 màu trên móng): +10.000 VNĐ.
+       - Sơn thêm 2 màu (Tổng 3 màu trở lên): +20.000 VNĐ.
+
+    3. DESIGN / ART (Đếm số ngón thực tế):
+       - French đầu móng: 10.000 VNĐ / ngón.
+       - Vẽ đơn giản (hoa nhỏ, tim, line): 15.000 VNĐ / ngón.
+       - Vẽ phức tạp (hoạt hình, chi tiết): 25.000 - 35.000 VNĐ / ngón.
+       - Vẽ gel (họa tiết vừa/trung bình): 20.000 VNĐ / ngón.
+       - Trang trí mix (Vừa vẽ vừa phụ kiện nhỏ): 20.000 VNĐ / ngón.
+       - Nhũ vàng / Dát vàng / Ẩn nhũ: 10.000 VNĐ / ngón.
+       - Vẽ nổi + Tráng gương: 15.000 VNĐ / ngón (Combo đặc biệt).
+       - Mắt mèo / Tráng gương: 10.000 VNĐ / ngón (hoặc +70k nếu full bộ).
+       - Ombre (Loang màu): +70.000 VNĐ / bộ.
+
+    4. PHỤ KIỆN (CHARM / ĐÁ):
+       - Đính đá nhỏ (Đếm viên nếu được): 3.000 VNĐ / viên.
+       - Đính đá phối (Vừa/Trung bình): 4.000 VNĐ / viên.
+       - Đính đá full móng (Kín): 40.000 VNĐ / ngón.
+       - Charm (Nơ, Bướm, Khối): 20.000 VNĐ / cái.
+
+    LƯU Ý KHI SUY LUẬN:
+    - Nếu phân vân giữa các mức giá, hãy chọn MỨC GIÁ THẤP để báo giá mang tính tham khảo "từ...".
+    - Hãy cố gắng đếm số lượng ngón có design đặc biệt (French, Vẽ, Đá) để nhân tiền.
+    - So sánh ảnh với 5 VÍ DỤ VÀNG để chọn cách tính phù hợp nhất.
+    
+    Yêu cầu trả về JSON chuẩn (Chỉ trả về Raw JSON, KHÔNG dùng Markdown):
     {
       "items": [
-        { "item": "Cắt da & Sửa móng", "cost": 30000, "reason": "Dịch vụ cơ bản" },
+        { "item": "Up móng base", "cost": 120000, "reason": "Form chuẩn" },
         { "item": "Sơn Gel trơn", "cost": 80000, "reason": "Sơn nền" },
-        ... các mục tìm thấy ...
+        { "item": "Vẽ French (6 ngón)", "cost": 60000, "reason": "10.000đ x 6 ngón" },
+        { "item": "Đá nhỏ (14 viên)", "cost": 42000, "reason": "3.000đ x 14 viên" }
       ],
-      "totalEstimate": 150000,
-      "note": "Nhận xét ngắn gọn về mẫu (VD: Mẫu ombre hồng thạch đính đá sang chảnh...)"
+      "totalEstimate": 302000,
+      "note": "Mẫu nail form base kết hợp french và đá nhỏ siêu xinh. Giá chưa bao gồm cắt da (30k) nếu làm mới."
     }
   `;
 
@@ -142,8 +203,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       },
       config: {
         responseMimeType: "application/json",
-        temperature: 0, // QUAN TRỌNG: Giúp AI trả lời nhất quán, không ngẫu nhiên
-        // Setting safety settings to BLOCK_NONE to avoid false positives on hand images
+        temperature: 0, // Zero temperature for deterministic output (học vẹt theo ví dụ)
         safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -155,20 +215,26 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
 
     if (result.text) {
         try {
-            const data = JSON.parse(result.text);
+            // Clean up Markdown code blocks
+            let cleanText = result.text.trim();
+            if (cleanText.startsWith('```json')) {
+                cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (cleanText.startsWith('```')) {
+                cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+
+            const data = JSON.parse(cleanText);
             
-            // Kiểm tra xem AI có từ chối ảnh không (trường hợp trả về key "error")
             if (data.error) {
                 throw new Error(data.error);
             }
 
             return data as PricingResult;
         } catch (e: any) {
-            // Nếu là lỗi do mình throw ở trên (data.error) thì ném tiếp ra ngoài để hiển thị
             if (e.message && e.message.includes("Xin lỗi bạn")) {
                 throw e;
             }
-            console.error("JSON Parse Error:", result.text);
+            console.error("JSON Parse Error. Raw text:", result.text);
             throw new Error("AI trả về dữ liệu không đúng định dạng. Vui lòng thử lại ảnh khác.");
         }
     }
@@ -176,11 +242,8 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   } catch (error: any) {
     console.error("Vision AI Error Detail:", error);
     let msg = error.message || "Lỗi không xác định";
-    
-    // Customize generic errors
     if (msg.includes("403")) msg = "Lỗi xác thực (403): API Key không hợp lệ.";
     if (msg.includes("400")) msg = "Ảnh không hợp lệ hoặc sai định dạng.";
-    
     throw new Error(msg);
   }
 };
