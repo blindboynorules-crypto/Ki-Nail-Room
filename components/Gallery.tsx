@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GALLERY_IMAGES } from '../constants';
-import { Camera, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 const Gallery: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(2); // Start with a middle image
@@ -135,9 +135,27 @@ const Gallery: React.FC = () => {
     <section id="gallery" className="py-16 md:py-24 bg-vanilla-50 border-t border-chestnut-100 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 md:mb-16">
-           <div className="inline-flex items-center justify-center p-2 mb-4 bg-white rounded-full shadow-md shadow-chestnut-200 border border-chestnut-50">
-             <Camera className="h-6 w-6 text-chestnut-600" />
+           {/* Custom Cute Shining Camera Icon - Adjusted Size */}
+           <div className="inline-flex items-center justify-center p-3 mb-5 bg-white rounded-[1.5rem] shadow-xl shadow-chestnut-200/50 border-2 border-vanilla-200 relative group">
+             {/* Animated Sparkles - Smaller */}
+             <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-yellow-400 fill-vanilla-100 animate-pulse" style={{ animationDuration: '2s' }} />
+             <Sparkles className="absolute -bottom-1 -left-2 w-3 h-3 text-chestnut-300 animate-bounce" style={{ animationDuration: '3s' }} />
+             <div className="absolute top-0 left-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
+
+             {/* SVG Camera - Smaller */}
+             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-chestnut-600 relative z-10 transform group-hover:rotate-6 transition-transform duration-500">
+                {/* Camera Body */}
+                <rect x="2" y="6" width="20" height="15" rx="4" stroke="currentColor" strokeWidth="1.8" className="fill-vanilla-50" />
+                <path d="M7 6L8.5 3H15.5L17 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="fill-white"/>
+                {/* Lens Outer Ring */}
+                <circle cx="12" cy="13.5" r="5.5" stroke="currentColor" strokeWidth="1.8" className="fill-white"/>
+                {/* Inner Lens / Heart */}
+                <path d="M12 12C12 12 10.5 11 10.5 12.5C10.5 13.2 11.2 13.8 12 14.5C12.8 13.8 13.5 13.2 13.5 12.5C13.5 11 12 12 12 12Z" fill="currentColor" className="text-chestnut-400"/>
+                {/* Flash/Sensor */}
+                <circle cx="18" cy="9.5" r="1" fill="currentColor" className="text-chestnut-300" />
+             </svg>
            </div>
+
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             Thư Viện Ảnh
           </h2>
@@ -157,11 +175,11 @@ const Gallery: React.FC = () => {
              onMouseLeave={handleTouchEnd}
         >
             {/* Nav Buttons (Desktop) */}
-            <button onClick={handlePrev} className="absolute left-4 md:left-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block">
-                <ChevronLeft className="w-8 h-8" />
+            <button onClick={handlePrev} className="absolute left-4 md:left-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block group">
+                <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
             </button>
-            <button onClick={handleNext} className="absolute right-4 md:right-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block">
-                <ChevronRight className="w-8 h-8" />
+            <button onClick={handleNext} className="absolute right-4 md:right-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block group">
+                <ChevronRight className="w-8 h-8 group-hover:translate-x-1 transition-transform" />
             </button>
 
             {/* Cards */}

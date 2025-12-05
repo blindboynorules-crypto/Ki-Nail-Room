@@ -106,13 +106,9 @@ const Footer: React.FC = () => {
             </h4>
             <div className="bg-white p-6 md:p-8 rounded-3xl border border-chestnut-100 shadow-sm hover:shadow-md transition-all duration-300">
               <ul className="space-y-4 text-gray-600 font-menu text-base md:text-lg mb-8">
-                <li className="flex justify-between items-center border-b border-dashed border-gray-100 pb-3">
-                  <span className="text-gray-500 font-medium">Thứ 2 - Thứ 6:</span>
-                  <span className="font-bold text-chestnut-600 text-xl font-sans">9:00 - 20:00</span>
-                </li>
-                <li className="flex justify-between items-center pt-1">
-                  <span className="text-gray-500 font-medium">Thứ 7 - Chủ Nhật:</span>
-                  <span className="font-bold text-chestnut-600 text-xl font-sans">8:30 - 21:00</span>
+                <li className="flex justify-between items-center border-b border-dashed border-gray-100 pb-3 last:border-0">
+                  <span className="text-gray-500 font-medium">Thứ 2 - Chủ Nhật:</span>
+                  <span className="font-bold text-chestnut-600 text-xl font-sans">9:30 - 20:00</span>
                 </li>
               </ul>
               

@@ -126,7 +126,7 @@ const Training: React.FC = () => {
                 href="https://m.me/kinailroom" 
                 target="_blank" 
                 rel="noreferrer"
-                className="inline-flex items-center px-8 py-3.5 bg-vanilla-300 text-chestnut-900 rounded-full font-bold hover:bg-white transition-all shadow-lg shadow-chestnut-900/50 hover:shadow-vanilla-200/50 transform active:scale-95"
+                className="inline-flex items-center px-8 py-3.5 bg-vanilla-300 text-chestnut-900 rounded-full font-bold font-vn hover:bg-white transition-all shadow-lg shadow-chestnut-900/50 hover:shadow-vanilla-200/50 transform active:scale-95"
               >
                 Đăng Ký Tư Vấn Ngay
               </a>
