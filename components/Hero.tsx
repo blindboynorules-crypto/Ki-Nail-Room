@@ -12,8 +12,8 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
     <section id="home" className="relative pt-24 pb-12 md:pt-32 md:pb-20 overflow-hidden bg-vanilla-50">
       {/* Background Decor */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-vanilla-200/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-chestnut-100/40 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-vanilla-200/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 animate-pulse-slow"></div>
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-chestnut-100/40 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,8 +23,8 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
           <div className="text-center md:text-left order-2 md:order-1 flex flex-col items-center md:items-start">
             
             {/* Tagline */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-chestnut-100 shadow-sm mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-chestnut-500"></span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-chestnut-100 shadow-sm mb-6 hover:shadow-md transition-shadow cursor-default">
+              <span className="w-1.5 h-1.5 rounded-full bg-chestnut-500 animate-pulse"></span>
               <span className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-chestnut-600 uppercase">
                 Est. 2020 — Korean & Japanese Style
               </span>
@@ -40,7 +40,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               </span>
               <span className="block text-xl md:text-2xl text-chestnut-500 italic font-medium">
                 theo phong cách Hàn - Nhật nàng nhé 
-                <span className="not-italic ml-2 inline-block animate-bounce-slow">💅🌸✨</span>
+                <span className="not-italic ml-2 inline-block animate-bounce-slow cursor-default hover:scale-125 transition-transform">💅🌸✨</span>
               </span>
             </h1>
 
@@ -55,7 +55,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 href={MESSENGER_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center px-7 py-3 bg-chestnut-600 text-white rounded-full font-medium font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base"
+                className="group flex items-center justify-center px-7 py-3 bg-chestnut-600 text-white rounded-full font-medium font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base hover:-translate-y-1"
               >
                 Đặt Lịch Ngay
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -64,9 +64,9 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               {/* Hotline Button - Updated */}
               <a 
                 href="tel:0919979763"
-                className="flex items-center justify-center px-7 py-3 bg-white text-chestnut-600 border border-chestnut-200 rounded-full font-medium font-vn hover:bg-vanilla-50 transition-all shadow-sm active:scale-95 text-sm md:text-base"
+                className="group flex items-center justify-center px-7 py-3 bg-white text-chestnut-600 border border-chestnut-200 rounded-full font-medium font-vn hover:bg-vanilla-50 transition-all shadow-sm active:scale-95 text-sm md:text-base hover:border-chestnut-400"
               >
-                <Phone className="mr-2 h-4 w-4 text-chestnut-500" />
+                <Phone className="mr-2 h-4 w-4 text-chestnut-500 group-hover:animate-wiggle" />
                 Hotline: 0919.979.763
               </a>
             </div>
@@ -74,16 +74,16 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
           
           {/* Image Side - Reduced Size */}
           <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-4">
-             <div className="relative w-64 md:w-80 group">
+             <div className="relative w-64 md:w-80 group animate-float">
                 {/* Decorative border ring */}
-                <div className="absolute inset-0 border-[1px] border-chestnut-300 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60"></div>
+                <div className="absolute inset-0 border-[1px] border-chestnut-300 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
                 
                 {/* Main Image Container */}
                 <div className="relative rounded-t-full rounded-b-[100px] overflow-hidden shadow-2xl border-[4px] border-white z-10 aspect-[3/4] bg-chestnut-100">
                   <img 
                     src="https://drive.google.com/thumbnail?id=1XSy0IKZ_D_bUcfHrmADzfctEuIkeCWIM&sz=w1000" 
                     alt="Ki Nail Room Style" 
-                    className="w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-105"
+                    className="w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-110"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       e.currentTarget.src = "https://images.unsplash.com/photo-1632515904036-7c0871239c0f?q=80&w=1000&auto=format&fit=crop";
@@ -94,9 +94,9 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 </div>
 
                 {/* Floating Badge */}
-                <div className="absolute -bottom-4 -left-4 z-20 bg-white p-3 rounded-full shadow-lg animate-pulse-slow hidden md:block">
+                <div className="absolute -bottom-4 -left-4 z-20 bg-white p-3 rounded-full shadow-lg animate-pulse-slow hidden md:block hover:scale-110 transition-transform">
                   <div className="bg-vanilla-100 rounded-full p-2">
-                     <Sparkles className="h-5 w-5 text-chestnut-500" />
+                     <Sparkles className="h-5 w-5 text-chestnut-500 animate-spin-slow" />
                   </div>
                 </div>
              </div>

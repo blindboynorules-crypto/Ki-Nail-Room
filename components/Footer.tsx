@@ -28,7 +28,7 @@ const Footer: React.FC = () => {
           {/* Brand Column (Span 5) */}
           <div className="md:col-span-5 flex flex-col items-start">
             <div className="mb-8">
-               <h3 className="text-4xl md:text-5xl font-serif font-black text-chestnut-600 tracking-tight leading-none uppercase drop-shadow-sm">
+               <h3 className="text-4xl md:text-5xl font-serif font-black text-chestnut-600 tracking-tight leading-none uppercase drop-shadow-sm hover:scale-105 transition-transform duration-500 origin-left cursor-default">
                  KI NAIL ROOM
                </h3>
                <p className="text-sm font-bold text-chestnut-400 tracking-[0.35em] mt-3 uppercase pl-1">
@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 aria-label="Facebook"
-                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-chestnut-600 hover:bg-chestnut-600 hover:text-white hover:border-chestnut-600 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
+                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-chestnut-600 hover:bg-chestnut-600 hover:text-white hover:border-chestnut-600 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1 hover:rotate-12"
               >
                 <Facebook className="h-6 w-6" />
               </a>
@@ -55,7 +55,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-chestnut-600 hover:bg-chestnut-600 hover:text-white hover:border-chestnut-600 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
+                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-chestnut-600 hover:bg-chestnut-600 hover:text-white hover:border-chestnut-600 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1 hover:-rotate-12"
               >
                 <Instagram className="h-6 w-6" />
               </a>
@@ -64,7 +64,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 aria-label="TikTok"
-                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-chestnut-600 hover:bg-chestnut-600 hover:text-white hover:border-chestnut-600 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
+                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-chestnut-600 hover:bg-chestnut-600 hover:text-white hover:border-chestnut-600 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1 hover:scale-110"
               >
                 <TikTokIcon className="h-6 w-6" />
               </a>
@@ -78,7 +78,7 @@ const Footer: React.FC = () => {
               Liên Hệ
             </h4>
             <ul className="space-y-6 text-gray-600 font-menu text-base md:text-lg">
-              <li className="flex items-start group">
+              <li className="flex items-start group cursor-pointer">
                 <MapPin className="h-6 w-6 mr-3 text-chestnut-500 shrink-0 mt-1 group-hover:animate-bounce" />
                 <a 
                   href={GOOGLE_MAPS_LINK}
@@ -89,8 +89,8 @@ const Footer: React.FC = () => {
                   231 Đ. số 8, Bình Hưng Hoà A, Bình Tân, TP. Hồ Chí Minh
                 </a>
               </li>
-              <li className="flex items-center group">
-                <Phone className="h-6 w-6 mr-3 text-chestnut-500 shrink-0 group-hover:animate-shake" />
+              <li className="flex items-center group cursor-pointer">
+                <Phone className="h-6 w-6 mr-3 text-chestnut-500 shrink-0 group-hover:animate-wiggle" />
                 <a href="tel:0919979763" className="font-bold group-hover:text-chestnut-700 transition-colors tracking-wide text-xl">
                   0919 979 763
                 </a>
@@ -104,7 +104,7 @@ const Footer: React.FC = () => {
               <span className="w-8 h-[3px] bg-chestnut-400 mr-3 rounded-full"></span>
               Giờ Mở Cửa
             </h4>
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-chestnut-100 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-chestnut-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
               <ul className="space-y-4 text-gray-600 font-menu text-base md:text-lg mb-8">
                 <li className="flex justify-between items-center border-b border-dashed border-gray-100 pb-3 last:border-0">
                   <span className="text-gray-500 font-medium">Thứ 2 - Chủ Nhật:</span>
@@ -133,7 +133,7 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 font-menu">
           <p>&copy; {new Date().getFullYear()} Ki Nail Room. All rights reserved.</p>
-          <p className="mt-2 md:mt-0 font-script text-xl text-chestnut-400">Thank you for choosing us!</p>
+          <p className="mt-2 md:mt-0 font-script text-xl text-chestnut-400 animate-pulse-slow">Thank you for choosing us!</p>
         </div>
       </div>
     </footer>

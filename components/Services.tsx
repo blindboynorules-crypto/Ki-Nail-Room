@@ -63,7 +63,7 @@ const Services: React.FC = () => {
     <section id="services" className="py-16 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-4xl md:text-5xl font-script text-chestnut-700 mb-4 drop-shadow-sm">Bảng Giá Dịch Vụ</h2>
+          <h2 className="text-4xl md:text-5xl font-script text-chestnut-700 mb-4 drop-shadow-sm hover:scale-105 transition-transform duration-500 cursor-default">Bảng Giá Dịch Vụ</h2>
           <p className="text-gray-600 max-w-2xl mx-auto font-menu">
             Ki Nail Room cam kết sử dụng các sản phẩm chất lượng cao để bảo vệ móng của bạn.
           </p>
@@ -72,16 +72,16 @@ const Services: React.FC = () => {
         {/* Service Menu Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {SERVICE_MENU.map((category) => (
-            <div key={category.id} className="bg-vanilla-50 rounded-2xl p-6 border border-vanilla-200 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-              <h3 className="text-2xl md:text-3xl font-script font-bold text-chestnut-600 mb-6 border-b-2 border-chestnut-200 pb-3 inline-block text-center">
+            <div key={category.id} className="bg-vanilla-50 rounded-2xl p-6 border border-vanilla-200 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 flex flex-col h-full group">
+              <h3 className="text-2xl md:text-3xl font-script font-bold text-chestnut-600 mb-6 border-b-2 border-chestnut-200 pb-3 inline-block text-center group-hover:text-chestnut-700 transition-colors">
                 {category.title}
               </h3>
               <ul className="space-y-4 flex-grow">
                 {category.items.map((item) => (
-                  <li key={item.id} className="flex justify-between items-baseline group border-b border-dashed border-gray-200 pb-2 last:border-0 last:pb-0 font-menu">
+                  <li key={item.id} className="flex justify-between items-baseline group/item border-b border-dashed border-gray-200 pb-2 last:border-0 last:pb-0 font-menu">
                     <div className="pr-2 flex items-center">
-                      <Sparkles className="h-3 w-3 text-chestnut-300 mr-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      <span className="font-semibold text-gray-700 group-hover:text-chestnut-600 transition-colors text-sm md:text-base">
+                      <Sparkles className="h-3 w-3 text-chestnut-300 mr-2 opacity-0 group-hover/item:opacity-100 transition-opacity flex-shrink-0 group-hover/item:animate-spin-slow" />
+                      <span className="font-semibold text-gray-700 group-hover/item:text-chestnut-600 transition-colors text-sm md:text-base">
                         {item.name}
                       </span>
                     </div>
@@ -100,7 +100,7 @@ const Services: React.FC = () => {
             <div className="mb-8 px-2 text-center md:text-left">
                  <h3 className="text-2xl font-serif font-bold text-chestnut-700 mb-2">Tác Phẩm Của Ki Nail Room</h3>
                  <p className="text-sm text-gray-600 font-menu font-medium mt-1 flex items-center justify-center md:justify-start gap-2">
-                    <Sparkles className="w-4 h-4 text-chestnut-400" />
+                    <Sparkles className="w-4 h-4 text-chestnut-400 animate-pulse" />
                     Đội ngũ kỹ thuật viên có tay nghề vững, đáp ứng nhiều phong cách mẫu theo yêu cầu khách hàng.
                  </p>
             </div>
@@ -109,7 +109,7 @@ const Services: React.FC = () => {
                 {/* Left Arrow Button */}
                 <button 
                   onClick={() => scroll('left')}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-white/80 hover:bg-white text-chestnut-600 rounded-full shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 backdrop-blur-sm"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-white/80 hover:bg-white text-chestnut-600 rounded-full shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 backdrop-blur-sm hover:scale-110 active:scale-90"
                   aria-label="Scroll left"
                 >
                   <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -118,7 +118,7 @@ const Services: React.FC = () => {
                 {/* Right Arrow Button */}
                 <button 
                   onClick={() => scroll('right')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-white/80 hover:bg-white text-chestnut-600 rounded-full shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 backdrop-blur-sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-white/80 hover:bg-white text-chestnut-600 rounded-full shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 backdrop-blur-sm hover:scale-110 active:scale-90"
                    aria-label="Scroll right"
                 >
                   <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -136,13 +136,13 @@ const Services: React.FC = () => {
                     {SERVICE_SHOWCASE_IMAGES.map((url, idx) => (
                         <div 
                             key={idx} 
-                            className="flex-shrink-0 w-60 h-80 md:w-72 md:h-96 snap-center relative"
+                            className="flex-shrink-0 w-60 h-80 md:w-72 md:h-96 snap-center relative group/img"
                         >
                             <div className="w-full h-full rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-vanilla-200 bg-white select-none">
                                 <img 
                                     src={getDriveThumbnail(url)} 
                                     alt={`Ki Nail Room Showcase ${idx}`}
-                                    className="w-full h-full object-cover pointer-events-none"
+                                    className="w-full h-full object-cover pointer-events-none group-hover/img:scale-105 transition-transform duration-700"
                                     referrerPolicy="no-referrer"
                                     loading="lazy"
                                     draggable="false"
@@ -161,9 +161,9 @@ const Services: React.FC = () => {
 
              {/* Moved "Lướt xem thêm" below images */}
              <div className="flex items-center justify-center mt-6 text-sm text-chestnut-400 font-menu animate-pulse">
-                <ChevronLeft className="w-4 h-4 mr-1" />
+                <ChevronLeft className="w-4 h-4 mr-1 animate-bounce-horizontal" />
                 Lướt xem thêm 
-                <ChevronRight className="w-4 h-4 ml-1" />
+                <ChevronRight className="w-4 h-4 ml-1 animate-bounce-horizontal" />
              </div>
         </div>
 

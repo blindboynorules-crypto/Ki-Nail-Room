@@ -68,7 +68,7 @@ const AiPricing: React.FC = () => {
         
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative">
+          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative animate-float">
             <Bot className="h-8 w-8 text-chestnut-600" />
             <span className="absolute -top-2 -right-10 bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">v2.2</span>
           </div>
@@ -82,7 +82,7 @@ const AiPricing: React.FC = () => {
 
         {/* API Key Warning */}
         {apiKeyMissing && (
-            <div className="max-w-3xl mx-auto mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-start text-yellow-800">
+            <div className="max-w-3xl mx-auto mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-start text-yellow-800 animate-pulse">
                 <AlertTriangle className="h-5 w-5 mr-3 mt-0.5 shrink-0" />
                 <div>
                     <h4 className="font-bold">Chưa cấu hình API Key</h4>
@@ -99,7 +99,7 @@ const AiPricing: React.FC = () => {
           {/* Upload Section */}
           <div className="space-y-6">
             <div 
-              className={`relative border-2 border-dashed rounded-3xl p-8 text-center transition-all h-[400px] flex flex-col items-center justify-center overflow-hidden bg-white ${
+              className={`relative border-2 border-dashed rounded-3xl p-8 text-center transition-all h-[400px] flex flex-col items-center justify-center overflow-hidden bg-white group ${
                 previewUrl ? 'border-chestnut-300' : 'border-gray-300 hover:border-chestnut-400 hover:bg-vanilla-50'
               }`}
             >
@@ -113,17 +113,17 @@ const AiPricing: React.FC = () => {
                   <div className="absolute inset-0 bg-chestnut-900/5 z-0"></div>
                   <button 
                     onClick={handleClear}
-                    className="absolute top-4 right-4 z-20 p-2 bg-white rounded-full shadow-md text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="absolute top-4 right-4 z-20 p-2 bg-white rounded-full shadow-md text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors hover:scale-110 active:scale-90"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 </>
               ) : (
                 <div 
-                  className="cursor-pointer w-full h-full flex flex-col items-center justify-center"
+                  className="cursor-pointer w-full h-full flex flex-col items-center justify-center group-hover:scale-105 transition-transform duration-300"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center mb-6">
+                  <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
                     <Upload className="h-8 w-8 text-chestnut-500" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-700 mb-2 font-vn">Tải ảnh mẫu nail lên</h3>
@@ -149,7 +149,7 @@ const AiPricing: React.FC = () => {
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : isLoading 
                     ? 'bg-chestnut-400 text-white cursor-wait'
-                    : 'bg-chestnut-600 text-white hover:bg-chestnut-700 hover:scale-[1.02]'
+                    : 'bg-chestnut-600 text-white hover:bg-chestnut-700 hover:scale-[1.02] active:scale-95'
               }`}
             >
               {isLoading ? (
@@ -158,13 +158,13 @@ const AiPricing: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-5 w-5" /> Phân Tích & Báo Giá
+                  <Sparkles className="mr-2 h-5 w-5 animate-pulse" /> Phân Tích & Báo Giá
                 </>
               )}
             </button>
             
             {error && (
-              <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-start font-menu text-sm border border-red-100 animate-fade-in shadow-sm">
+              <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-start font-menu text-sm border border-red-100 animate-fade-in shadow-sm animate-wiggle">
                 <AlertCircle className="h-5 w-5 mr-3 shrink-0 mt-0.5" /> 
                 <span className="font-medium">{error}</span>
               </div>
@@ -175,10 +175,10 @@ const AiPricing: React.FC = () => {
           {result && (
             <div className="relative animate-fade-in">
                {/* Receipt UI */}
-               <div className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 relative overflow-hidden min-h-[400px] flex flex-col">
+               <div className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 relative overflow-hidden min-h-[400px] flex flex-col hover:shadow-chestnut-200/50 transition-shadow duration-500">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-chestnut-300 via-vanilla-300 to-chestnut-300"></div>
-                  <div className="absolute -right-16 -top-16 w-32 h-32 bg-vanilla-100 rounded-full blur-3xl opacity-50"></div>
+                  <div className="absolute -right-16 -top-16 w-32 h-32 bg-vanilla-100 rounded-full blur-3xl opacity-50 animate-pulse-slow"></div>
 
                   <div className="flex items-center justify-between mb-8 pb-6 border-b border-dashed border-gray-200">
                      <div className="flex items-center">
@@ -198,7 +198,7 @@ const AiPricing: React.FC = () => {
                   <div className="flex-grow flex flex-col">
                       <div className="space-y-4 mb-6 flex-grow">
                          {result.items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-start font-menu text-gray-700">
+                            <div key={idx} className="flex justify-between items-start font-menu text-gray-700 animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
                                <div className="pr-4">
                                   <p className="font-semibold text-gray-800">{item.item}</p>
                                   <p className="text-xs text-gray-500 italic mt-0.5">{item.reason}</p>
@@ -231,7 +231,7 @@ const AiPricing: React.FC = () => {
                             href="https://m.me/kinailroom" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="flex items-center justify-center px-5 py-2.5 bg-chestnut-600 text-white text-xs md:text-sm font-bold rounded-full hover:bg-chestnut-700 transition-colors shadow-md shadow-chestnut-200 animate-pulse"
+                            className="flex items-center justify-center px-5 py-2.5 bg-chestnut-600 text-white text-xs md:text-sm font-bold rounded-full hover:bg-chestnut-700 transition-colors shadow-md shadow-chestnut-200 animate-pulse hover:scale-105 active:scale-95"
                          >
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Liên Hệ Trực Tiếp

@@ -37,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
             <img 
               src={LOGO_URL} 
               alt="Ki Nail Room" 
-              className="h-12 md:h-16 w-auto object-contain hover:scale-105 transition-transform duration-300" 
+              className="h-12 md:h-16 w-auto object-contain hover:scale-105 transition-transform duration-500 ease-out" 
               referrerPolicy="no-referrer"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -61,7 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               <button
                 key={link.name}
                 onClick={() => handleNavClick(link.id)}
-                className="text-gray-600 hover:text-chestnut-500 font-medium font-vn transition-colors duration-200 text-sm tracking-wide"
+                className="text-gray-600 hover:text-chestnut-500 font-medium font-vn transition-all duration-300 text-sm tracking-wide hover:-translate-y-0.5"
               >
                 {link.name.toUpperCase()}
               </button>
@@ -70,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               href={MESSENGER_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-chestnut-500 text-white px-5 py-1.5 rounded-full font-medium font-vn hover:bg-chestnut-600 transition shadow-md shadow-chestnut-200 text-sm inline-block"
+              className="bg-chestnut-500 text-white px-5 py-1.5 rounded-full font-medium font-vn hover:bg-chestnut-600 transition-all shadow-md shadow-chestnut-200 text-sm inline-block hover:shadow-lg hover:scale-105 active:scale-95"
             >
               Đặt Lịch
             </a>
@@ -80,10 +80,10 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
           <div className="md:hidden flex items-center">
             <button 
               onClick={() => setIsOpen(!isOpen)} 
-              className="p-2 text-chestnut-600 hover:bg-chestnut-50 rounded-lg transition-colors"
+              className="p-2 text-chestnut-600 hover:bg-chestnut-50 rounded-lg transition-transform duration-200 active:scale-90"
               aria-label="Menu"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-6 w-6 animate-spin-once" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
@@ -106,7 +106,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               href={MESSENGER_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-center px-4 py-3 text-chestnut-600 font-bold text-base bg-chestnut-50 rounded-xl mt-4 border border-chestnut-200 font-vn"
+              className="block w-full text-center px-4 py-3 text-chestnut-600 font-bold text-base bg-chestnut-50 rounded-xl mt-4 border border-chestnut-200 font-vn active:scale-95 transition-transform"
             >
               Đặt Lịch Ngay
             </a>

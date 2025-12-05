@@ -54,15 +54,15 @@ const Training: React.FC = () => {
     <section id="training" className="py-16 md:py-24 bg-chestnut-900 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-chestnut-600 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-vanilla-600 rounded-full blur-3xl"></div>
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-chestnut-600 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-vanilla-600 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header - Light Text for Dark Background */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center p-3 bg-chestnut-800 border border-chestnut-700 rounded-full shadow-lg mb-6">
+          <div className="inline-flex items-center justify-center p-3 bg-chestnut-800 border border-chestnut-700 rounded-full shadow-lg mb-6 animate-float">
             <GraduationCap className="h-8 w-8 text-vanilla-300" />
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-vanilla-100 mb-4 tracking-tight drop-shadow-md">
@@ -81,7 +81,7 @@ const Training: React.FC = () => {
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-chestnut-400 to-chestnut-600"></div>
               
               <div className="flex items-center gap-4 mb-6 pt-2">
-                <div className="bg-chestnut-100 p-3.5 rounded-2xl group-hover:bg-chestnut-200 transition-colors shadow-inner">
+                <div className="bg-chestnut-100 p-3.5 rounded-2xl group-hover:bg-chestnut-200 transition-colors shadow-inner group-hover:rotate-6 duration-300">
                   {course.icon}
                 </div>
                 <h3 className="text-xl md:text-2xl font-serif font-bold text-chestnut-800 group-hover:text-chestnut-600 transition-colors">
@@ -91,8 +91,8 @@ const Training: React.FC = () => {
 
               <ul className="space-y-3.5">
                 {course.items.map((item, i) => (
-                  <li key={i} className="flex items-start text-gray-700 font-menu text-sm md:text-base leading-relaxed">
-                    <span className="mr-3 mt-1.5 w-1.5 h-1.5 bg-chestnut-400 rounded-full flex-shrink-0"></span>
+                  <li key={i} className="flex items-start text-gray-700 font-menu text-sm md:text-base leading-relaxed group/item hover:translate-x-1 transition-transform">
+                    <span className="mr-3 mt-1.5 w-1.5 h-1.5 bg-chestnut-400 rounded-full flex-shrink-0 group-hover/item:scale-150 transition-transform"></span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -126,7 +126,7 @@ const Training: React.FC = () => {
                 href="https://m.me/kinailroom" 
                 target="_blank" 
                 rel="noreferrer"
-                className="inline-flex items-center px-8 py-3.5 bg-vanilla-300 text-chestnut-900 rounded-full font-bold font-vn hover:bg-white transition-all shadow-lg shadow-chestnut-900/50 hover:shadow-vanilla-200/50 transform active:scale-95"
+                className="inline-flex items-center px-8 py-3.5 bg-vanilla-300 text-chestnut-900 rounded-full font-bold font-vn hover:bg-white transition-all shadow-lg shadow-chestnut-900/50 hover:shadow-vanilla-200/50 transform active:scale-95 hover:-translate-y-1"
               >
                 Đăng Ký Tư Vấn Ngay
               </a>
@@ -137,7 +137,7 @@ const Training: React.FC = () => {
                 {benefits.map((benefit, idx) => (
                   <li key={idx} className="flex items-start">
                     <CheckCircle2 className="w-6 h-6 text-vanilla-400 mr-3 flex-shrink-0 mt-0.5" />
-                    <span className="text-vanilla-100/90 font-menu font-medium text-base">{benefit}</span>
+                    <span className="text-vanilla-100/90 font-menu font-medium text-base hover:text-white transition-colors cursor-default">{benefit}</span>
                   </li>
                 ))}
               </ul>
