@@ -198,6 +198,21 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     4. Vẽ nét mảnh / Sticker (8 ngón x 10.000): 80.000 VNĐ
     => TỔNG CỘNG: 210.000 VNĐ
 
+    *** VÍ DỤ VÀNG SỐ 10 (NHẬN DIỆN MẮT MÈO - CAT EYE):
+    Khách gửi ảnh mẫu: Các móng có vệt sáng nhũ chạy ngang/dọc/chéo tạo hiệu ứng 3D, nhìn sâu thẳm, lấp lánh như dải ngân hà hoặc mắt con mèo.
+    QUY TẮC:
+    - Đây là hiệu ứng Mắt Mèo (Cat Eye). Phân biệt với Tráng Gương (Chrome - bóng lì như kim loại). Mắt mèo có chiều sâu và hạt nhũ chuyển động.
+    - Mặc định tính giá gói: Mắt mèo kèm nền = 130.000 VNĐ.
+    - Không tính tách lẻ Sơn gel + Mắt mèo (trừ khi khách yêu cầu, nhưng AI nên ưu tiên báo giá gói cho rẻ/hợp lý).
+    => TỔNG CỘNG: 130.000 VNĐ (Nếu không có charm/đá).
+
+    *** VÍ DỤ VÀNG SỐ 11 (PHÂN BIỆT TRÁNG GƯƠNG VS MẮT MÈO):
+    Khách gửi ảnh mẫu: Các móng có độ bóng loáng cao như kim loại (bạc, vàng, đồng) hoặc bóng xà cừ (aurora) phủ toàn bộ bề mặt móng. Bề mặt mịn, phản chiếu ánh sáng đều, KHÔNG có vệt sáng tụ lại 1 điểm.
+    QUY TẮC:
+    - Đây là TRÁNG GƯƠNG (CHROME/MIRROR/AURORA). Khác với Mắt Mèo (có vệt sáng).
+    - Giá: Tráng gương bộ = 70.000 VNĐ (Thường cộng thêm với Sơn Gel).
+    - Nếu cả bàn tay đều bóng loáng -> Tính Tráng gương bộ.
+    
     *** BẢNG GIÁ CHI TIẾT & QUY TẮC TÍNH:
 
     1. DỊCH VỤ NỀN & FORM:
@@ -212,8 +227,8 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
 
     3. DESIGN / ART (Đếm số ngón thực tế):
        - Mắt mèo kèm nền (Combo): 130.000 VNĐ / bộ (Ưu tiên dùng cái này nếu làm full mắt mèo).
-       - French đầu móng (bao gồm V-cut, Chéo, Baby Boomer viền): 10.000 VNĐ / ngón (Nếu làm cả bàn 10 ngón thì là 100.000 VNĐ).
-       - Tráng gương bộ (Chrome): 70.000 VNĐ / bộ (Nếu làm cả bàn).
+       - Tráng gương bộ (Chrome/Aurora): 70.000 VNĐ / bộ (Hiệu ứng kim loại/xà cừ phủ toàn móng).
+       - French đầu móng (bao gồm V-cut, Chéo, Baby Boomer viền): 10.000 VNĐ / ngón.
        - Vẽ đơn giản (hoa nhỏ, tim, nơ, CHẤM BI): 15.000 VNĐ / ngón.
        - Vẽ nét mảnh / Sticker / Họa tiết siêu nhỏ: 10.000 VNĐ / ngón.
        - Vẽ gel (họa tiết bò sữa, hoa văn phức tạp): 20.000 VNĐ / ngón.
