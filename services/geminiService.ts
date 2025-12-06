@@ -110,7 +110,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     => TỔNG CỘNG: 377.000 VNĐ
 
     *** VÍ DỤ VÀNG SỐ 2 (CASE STUDY NÂNG CAO - OMBRE & TRÁNG GƯƠNG):
-    Khách gửi ảnh mẫu: Móng úp form base nhọn/dài, sơn hiệu ứng ombre loang màu toàn bộ móng, VÀ có lớp tráng gương bóng lộn (chrome) lên trên toàn bộ. Đính đá ở chân móng (gồm đá nhỏ và đá khối vừa).
+    Khách gửi ảnh mẫu: Móng úp form base nhọn/dài, sơn hiệu ứng ombre loang màu toàn bộ móng, VÀ có lớp tráng gương bóng lộn (chrome) lên toàn bộ. Đính đá ở chân móng.
     QUY TẮC: Nếu thấy móng bóng loáng như kim loại/ngọc trai => CÓ Tráng gương. Ombre và Tráng gương tính riêng từng bộ.
     => AI phải tính như sau:
     1. Up móng base: 120.000 VNĐ
@@ -121,11 +121,11 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     6. Đá phối (10 viên x 4.000): 40.000 VNĐ
     => TỔNG CỘNG: 392.000 VNĐ
 
-    *** VÍ DỤ VÀNG SỐ 3 (CASE STUDY HỖN HỢP - SƠN THÊM MÀU & MIX DESIGN):
-    Khách gửi ảnh mẫu: Tay móng thật (độ dài vừa phải), sơn gel (sơn 2 màu nền khác nhau: đỏ và nude). Có 2 ngón vẽ French đỏ. Có 2 ngón vẽ hoa loang kết hợp đính hạt vàng ở giữa nhụy.
+    *** VÍ DỤ VÀNG SỐ 3 (CASE STUDY HỖN HỢP - KHÔNG ÚP MÓNG & MIX DESIGN):
+    Khách gửi ảnh mẫu: Tay móng thật (độ dài vừa phải, đầu tròn/oval tự nhiên), sơn gel (phối đỏ và nude). Có 2 ngón vẽ French đỏ. Có 2 ngón vẽ hoa loang kết hợp đính hạt vàng ở giữa nhụy.
     QUY TẮC:
-    1. Móng này độ dài trung bình -> TÍNH LÀ MÓNG THẬT (0đ), KHÔNG TÍNH Up móng.
-    2. Ngón có hoa + hạt vàng: Vì vừa có vẽ, vừa có phụ kiện -> Tính gộp vào giá "Trang trí vẽ + phụ kiện nhỏ" (20k/ngón). KHÔNG tách lẻ thành vẽ riêng đá riêng.
+    1. Móng này độ dài trung bình, nhìn tự nhiên -> TÍNH LÀ MÓNG THẬT (0đ), KHÔNG TÍNH Up móng.
+    2. Ngón có hoa + hạt vàng: Vì vừa có vẽ, vừa có phụ kiện nhỏ -> Tính gộp vào giá "Trang trí vẽ + phụ kiện nhỏ" (20k/ngón).
     => AI phải tính như sau:
     1. Sơn gel: 80.000 VNĐ
     2. Sơn thêm 1 màu: 10.000 VNĐ
@@ -133,9 +133,12 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     4. Trang trí vẽ + phụ kiện nhỏ (2 ngón x 20.000): 40.000 VNĐ
     => TỔNG CỘNG: 150.000 VNĐ
 
-    *** VÍ DỤ VÀNG SỐ 4 (CASE STUDY VẼ GEL BÒ SỮA - MÓNG NGẮN):
-    Khách gửi ảnh mẫu: Tay móng vuông ngắn, sơn gel phối 3 màu (xanh, đen, nền móng), vẽ họa tiết bò sữa trên 6 ngón, có đính hạt nhỏ li ti giả làm họa tiết.
-    LƯU Ý: Móng ngắn nên KHÔNG TÍNH Up móng. KHÔNG TÍNH Cắt da. Các hạt nhỏ li ti được tính gộp vào công vẽ, KHÔNG TÍNH là đá.
+    *** VÍ DỤ VÀNG SỐ 4 (CASE STUDY BÒ SỮA - MÓNG NGẮN - KHÔNG ÚP - KHÔNG CẮT DA):
+    Khách gửi ảnh mẫu: Tay móng vuông ngắn (sát đầu ngón tay), sơn gel phối 3 màu (xanh, đen, nền móng), vẽ họa tiết bò sữa (cow print) trên 6 ngón.
+    LƯU Ý ĐẶC BIỆT: 
+    - Móng ngắn -> Mặc định MÓNG THẬT (0đ Up móng).
+    - Cắt da -> Mặc định KHÔNG TÍNH (0đ).
+    - Bò sữa là vẽ gel.
     => AI phải tính như sau:
     1. Sơn gel: 80.000 VNĐ
     2. Sơn thêm 2 màu: 20.000 VNĐ
@@ -148,40 +151,83 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     => AI phải tính như sau:
     1. Up móng base: 120.000 VNĐ
     2. Sơn gel: 80.000 VNĐ
-    3. Sơn thêm 1 màu: 10.000 VNĐ (Lý do: Phối đen và nhũ vàng)
+    3. Sơn thêm 1 màu: 10.000 VNĐ (Phối đen và nhũ vàng)
     4. Nhũ vàng (8 ngón x 10.000): 80.000 VNĐ
     5. Vẽ nổi + tráng gương (2 ngón x 15.000): 30.000 VNĐ
     => TỔNG CỘNG: 320.000 VNĐ
 
     *** VÍ DỤ VÀNG SỐ 6 (FRENCH BIẾN TẤU):
-    Khách gửi ảnh mẫu: Móng nhọn, đầu móng sơn màu (xanh, đỏ, tím, vàng...) hoặc đầu móng chữ V (V-cut).
-    QUY TẮC: Dù đầu móng màu gì, hình dáng gì (tròn, V, xéo), miễn là kiểu sơn đầu móng thì ĐỀU TÍNH LÀ FRENCH (10k/ngón). Đừng tính nhầm thành Vẽ đơn giản.
+    Khách gửi ảnh mẫu: Móng nhọn, đầu móng sơn màu (xanh, đỏ, tím, vàng...) hoặc đầu móng chữ V (V-cut), hoặc sơn xéo (Diagonal).
+    QUY TẮC: Dù đầu móng màu gì, hình dáng gì (tròn, V, xéo), miễn là kiểu sơn đầu móng thì ĐỀU TÍNH LÀ FRENCH (10k/ngón).
     => AI phải tính: French (x số ngón).
+
+    *** VÍ DỤ VÀNG SỐ 7 (CASE STUDY MẮT MÈO & VẼ BI):
+    Khách gửi ảnh mẫu: Tay làm móng úp, sơn hiệu ứng mắt mèo (Cat Eye) tông nâu/trầm. Có phối màu nude ở vài ngón. Có 2 ngón vẽ chấm bi (polka dots). Có 2 ngón French đầu móng.
+    QUY TẮC ĐẶC BIỆT:
+    1. "Mắt mèo kèm nền": Nếu làm bộ mắt mèo, tính gộp giá là 130.000 VNĐ (Thay vì tính lẻ Sơn gel 80 + Mắt mèo 70 = 150).
+    2. Vẽ chấm bi (bi): Tính là "Vẽ đơn giản" (15k/ngón).
+    => AI phải tính như sau:
+    1. Up móng base: 120.000 VNĐ
+    2. Mắt mèo kèm nền: 130.000 VNĐ (Combo nền + hiệu ứng)
+    3. Sơn thêm 1 màu: 10.000 VNĐ (Phối màu mắt mèo và màu nude)
+    4. Vẽ đơn giản (2 ngón x 15.000): 30.000 VNĐ (Vẽ bi)
+    5. French (2 ngón x 10.000): 20.000 VNĐ
+    => TỔNG CỘNG: 310.000 VNĐ
+
+    *** VÍ DỤ VÀNG SỐ 8 (CASE STUDY FULL COMBO: TRÁNG GƯƠNG + FRENCH):
+    Khách gửi ảnh mẫu: Tay làm móng úp base. Sơn nền gel. Có lớp tráng gương (chrome) phủ lên toàn bộ các ngón. Sau đó vẽ French đầu móng lên toàn bộ.
+    QUY TẮC TÍNH:
+    1. Đây là combo 2 bộ Design lớn: Tráng gương bộ (70k) VÀ French bộ (100k). Cả 2 đều phải tính tiền.
+    => AI phải tính như sau:
+    1. Up móng base: 120.000 VNĐ
+    2. Sơn gel: 80.000 VNĐ
+    3. Tráng gương bộ: 70.000 VNĐ
+    4. French bộ (10 ngón): 100.000 VNĐ
+    => TỔNG CỘNG: 370.000 VNĐ
+
+    *** VÍ DỤ VÀNG SỐ 9 (CASE STUDY VẼ MIX - ĐƠN GIẢN & SIÊU ĐƠN GIẢN):
+    Khách gửi ảnh mẫu: Sơn gel phối 3 màu (tổng cộng 20k tiền màu). Có 2 ngón vẽ hình hoa/tim (chi tiết vừa - 15k). Có 8 ngón vẽ các đường line mảnh hoặc họa tiết siêu nhỏ/sticker (10k).
+    QUY TẮC:
+    - Sơn thêm 2 màu: 20.000 VNĐ.
+    - Vẽ đơn giản (2 ngón): 15.000 VNĐ/ngón.
+    - Vẽ nét mảnh/Sticker (8 ngón): 10.000 VNĐ/ngón.
+    => AI phải tính như sau:
+    1. Sơn gel: 80.000 VNĐ
+    2. Sơn thêm 2 màu: 20.000 VNĐ
+    3. Vẽ đơn giản (2 ngón x 15.000): 30.000 VNĐ
+    4. Vẽ nét mảnh / Sticker (8 ngón x 10.000): 80.000 VNĐ
+    => TỔNG CỘNG: 210.000 VNĐ
 
     *** BẢNG GIÁ CHI TIẾT & QUY TẮC TÍNH:
 
     1. DỊCH VỤ NỀN & FORM:
-       - Cắt da/Sửa móng: 30.000 VNĐ (KHÔNG TỰ ĐỘNG THÊM).
+       - Cắt da/Sửa móng: 30.000 VNĐ (KHÔNG TỰ ĐỘNG THÊM, chỉ thêm nếu ảnh móng rất xấu/sần sùi).
        - Sơn Gel trơn: 80.000 VNĐ.
-       - Up móng base: 120.000 VNĐ. (CHỈ CHỌN NẾU móng trông RẤT DÀI, hoặc TRONG SUỐT).
+       - Up móng base: 120.000 VNĐ. (CHỈ CHỌN NẾU móng trông RẤT DÀI, hoặc TRONG SUỐT. Móng ngắn/vuông -> Móng thật).
 
-    2. DESIGN / ART (Đếm số ngón thực tế):
-       - French đầu móng (bao gồm V-cut, Chéo, Baby Boomer viền): 10.000 VNĐ / ngón.
-       - Vẽ đơn giản (hoa nhỏ, tim, line, nơ): 15.000 VNĐ / ngón.
-       - Vẽ gel (họa tiết trung bình): 20.000 VNĐ / ngón.
+    2. MÀU SẮC (Sơn thêm):
+       - Sơn thêm 1 màu (Tổng 2 màu trên bàn tay): +10.000 VNĐ.
+       - Sơn thêm 2 màu (Tổng 3 màu trở lên): +20.000 VNĐ.
+       - Lưu ý: Màu nhũ, màu kim tuyến, màu mắt mèo nếu phối với màu trơn -> Vẫn tính là Sơn thêm màu.
+
+    3. DESIGN / ART (Đếm số ngón thực tế):
+       - Mắt mèo kèm nền (Combo): 130.000 VNĐ / bộ (Ưu tiên dùng cái này nếu làm full mắt mèo).
+       - French đầu móng (bao gồm V-cut, Chéo, Baby Boomer viền): 10.000 VNĐ / ngón (Nếu làm cả bàn 10 ngón thì là 100.000 VNĐ).
+       - Tráng gương bộ (Chrome): 70.000 VNĐ / bộ (Nếu làm cả bàn).
+       - Vẽ đơn giản (hoa nhỏ, tim, nơ, CHẤM BI): 15.000 VNĐ / ngón.
+       - Vẽ nét mảnh / Sticker / Họa tiết siêu nhỏ: 10.000 VNĐ / ngón.
+       - Vẽ gel (họa tiết bò sữa, hoa văn phức tạp): 20.000 VNĐ / ngón.
        - Trang trí mix (Vừa vẽ vừa phụ kiện nhỏ): 20.000 VNĐ / ngón.
        - Nhũ vàng / Dát vàng / Ẩn nhũ: 10.000 VNĐ / ngón.
        - Vẽ nổi + Tráng gương: 15.000 VNĐ / ngón.
 
-    3. PHỤ KIỆN (CHARM / ĐÁ):
+    4. PHỤ KIỆN (CHARM / ĐÁ):
        - Đính đá nhỏ: 3.000 VNĐ / viên.
        - Đính đá phối: 4.000 VNĐ / viên.
        - Charm: 20.000 VNĐ / cái.
        - *** LƯU Ý ĐẶC BIỆT VỀ ĐẾM ĐÁ (CHỐNG ẢO GIÁC): ***
          AI thường đếm nhầm bóng sáng phản quang hoặc chấm bi vẽ thành đá.
          => HÃY ĐẾM BẢO THỦ (CONSERVATIVE). Chỉ đếm những viên có khối 3D rõ ràng.
-         => Nếu thấy một vùng lấp lánh nhiều điểm nhỏ, hãy coi đó là "Rắc nhũ" hoặc "1 viên đá khối/charm", đừng đếm vụn vặt thành 20-30 viên.
-         => Ví dụ: Nhìn thấy 18 điểm sáng, nhưng chỉ có 8 viên rõ nét -> Chọn 8.
 
     LƯU Ý KHI SUY LUẬN:
     - Nếu phân vân giữa các mức giá, hãy chọn MỨC GIÁ THẤP để báo giá mang tính tham khảo.
