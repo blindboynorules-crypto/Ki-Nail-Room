@@ -20,10 +20,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // TÌM ẢNH TRONG FOLDER GỐC
-    // folder:gallery/* hoặc folder:showcase/*
+    // TÌM ẢNH TRONG FOLDER
+    // Lưu ý: folder:${folder} sẽ tìm ảnh nằm trực tiếp trong folder đó
     const result = await cloudinary.search
-      .expression(`folder:${folder}/*`) 
+      .expression(`folder:${folder}`) 
       .sort_by('created_at', 'desc') // Ảnh mới nhất hiển thị trước
       .max_results(50) // Tăng số lượng ảnh lấy về
       .execute();
