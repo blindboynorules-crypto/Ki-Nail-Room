@@ -66,8 +66,19 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     // Giả lập loading chút cho chuyên nghiệp
     setTimeout(() => {
         if (adminPassword === '220314') {
-            // ĐÚNG MẬT KHẨU -> CHUYỂN HƯỚNG SANG TRANG API THẬT
-            window.location.href = '/api/cleanup-images';
+            // LOGIC THÔNG MINH:
+            // 1. Nếu đang ở Web Thật (trên Vercel) -> Chuyển hướng sang trang API dọn dẹp thật.
+            // 2. Nếu đang ở Preview (AI Studio) -> Chuyển sang trang Demo để test giao diện (tránh lỗi connection refused).
+            if (window.location.hostname.includes('kinailroom.vercel.app')) {
+                window.location.href = '/api/cleanup-images';
+            } else {
+                // Đóng modal trước khi chuyển trang
+                setIsAdminModalOpen(false);
+                setAdminPassword('');
+                setIsChecking(false);
+                // Chuyển sang trang Demo nội bộ
+                onNavigate('cleanup-demo'); 
+            }
         } else {
             // SAI MẬT KHẨU
             setAdminError('Mật khẩu không chính xác');
