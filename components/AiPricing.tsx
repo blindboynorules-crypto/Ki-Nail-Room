@@ -50,9 +50,10 @@ const AiPricing: React.FC = () => {
     try {
       // Chạy song song: Vừa phân tích AI, vừa upload ảnh lên Cloudinary
       // Điều này giúp tiết kiệm thời gian chờ đợi của khách
+      // [UPDATE]: Đưa ảnh vào folder 'AIPhanTich' và gắn thẻ 'temp'
       const [pricingData, cloudUrl] = await Promise.all([
         analyzeNailImage(selectedImage),
-        uploadToCloudinary(selectedImage)
+        uploadToCloudinary(selectedImage, 'AIPhanTich', ['ai_temp', 'delete_after_3_days'])
       ]);
 
       setResult(pricingData);
