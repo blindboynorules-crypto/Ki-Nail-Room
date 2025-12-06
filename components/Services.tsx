@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { SERVICE_MENU, SERVICE_SHOWCASE_IMAGES as FALLBACK_IMAGES } from '../constants';
-import { Sparkles, ChevronLeft, ChevronRight, Loader2, AlertCircle, Database, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, ChevronLeft, ChevronRight, Loader2, Image as ImageIcon } from 'lucide-react';
 
 const Services: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -10,7 +10,6 @@ const Services: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [source, setSource] = useState<'cloudinary' | 'fallback'>('fallback');
-  const [debugMsg, setDebugMsg] = useState<string>('');
 
   // Fetch ảnh từ API folder 'showcase'
   useEffect(() => {
@@ -26,10 +25,9 @@ const Services: React.FC = () => {
             return;
           }
         }
-        throw new Error(`API: ${response.status} (No images found in 'showcase' or 'kinailroom/showcase')`);
+        throw new Error(`API: ${response.status}`);
       } catch (error: any) {
         console.warn("Showcase: Using fallback images.", error);
-        setDebugMsg(error.message);
         setImages(FALLBACK_IMAGES);
         setSource('fallback');
         setIsLoading(false);
@@ -125,35 +123,8 @@ const Services: React.FC = () => {
 
         {/* Horizontal Image Carousel */}
         <div className="mt-8 border-t border-gray-100 pt-12 relative">
-            
-            {/* Debug Info - Only Visible if Fallback */}
-            {source === 'fallback' && (
-                <div className="absolute top-0 right-0 p-2 opacity-100 z-50">
-                     <div className="bg-orange-50 text-orange-700 text-[10px] px-3 py-2 rounded-lg border border-orange-200 flex flex-col gap-1 shadow-lg font-mono max-w-[200px]">
-                        <div className="flex items-center gap-1 font-bold">
-                             <AlertCircle className="w-3 h-3" />
-                             <span>PREVIEW MODE / NO SERVER</span>
-                        </div>
-                        <span className="opacity-80 leading-tight">Serverless API không chạy ở Preview. Hãy Deploy lên Vercel để thấy ảnh Cloudinary.</span>
-                        <div className="text-[9px] mt-1 pt-1 border-t border-orange-200 text-orange-500 truncate">
-                            Error: {debugMsg || "API 404/500"}
-                        </div>
-                     </div>
-                </div>
-            )}
-
             <div className="mb-8 px-2 text-center md:text-left flex flex-col md:flex-row items-center gap-3">
                  <h3 className="text-2xl font-serif font-bold text-chestnut-700">Tác Phẩm Của Ki Nail Room</h3>
-                 <div className="flex items-center gap-2">
-                    {source === 'cloudinary' ? (
-                        <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                    ) : (
-                        <span className="flex h-2 w-2 rounded-full bg-orange-400" title="Đang dùng ảnh dự phòng"></span>
-                    )}
-                 </div>
             </div>
             
             <div className="mb-6 -mt-4 text-center md:text-left">
