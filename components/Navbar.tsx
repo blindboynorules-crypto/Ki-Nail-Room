@@ -32,17 +32,15 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
   // --- LOGO CLICK LOGIC ---
   const handleLogoClick = (e: React.MouseEvent) => {
-    // Ngăn chặn hành vi mặc định (về trang chủ) khi đang tap liên tục
-    if (logoClickCount > 0) {
-        e.preventDefault();
-    }
+    // 1. Luôn luôn cuộn lên đầu trang (về Home) mỗi khi click
+    onNavigate('home');
 
-    // Tăng biến đếm
+    // 2. Logic đếm số lần click để mở Admin (Easter Egg)
     setLogoClickCount(prev => {
         const newCount = prev + 1;
         if (newCount === 5) {
             setIsAdminModalOpen(true);
-            return 0; // Reset
+            return 0; // Reset sau khi mở
         }
         return newCount;
     });
@@ -51,10 +49,6 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     clickTimeoutRef.current = setTimeout(() => {
         setLogoClickCount(0);
-        // Nếu chỉ click 1-4 lần thì vẫn cho về trang chủ (UX fallback)
-        if (logoClickCount === 0) {
-             onNavigate('home');
-        }
     }, 2000);
   };
 
@@ -108,7 +102,6 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               referrerPolicy="no-referrer"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
-                // Fallback text...
               }}
             />
           </div>
