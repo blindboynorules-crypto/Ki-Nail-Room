@@ -19,7 +19,7 @@ const Services: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
-            setImages(data);
+            setImages(data.slice(0, 20)); // Giới hạn 20 ảnh
             setSource('cloudinary');
             setIsLoading(false);
             return;
@@ -28,7 +28,7 @@ const Services: React.FC = () => {
         throw new Error(`API: ${response.status}`);
       } catch (error: any) {
         console.warn("Showcase: Using fallback images.", error);
-        setImages(FALLBACK_IMAGES);
+        setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn 20 ảnh
         setSource('fallback');
         setIsLoading(false);
       }
@@ -52,12 +52,23 @@ const Services: React.FC = () => {
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
-      const { current } = sliderRef;
-      const scrollAmount = 300;
+      const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+      const scrollAmount = 300; // Khoảng cách mỗi lần cuộn
+
       if (direction === 'left') {
-        current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        if (scrollLeft <= 0) {
+           // Nếu đang ở đầu -> Loop về cuối
+           sliderRef.current.scrollTo({ left: scrollWidth, behavior: 'smooth' });
+        } else {
+           sliderRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        }
       } else {
-        current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        // Nếu đang ở cuối (cộng trừ sai số nhỏ) -> Loop về đầu
+        if (scrollLeft + clientWidth >= scrollWidth - 5) {
+           sliderRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+           sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
       }
     }
   };

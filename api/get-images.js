@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     const result = await cloudinary.search
       .expression(expression) 
       .sort_by('created_at', 'desc') // Ảnh mới nhất hiển thị trước
-      .max_results(50) // Tăng số lượng ảnh lấy về
+      .max_results(20) // GIỚI HẠN 20 ẢNH TỐI ĐA
       .execute();
 
     console.log(`[API] Found ${result.total_count} images using expr: ${expression}`);

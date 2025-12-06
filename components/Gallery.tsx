@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
 const Gallery: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(2);
+  const [activeIndex, setActiveIndex] = useState(0); // MẶC ĐỊNH LÀ 0 (ẢNH MỚI NHẤT)
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const touchEndRef = useRef(0);
@@ -18,9 +18,10 @@ const Gallery: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
-            setImages(data);
+            // Giới hạn tối đa 20 ảnh ngay tại frontend để chắc chắn
+            setImages(data.slice(0, 20));
             setSource('cloudinary');
-            setActiveIndex(Math.floor(data.length / 2));
+            setActiveIndex(0);
             setIsLoading(false);
             return;
           }
@@ -28,8 +29,9 @@ const Gallery: React.FC = () => {
         throw new Error(`API: ${response.status}`);
       } catch (error: any) {
         console.warn("Gallery: Using fallback images.", error);
-        setImages(FALLBACK_IMAGES);
+        setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn fallback cũng 20 ảnh
         setSource('fallback');
+        setActiveIndex(0);
         setIsLoading(false);
       }
     };
@@ -51,10 +53,12 @@ const Gallery: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Loop Logic: Nếu là ảnh cuối cùng -> Quay về 0
     setActiveIndex((prev) => (prev + 1) < images.length ? prev + 1 : 0);
   };
 
   const handlePrev = () => {
+    // Loop Logic: Nếu là ảnh đầu tiên -> Quay về cuối
     setActiveIndex((prev) => (prev - 1) >= 0 ? prev - 1 : images.length - 1);
   };
 
