@@ -9,6 +9,20 @@ cloudinary.config({
 });
 
 export default async function handler(req, res) {
+  // Set CORS headers to allow requests from your domain
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -19,22 +33,29 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'Missing folder name' });
   }
 
+  // Debug logs (Check Vercel Function Logs to see these)
+  console.log(`[API] Fetching images from folder: ${folder}`);
+  
   try {
-    // TÌM ẢNH TRONG FOLDER
-    // Sử dụng biểu thức chính xác hơn. 'folder:${folder}' tìm trong folder đó.
-    // Nếu muốn tìm cả folder con, dùng prefix:${folder} nhưng search expression mạnh hơn.
-    // Ở đây ta dùng 'folder:${folder}*' để bao gồm cả folder con nếu có.
+    // TÌM ẢNH TRONG FOLDER (THUẬT TOÁN BAO SÂN)
+    // 1. folder:${folder} -> Tìm chính xác folder tên đó ở gốc (vd: gallery)
+    // 2. folder:kinailroom/${folder} -> Tìm folder nằm trong kinailroom (vd: kinailroom/gallery)
+    // 3. folder:${folder}* -> Tìm các folder con (vd: gallery/2024)
+    const expression = `folder:${folder} OR folder:kinailroom/${folder} OR folder:${folder}*`;
+    
     const result = await cloudinary.search
-      .expression(`folder:${folder}*`) 
+      .expression(expression) 
       .sort_by('created_at', 'desc') // Ảnh mới nhất hiển thị trước
       .max_results(50) // Tăng số lượng ảnh lấy về
       .execute();
+
+    console.log(`[API] Found ${result.total_count} images using expr: ${expression}`);
 
     const images = result.resources.map((resource) => resource.secure_url);
 
     res.status(200).json(images);
   } catch (error) {
-    console.error('Cloudinary Fetch Error:', error);
+    console.error('[API] Cloudinary Fetch Error:', error);
     res.status(500).json({ message: 'Error fetching images', error: error.message });
   }
 }

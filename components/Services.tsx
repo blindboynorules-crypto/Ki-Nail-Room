@@ -26,7 +26,7 @@ const Services: React.FC = () => {
             return;
           }
         }
-        throw new Error(response.statusText || "No images found");
+        throw new Error(`API: ${response.status} (No images found in 'showcase' or 'kinailroom/showcase')`);
       } catch (error: any) {
         console.warn("Showcase: Using fallback images.", error);
         setDebugMsg(error.message);
@@ -128,10 +128,16 @@ const Services: React.FC = () => {
             
             {/* Debug Info - Only Visible if Fallback */}
             {source === 'fallback' && (
-                <div className="absolute top-0 right-0 p-2 opacity-50 hover:opacity-100 transition-opacity z-50">
-                     <div className="bg-orange-50 text-orange-600 text-[10px] px-2 py-1 rounded border border-orange-200 flex items-center gap-1 shadow-sm font-mono cursor-help" title="Lý do: Đang ở chế độ Preview (không có Server) hoặc chưa cấu hình API Cloudinary trên Vercel.">
-                        <AlertCircle className="w-3 h-3" />
-                        <span>Preview Mode: Using Google Drive Backup</span>
+                <div className="absolute top-0 right-0 p-2 opacity-100 z-50">
+                     <div className="bg-orange-50 text-orange-700 text-[10px] px-3 py-2 rounded-lg border border-orange-200 flex flex-col gap-1 shadow-lg font-mono max-w-[200px]">
+                        <div className="flex items-center gap-1 font-bold">
+                             <AlertCircle className="w-3 h-3" />
+                             <span>PREVIEW MODE / NO SERVER</span>
+                        </div>
+                        <span className="opacity-80 leading-tight">Serverless API không chạy ở Preview. Hãy Deploy lên Vercel để thấy ảnh Cloudinary.</span>
+                        <div className="text-[9px] mt-1 pt-1 border-t border-orange-200 text-orange-500 truncate">
+                            Error: {debugMsg || "API 404/500"}
+                        </div>
                      </div>
                 </div>
             )}

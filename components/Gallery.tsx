@@ -10,6 +10,7 @@ const Gallery: React.FC = () => {
   const [startX, setStartX] = useState(0);
   const touchEndRef = useRef(0);
   const [source, setSource] = useState<'cloudinary' | 'fallback'>('fallback');
+  const [debugMsg, setDebugMsg] = useState<string>('');
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -25,9 +26,10 @@ const Gallery: React.FC = () => {
             return;
           }
         }
-        throw new Error(response.statusText || "No images found");
-      } catch (error) {
+        throw new Error(`API: ${response.status} (No images found in 'gallery' or 'kinailroom/gallery')`);
+      } catch (error: any) {
         console.warn("Gallery: Using fallback images.", error);
+        setDebugMsg(error.message);
         setImages(FALLBACK_IMAGES);
         setSource('fallback');
         setIsLoading(false);
@@ -147,9 +149,15 @@ const Gallery: React.FC = () => {
       {/* Debug Info - Only Visible if Fallback */}
         {source === 'fallback' && (
             <div className="absolute top-2 right-2 z-50">
-                    <div className="bg-orange-50 text-orange-600 text-[10px] px-2 py-1 rounded border border-orange-200 flex items-center gap-1 shadow-sm font-mono cursor-help" title="Lý do: Đang ở chế độ Preview (không có Server) hoặc chưa cấu hình API Cloudinary trên Vercel.">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>Preview Mode: Backup Images</span>
+                    <div className="bg-orange-50 text-orange-700 text-[10px] px-3 py-2 rounded-lg border border-orange-200 flex flex-col gap-1 shadow-lg font-mono max-w-[200px]">
+                        <div className="flex items-center gap-1 font-bold">
+                             <AlertCircle className="w-3 h-3" />
+                             <span>PREVIEW MODE / NO SERVER</span>
+                        </div>
+                        <span className="opacity-80 leading-tight">Serverless API không chạy ở Preview. Hãy Deploy lên Vercel để thấy ảnh Cloudinary.</span>
+                        <div className="text-[9px] mt-1 pt-1 border-t border-orange-200 text-orange-500 truncate">
+                            Error: {debugMsg || "API 404/500"}
+                        </div>
                     </div>
             </div>
         )}
