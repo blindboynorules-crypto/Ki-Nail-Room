@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -6,8 +7,9 @@ import AiPricing from './components/AiPricing';
 import Training from './components/Training';
 import Gallery from './components/Gallery';
 import Footer from './components/Footer';
+import CleanupDemo from './components/CleanupDemo';
 
-type ViewState = 'home' | 'ai-pricing';
+type ViewState = 'home' | 'ai-pricing' | 'cleanup-demo';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
@@ -16,8 +18,11 @@ const App: React.FC = () => {
     if (id === 'ai-pricing') {
       setCurrentView('ai-pricing');
       window.scrollTo(0, 0);
+    } else if (id === 'cleanup-demo') {
+      setCurrentView('cleanup-demo');
+      window.scrollTo(0, 0);
     } else {
-      // Nếu đang ở trang AI Pricing mà muốn về section của trang chủ
+      // Nếu đang ở trang khác mà muốn về section của trang chủ
       if (currentView !== 'home') {
         setCurrentView('home');
         // Đợi render xong trang home rồi mới cuộn
@@ -47,6 +52,10 @@ const App: React.FC = () => {
       document.documentElement.style.scrollBehavior = 'auto';
     };
   }, []);
+
+  if (currentView === 'cleanup-demo') {
+    return <CleanupDemo onBack={() => setCurrentView('home')} />;
+  }
 
   return (
     <div className="min-h-screen bg-vanilla-50 flex flex-col">

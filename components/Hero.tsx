@@ -58,13 +58,13 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               Nơi mang lại vẻ đẹp nhẹ nhàng, tinh tế và trendy nhất cho đôi bàn tay của bạn.
             </p>
 
-            {/* Buttons - Always Row */}
-            <div className="flex flex-row gap-3 w-full max-w-md md:max-w-none justify-center md:justify-start">
+            {/* Buttons - Always Row - Fixed for Mobile */}
+            <div className="flex flex-row items-center gap-3 w-full max-w-md md:max-w-none">
               <a 
                 href={MESSENGER_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 md:flex-none md:min-w-[180px] group flex items-center justify-center px-4 py-3.5 md:px-8 bg-chestnut-600 text-white rounded-full font-bold font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base hover:-translate-y-1 whitespace-nowrap"
+                className="flex-1 flex items-center justify-center px-2 py-3.5 md:px-8 bg-chestnut-600 text-white rounded-full font-bold font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-[13px] md:text-base hover:-translate-y-1 whitespace-nowrap overflow-hidden"
               >
                 Đặt Lịch Ngay
                 <ArrowRight className="ml-1 md:ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
@@ -72,7 +72,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               
               <a 
                 href="tel:0919979763"
-                className="flex-1 md:flex-none md:min-w-[180px] group flex items-center justify-center px-4 py-3.5 md:px-8 bg-white text-chestnut-600 border-2 border-chestnut-100 rounded-full font-bold font-vn hover:border-chestnut-600 hover:text-chestnut-700 transition-all shadow-sm active:scale-95 text-sm md:text-base active:bg-green-600 active:text-white active:border-green-600 active:shadow-inner whitespace-nowrap"
+                className="flex-1 flex items-center justify-center px-2 py-3.5 md:px-8 bg-white text-chestnut-600 border-2 border-chestnut-100 rounded-full font-bold font-vn hover:border-chestnut-600 hover:text-chestnut-700 transition-all shadow-sm active:scale-95 text-[13px] md:text-base active:bg-green-600 active:text-white active:border-green-600 active:shadow-inner whitespace-nowrap overflow-hidden"
               >
                 <Phone className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 group-hover:animate-wiggle group-active:text-white" />
                 Gọi Hotline
@@ -129,8 +129,6 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     className="w-24 h-24 drop-shadow-lg filter hover:brightness-110"
                   />
                 </div>
-
-              
              </div>
           </div>
 
