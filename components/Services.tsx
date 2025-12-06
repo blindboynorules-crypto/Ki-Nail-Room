@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { SERVICE_MENU, SERVICE_SHOWCASE_IMAGES as FALLBACK_IMAGES } from '../constants';
-import { Sparkles, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Sparkles, ChevronLeft, ChevronRight, Loader2, AlertCircle, Database, Image as ImageIcon } from 'lucide-react';
 
 const Services: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -9,6 +9,8 @@ const Services: React.FC = () => {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [source, setSource] = useState<'cloudinary' | 'fallback'>('fallback');
+  const [debugMsg, setDebugMsg] = useState<string>('');
 
   // Fetch ảnh từ API folder 'showcase'
   useEffect(() => {
@@ -19,14 +21,17 @@ const Services: React.FC = () => {
           const data = await response.json();
           if (data && data.length > 0) {
             setImages(data);
+            setSource('cloudinary');
             setIsLoading(false);
             return;
           }
         }
-        throw new Error("No images found");
-      } catch (error) {
-        console.warn("Using fallback showcase images");
+        throw new Error(response.statusText || "No images found");
+      } catch (error: any) {
+        console.warn("Showcase: Using fallback images.", error);
+        setDebugMsg(error.message);
         setImages(FALLBACK_IMAGES);
+        setSource('fallback');
         setIsLoading(false);
       }
     };
@@ -42,7 +47,6 @@ const Services: React.FC = () => {
       } catch (e) { return url; }
     }
     if (url.includes('cloudinary.com')) {
-        // Tối ưu ảnh showcase nhỏ hơn
         return url.replace('/upload/', '/upload/w_600,q_auto,f_auto/');
     }
     return url;
@@ -120,10 +124,34 @@ const Services: React.FC = () => {
         </div>
 
         {/* Horizontal Image Carousel */}
-        <div className="mt-8 border-t border-gray-100 pt-12">
-            <div className="mb-8 px-2 text-center md:text-left">
-                 <h3 className="text-2xl font-serif font-bold text-chestnut-700 mb-2">Tác Phẩm Của Ki Nail Room</h3>
-                 <p className="font-menu font-medium mt-1 flex items-center justify-center md:justify-start gap-2 text-gray-600 text-sm">
+        <div className="mt-8 border-t border-gray-100 pt-12 relative">
+            
+            {/* Debug Info - Only Visible if Fallback */}
+            {source === 'fallback' && (
+                <div className="absolute top-0 right-0 p-2 opacity-50 hover:opacity-100 transition-opacity z-50">
+                     <div className="bg-orange-50 text-orange-600 text-[10px] px-2 py-1 rounded border border-orange-200 flex items-center gap-1 shadow-sm font-mono cursor-help" title="Lý do: Đang ở chế độ Preview (không có Server) hoặc chưa cấu hình API Cloudinary trên Vercel.">
+                        <AlertCircle className="w-3 h-3" />
+                        <span>Preview Mode: Using Google Drive Backup</span>
+                     </div>
+                </div>
+            )}
+
+            <div className="mb-8 px-2 text-center md:text-left flex flex-col md:flex-row items-center gap-3">
+                 <h3 className="text-2xl font-serif font-bold text-chestnut-700">Tác Phẩm Của Ki Nail Room</h3>
+                 <div className="flex items-center gap-2">
+                    {source === 'cloudinary' ? (
+                        <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                    ) : (
+                        <span className="flex h-2 w-2 rounded-full bg-orange-400" title="Đang dùng ảnh dự phòng"></span>
+                    )}
+                 </div>
+            </div>
+            
+            <div className="mb-6 -mt-4 text-center md:text-left">
+                 <p className="font-menu text-sm font-medium mt-1 flex items-center justify-center md:justify-start gap-2 text-gray-600">
                     <Sparkles className="w-4 h-4 text-chestnut-400 animate-pulse" />
                     Đội ngũ kỹ thuật viên có tay nghề vững, đáp ứng nhiều phong cách mẫu theo yêu cầu khách hàng.
                  </p>
@@ -132,8 +160,11 @@ const Services: React.FC = () => {
             <div className="relative group min-h-[300px]">
                 {/* Loading State */}
                 {isLoading && (
-                     <div className="absolute inset-0 flex items-center justify-center bg-vanilla-50/50 z-20">
-                         <Loader2 className="w-8 h-8 text-chestnut-500 animate-spin" />
+                     <div className="absolute inset-0 flex items-center justify-center bg-vanilla-50/80 z-20 backdrop-blur-sm rounded-xl">
+                         <div className="flex flex-col items-center">
+                            <Loader2 className="w-8 h-8 text-chestnut-500 animate-spin mb-2" />
+                            <span className="text-xs text-chestnut-400 font-menu">Đang tải tác phẩm...</span>
+                         </div>
                      </div>
                 )}
 

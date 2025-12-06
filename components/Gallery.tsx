@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GALLERY_IMAGES as FALLBACK_IMAGES } from '../constants';
-import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
 const Gallery: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -9,25 +9,27 @@ const Gallery: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const touchEndRef = useRef(0);
+  const [source, setSource] = useState<'cloudinary' | 'fallback'>('fallback');
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        // Gọi API lấy ảnh từ folder 'gallery' trên Cloudinary
         const response = await fetch('/api/get-images?folder=gallery');
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
             setImages(data);
+            setSource('cloudinary');
             setActiveIndex(Math.floor(data.length / 2));
             setIsLoading(false);
             return;
           }
         }
-        throw new Error("No images found");
+        throw new Error(response.statusText || "No images found");
       } catch (error) {
-        console.warn("Using fallback images. Reason:", error);
+        console.warn("Gallery: Using fallback images.", error);
         setImages(FALLBACK_IMAGES);
+        setSource('fallback');
         setIsLoading(false);
       }
     };
@@ -43,7 +45,6 @@ const Gallery: React.FC = () => {
         } catch (e) { return url; }
     }
     if (url.includes('cloudinary.com')) {
-        // Tối ưu ảnh: Rộng 800px, tự động nén
         return url.replace('/upload/', '/upload/w_800,q_auto,f_auto/');
     }
     return url;
@@ -141,7 +142,18 @@ const Gallery: React.FC = () => {
   };
 
   return (
-    <section id="gallery" className="py-16 md:py-24 bg-vanilla-50 border-t border-chestnut-100 overflow-hidden">
+    <section id="gallery" className="py-16 md:py-24 bg-vanilla-50 border-t border-chestnut-100 overflow-hidden relative">
+      
+      {/* Debug Info - Only Visible if Fallback */}
+        {source === 'fallback' && (
+            <div className="absolute top-2 right-2 z-50">
+                    <div className="bg-orange-50 text-orange-600 text-[10px] px-2 py-1 rounded border border-orange-200 flex items-center gap-1 shadow-sm font-mono cursor-help" title="Lý do: Đang ở chế độ Preview (không có Server) hoặc chưa cấu hình API Cloudinary trên Vercel.">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Preview Mode: Backup Images</span>
+                    </div>
+            </div>
+        )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 md:mb-16">
            <div className="inline-flex items-center justify-center p-3 mb-5 bg-white rounded-[1.5rem] shadow-xl shadow-chestnut-200/50 border-2 border-vanilla-200 relative group">
@@ -158,8 +170,14 @@ const Gallery: React.FC = () => {
              </svg>
            </div>
 
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm flex items-center justify-center gap-2">
             Thư Viện Ảnh
+             {source === 'cloudinary' ? (
+                <span className="flex h-2 w-2 relative" title="Kết nối Cloudinary thành công">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+            ) : null}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto font-menu text-lg">
             Mẫu do học viên thực hiện dưới sự hướng dẫn của giảng viên.
