@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowRight, Sparkles, Phone } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 
 interface HeroProps {
   onCtaClick: () => void;
@@ -19,7 +19,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
 
   return (
     <section id="home" className="relative pt-24 pb-12 md:pt-32 md:pb-20 overflow-hidden bg-vanilla-50">
-      {/* Background Decor */}
+      {/* Background Decor - Abstract Blobs */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-vanilla-200/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 animate-pulse-slow"></div>
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-chestnut-100/40 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
@@ -28,7 +28,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
           
-          {/* Text Content - Optimized Typography */}
+          {/* Text Content */}
           <div className="text-center md:text-left order-2 md:order-1 flex flex-col items-center md:items-start">
             
             {/* Tagline */}
@@ -58,7 +58,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               Nơi mang lại vẻ đẹp nhẹ nhàng, tinh tế và trendy nhất cho đôi bàn tay của bạn.
             </p>
 
-            {/* Buttons - Force Horizontal Row & Balance */}
+            {/* Buttons - Always Row */}
             <div className="flex flex-row gap-3 w-full max-w-md md:max-w-none justify-center md:justify-start">
               <a 
                 href={MESSENGER_LINK}
@@ -70,7 +70,6 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 <ArrowRight className="ml-1 md:ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
               </a>
               
-              {/* Hotline Button - Balanced width with flex-1 */}
               <a 
                 href="tel:0919979763"
                 className="flex-1 md:flex-none md:min-w-[180px] group flex items-center justify-center px-4 py-3.5 md:px-8 bg-white text-chestnut-600 border-2 border-chestnut-100 rounded-full font-bold font-vn hover:border-chestnut-600 hover:text-chestnut-700 transition-all shadow-sm active:scale-95 text-sm md:text-base active:bg-green-600 active:text-white active:border-green-600 active:shadow-inner whitespace-nowrap"
@@ -81,9 +80,10 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
             </div>
           </div>
           
-          {/* Image Side - Reduced Size with Christmas Effects */}
-          <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-4">
-             <div className="relative w-64 md:w-80 group animate-float">
+          {/* Image Side - Composition Layering */}
+          <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-8">
+             <div className="relative w-64 md:w-80 group">
+                
                 {/* Decorative border ring */}
                 <div className="absolute inset-0 border-[1px] border-chestnut-300 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
                 
@@ -99,7 +99,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     }}
                   />
                   
-                  {/* SNOW EFFECT OVERLAY (Vùng Xanh Dương) */}
+                  {/* SNOW EFFECT OVERLAY (Hiệu ứng Tuyết) */}
                   <div className="absolute inset-0 z-20 pointer-events-none">
                     {snowflakes.map((flake, idx) => (
                       <div
@@ -117,25 +117,20 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     ))}
                   </div>
 
-                  {/* Subtle overlay gradient at bottom only */}
+                  {/* Gradient Overlay */}
                   <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-chestnut-900/40 to-transparent pointer-events-none"></div>
                 </div>
 
-                {/* SNOWMAN IMAGE (Vùng Khoanh Đỏ) */}
+                {/* SNOWMAN IMAGE (Góc dưới trái) */}
                 <div className="absolute -bottom-2 -left-6 z-30 animate-bounce-slow hover:scale-110 transition-transform cursor-pointer">
                   <img 
                     src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Snowman.png" 
                     alt="Cute Snowman" 
-                    className="w-24 h-24 drop-shadow-lg"
+                    className="w-24 h-24 drop-shadow-lg filter hover:brightness-110"
                   />
                 </div>
 
-                {/* Floating Badge (Original) */}
-                <div className="absolute -top-4 -right-4 z-20 bg-white p-3 rounded-full shadow-lg animate-pulse-slow hidden md:block hover:scale-110 transition-transform">
-                  <div className="bg-vanilla-100 rounded-full p-2">
-                     <Sparkles className="h-5 w-5 text-chestnut-500 animate-spin-slow" />
-                  </div>
-                </div>
+              
              </div>
           </div>
 

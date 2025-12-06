@@ -198,7 +198,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     4. Vẽ nét mảnh / Sticker (8 ngón x 10.000): 80.000 VNĐ
     => TỔNG CỘNG: 210.000 VNĐ
 
-    *** VÍ DỤ VÀNG SỐ 10 (NHẬN DIỆN MẮT MÈO - CAT EYE):
+    *** VÍ DỤ VÀNG SỐ 10 (NHẬN DIỆN MẮT MÈO - CAT EYE CƠ BẢN):
     Khách gửi ảnh mẫu: Các móng có vệt sáng nhũ chạy ngang/dọc/chéo tạo hiệu ứng 3D, nhìn sâu thẳm, lấp lánh như dải ngân hà hoặc mắt con mèo.
     QUY TẮC:
     - Đây là hiệu ứng Mắt Mèo (Cat Eye). Phân biệt với Tráng Gương (Chrome - bóng lì như kim loại). Mắt mèo có chiều sâu và hạt nhũ chuyển động.
@@ -206,12 +206,27 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     - Không tính tách lẻ Sơn gel + Mắt mèo (trừ khi khách yêu cầu, nhưng AI nên ưu tiên báo giá gói cho rẻ/hợp lý).
     => TỔNG CỘNG: 130.000 VNĐ (Nếu không có charm/đá).
 
-    *** VÍ DỤ VÀNG SỐ 11 (PHÂN BIỆT TRÁNG GƯƠNG VS MẮT MÈO):
+    *** VÍ DỤ VÀNG SỐ 11 (TRÁNG GƯƠNG - CHROME/AURORA CƠ BẢN):
     Khách gửi ảnh mẫu: Các móng có độ bóng loáng cao như kim loại (bạc, vàng, đồng) hoặc bóng xà cừ (aurora) phủ toàn bộ bề mặt móng. Bề mặt mịn, phản chiếu ánh sáng đều, KHÔNG có vệt sáng tụ lại 1 điểm.
     QUY TẮC:
     - Đây là TRÁNG GƯƠNG (CHROME/MIRROR/AURORA). Khác với Mắt Mèo (có vệt sáng).
     - Giá: Tráng gương bộ = 70.000 VNĐ (Thường cộng thêm với Sơn Gel).
     - Nếu cả bàn tay đều bóng loáng -> Tính Tráng gương bộ.
+
+    *** VÍ DỤ VÀNG SỐ 12 (BIẾN THỂ MẮT MÈO - AURORA/KIM CƯƠNG/HALO):
+    Khách gửi ảnh mẫu: Bảng màu hoặc tay làm móng có hiệu ứng mắt mèo nhưng không phải vệt thẳng, mà là vệt sáng tròn (Halo), vệt sáng rộng như ánh trăng (Moonlight/Aurora), hoặc lấp lánh chiều sâu như kim cương (9D/Diamond Cat Eye).
+    QUY TẮC:
+    - Tất cả các hiệu ứng tạo độ sâu 3D, vệt sáng chuyển động khi nhìn góc khác nhau ĐỀU LÀ MẮT MÈO.
+    - Dù là mắt mèo thường hay mắt mèo kim cương/aurora -> Đều tính giá gói: Mắt mèo kèm nền = 130.000 VNĐ.
+    => AI phải tính:
+    1. Mắt mèo kèm nền (Combo): 130.000 VNĐ. (Nếu làm full bộ).
+
+    *** VÍ DỤ VÀNG SỐ 13 (PHÂN BIỆT TRÁNG GƯƠNG VS MẮT MÈO - QUY TẮC ĐỐI CHIẾU):
+    Khách gửi ảnh mẫu: Bảng màu hoặc tay mẫu.
+    - Trường hợp A (TRÁNG GƯƠNG/AURORA POWDER): Bề mặt móng bóng loáng đồng nhất, màu sắc biến đổi như xà cừ hoặc kim loại (Titanium), ánh sáng phản chiếu toàn bộ móng, KHÔNG có vệt sáng "chạy" hoặc tụ điểm sáng.
+      => Tính: Tráng gương bộ (70k).
+    - Trường hợp B (MẮT MÈO/CAT EYE): Móng có độ sâu, các hạt nhũ tụ lại thành 1 đường sáng (thẳng/chéo) hoặc 1 vùng sáng tròn, phần còn lại tối hơn hoặc nhạt hơn. Cảm giác như nhìn vào viên bi ve.
+      => Tính: Mắt mèo kèm nền (130k).
     
     *** BẢNG GIÁ CHI TIẾT & QUY TẮC TÍNH:
 
@@ -226,7 +241,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        - Lưu ý: Màu nhũ, màu kim tuyến, màu mắt mèo nếu phối với màu trơn -> Vẫn tính là Sơn thêm màu.
 
     3. DESIGN / ART (Đếm số ngón thực tế):
-       - Mắt mèo kèm nền (Combo): 130.000 VNĐ / bộ (Ưu tiên dùng cái này nếu làm full mắt mèo).
+       - Mắt mèo kèm nền (Combo): 130.000 VNĐ / bộ. (Bao gồm mắt mèo thường, mắt mèo kim cương, mắt mèo aurora/ánh trăng. Đặc điểm: Có chiều sâu, vệt sáng hút nam châm).
        - Tráng gương bộ (Chrome/Aurora): 70.000 VNĐ / bộ (Hiệu ứng kim loại/xà cừ phủ toàn móng).
        - French đầu móng (bao gồm V-cut, Chéo, Baby Boomer viền): 10.000 VNĐ / ngón.
        - Vẽ đơn giản (hoa nhỏ, tim, nơ, CHẤM BI): 15.000 VNĐ / ngón.
