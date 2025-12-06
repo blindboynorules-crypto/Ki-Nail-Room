@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowRight, Sparkles, Phone } from 'lucide-react';
 
@@ -7,6 +8,14 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
   const MESSENGER_LINK = "https://m.me/kinailroom";
+
+  // Tạo mảng bông tuyết với vị trí ngẫu nhiên
+  const snowflakes = Array.from({ length: 20 }).map((_, i) => ({
+    left: `${Math.random() * 100}%`,
+    animationDelay: `${Math.random() * 3}s`,
+    animationDuration: `${2 + Math.random() * 3}s`,
+    size: `${4 + Math.random() * 6}px`,
+  }));
 
   return (
     <section id="home" className="relative pt-24 pb-12 md:pt-32 md:pb-20 overflow-hidden bg-vanilla-50">
@@ -72,7 +81,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
             </div>
           </div>
           
-          {/* Image Side - Reduced Size */}
+          {/* Image Side - Reduced Size with Christmas Effects */}
           <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-4">
              <div className="relative w-64 md:w-80 group animate-float">
                 {/* Decorative border ring */}
@@ -89,12 +98,40 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                       e.currentTarget.src = "https://images.unsplash.com/photo-1632515904036-7c0871239c0f?q=80&w=1000&auto=format&fit=crop";
                     }}
                   />
+                  
+                  {/* SNOW EFFECT OVERLAY (Vùng Xanh Dương) */}
+                  <div className="absolute inset-0 z-20 pointer-events-none">
+                    {snowflakes.map((flake, idx) => (
+                      <div
+                        key={idx}
+                        className="absolute bg-white rounded-full opacity-80 animate-snow"
+                        style={{
+                          left: flake.left,
+                          width: flake.size,
+                          height: flake.size,
+                          animationDelay: flake.animationDelay,
+                          animationDuration: flake.animationDuration,
+                          top: '-10px'
+                        }}
+                      />
+                    ))}
+                  </div>
+
                   {/* Subtle overlay gradient at bottom only */}
                   <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-chestnut-900/40 to-transparent pointer-events-none"></div>
                 </div>
 
-                {/* Floating Badge */}
-                <div className="absolute -bottom-4 -left-4 z-20 bg-white p-3 rounded-full shadow-lg animate-pulse-slow hidden md:block hover:scale-110 transition-transform">
+                {/* SNOWMAN IMAGE (Vùng Khoanh Đỏ) - REPLACED */}
+                <div className="absolute -bottom-2 -left-6 z-30 animate-bounce-slow hover:scale-110 transition-transform cursor-pointer">
+                  <img 
+                    src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Snowman.png" 
+                    alt="Cute Snowman" 
+                    className="w-24 h-24 drop-shadow-lg"
+                  />
+                </div>
+
+                {/* Floating Badge (Original) */}
+                <div className="absolute -top-4 -right-4 z-20 bg-white p-3 rounded-full shadow-lg animate-pulse-slow hidden md:block hover:scale-110 transition-transform">
                   <div className="bg-vanilla-100 rounded-full p-2">
                      <Sparkles className="h-5 w-5 text-chestnut-500 animate-spin-slow" />
                   </div>
