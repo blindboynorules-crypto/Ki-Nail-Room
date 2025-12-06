@@ -58,25 +58,25 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               Nơi mang lại vẻ đẹp nhẹ nhàng, tinh tế và trendy nhất cho đôi bàn tay của bạn.
             </p>
 
-            {/* Buttons */}
-            <div className="flex flex-row gap-4 w-full justify-center md:justify-start">
+            {/* Buttons - Force Horizontal Row & Balance */}
+            <div className="flex flex-row gap-3 w-full max-w-md md:max-w-none justify-center md:justify-start">
               <a 
                 href={MESSENGER_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center px-7 py-3 bg-chestnut-600 text-white rounded-full font-medium font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base hover:-translate-y-1"
+                className="flex-1 md:flex-none md:min-w-[180px] group flex items-center justify-center px-4 py-3.5 md:px-8 bg-chestnut-600 text-white rounded-full font-bold font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-sm md:text-base hover:-translate-y-1 whitespace-nowrap"
               >
                 Đặt Lịch Ngay
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="ml-1 md:ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
               </a>
               
-              {/* Hotline Button - Updated */}
+              {/* Hotline Button - Balanced width with flex-1 */}
               <a 
                 href="tel:0919979763"
-                className="group flex items-center justify-center px-7 py-3 bg-white text-chestnut-600 border border-chestnut-200 rounded-full font-medium font-vn hover:bg-vanilla-50 transition-all shadow-sm active:scale-95 text-sm md:text-base hover:border-chestnut-400"
+                className="flex-1 md:flex-none md:min-w-[180px] group flex items-center justify-center px-4 py-3.5 md:px-8 bg-white text-chestnut-600 border-2 border-chestnut-100 rounded-full font-bold font-vn hover:border-chestnut-600 hover:text-chestnut-700 transition-all shadow-sm active:scale-95 text-sm md:text-base active:bg-green-600 active:text-white active:border-green-600 active:shadow-inner whitespace-nowrap"
               >
-                <Phone className="mr-2 h-4 w-4 text-chestnut-500 group-hover:animate-wiggle" />
-                Hotline: 0919.979.763
+                <Phone className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 group-hover:animate-wiggle group-active:text-white" />
+                Gọi Hotline
               </a>
             </div>
           </div>
@@ -121,7 +121,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                   <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-chestnut-900/40 to-transparent pointer-events-none"></div>
                 </div>
 
-                {/* SNOWMAN IMAGE (Vùng Khoanh Đỏ) - REPLACED */}
+                {/* SNOWMAN IMAGE (Vùng Khoanh Đỏ) */}
                 <div className="absolute -bottom-2 -left-6 z-30 animate-bounce-slow hover:scale-110 transition-transform cursor-pointer">
                   <img 
                     src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Snowman.png" 
