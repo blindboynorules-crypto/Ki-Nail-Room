@@ -1,31 +1,57 @@
-import React, { useRef, useState } from 'react';
-import { SERVICE_MENU, SERVICE_SHOWCASE_IMAGES } from '../constants';
-import { Sparkles, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { SERVICE_MENU, SERVICE_SHOWCASE_IMAGES as FALLBACK_IMAGES } from '../constants';
+import { Sparkles, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 const Services: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [isDown, setIsDown] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [images, setImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Helper function to process Google Drive links
-  const getDriveThumbnail = (url: string) => {
-    try {
-      const match = url.match(/\/d\/(.+?)(\/|$)/);
-      if (match && match[1]) {
-        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w600`;
+  // Fetch ảnh từ API folder 'showcase'
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await fetch('/api/get-images?folder=showcase');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setImages(data);
+            setIsLoading(false);
+            return;
+          }
+        }
+        throw new Error("No images found");
+      } catch (error) {
+        console.warn("Using fallback showcase images");
+        setImages(FALLBACK_IMAGES);
+        setIsLoading(false);
       }
-      return url; 
-    } catch (e) {
-      return url;
+    };
+
+    fetchImages();
+  }, []);
+
+  const getThumbnail = (url: string) => {
+    if (url.includes('drive.google.com')) {
+      try {
+        const match = url.match(/\/d\/(.+?)(\/|$)/);
+        if (match && match[1]) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w600`;
+      } catch (e) { return url; }
     }
+    if (url.includes('cloudinary.com')) {
+        // Tối ưu ảnh showcase nhỏ hơn
+        return url.replace('/upload/', '/upload/w_600,q_auto,f_auto/');
+    }
+    return url;
   };
 
-  // Button Scroll Logic
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
       const { current } = sliderRef;
-      const scrollAmount = 300; // Scroll roughly one card width
+      const scrollAmount = 300;
       if (direction === 'left') {
         current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
       } else {
@@ -34,7 +60,6 @@ const Services: React.FC = () => {
     }
   };
 
-  // Mouse Drag Logic for Desktop
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!sliderRef.current) return;
     setIsDown(true);
@@ -54,8 +79,7 @@ const Services: React.FC = () => {
     if (!isDown || !sliderRef.current) return;
     e.preventDefault();
     const x = e.pageX - sliderRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll-fast multiplier
-    // Note: scrollLeft is direct manipulation, so it overrides 'smooth' behavior which is fine for dragging
+    const walk = (x - startX) * 2;
     sliderRef.current.scrollLeft = scrollLeft - walk;
   };
 
@@ -99,13 +123,20 @@ const Services: React.FC = () => {
         <div className="mt-8 border-t border-gray-100 pt-12">
             <div className="mb-8 px-2 text-center md:text-left">
                  <h3 className="text-2xl font-serif font-bold text-chestnut-700 mb-2">Tác Phẩm Của Ki Nail Room</h3>
-                 <p className="text-sm text-gray-600 font-menu font-medium mt-1 flex items-center justify-center md:justify-start gap-2">
+                 <p className="font-menu font-medium mt-1 flex items-center justify-center md:justify-start gap-2 text-gray-600 text-sm">
                     <Sparkles className="w-4 h-4 text-chestnut-400 animate-pulse" />
                     Đội ngũ kỹ thuật viên có tay nghề vững, đáp ứng nhiều phong cách mẫu theo yêu cầu khách hàng.
                  </p>
             </div>
             
-            <div className="relative group">
+            <div className="relative group min-h-[300px]">
+                {/* Loading State */}
+                {isLoading && (
+                     <div className="absolute inset-0 flex items-center justify-center bg-vanilla-50/50 z-20">
+                         <Loader2 className="w-8 h-8 text-chestnut-500 animate-spin" />
+                     </div>
+                )}
+
                 {/* Left Arrow Button */}
                 <button 
                   onClick={() => scroll('left')}
@@ -131,35 +162,29 @@ const Services: React.FC = () => {
                     onMouseLeave={handleMouseLeave}
                     onMouseUp={handleMouseUp}
                     onMouseMove={handleMouseMove}
-                    style={{ scrollBehavior: isDown ? 'auto' : 'smooth' }} // Toggle smooth scroll for buttons vs drag
+                    style={{ scrollBehavior: isDown ? 'auto' : 'smooth' }}
                 >
-                    {SERVICE_SHOWCASE_IMAGES.map((url, idx) => (
+                    {images.map((url, idx) => (
                         <div 
                             key={idx} 
                             className="flex-shrink-0 w-60 h-80 md:w-72 md:h-96 snap-center relative group/img"
                         >
                             <div className="w-full h-full rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-vanilla-200 bg-white select-none">
                                 <img 
-                                    src={getDriveThumbnail(url)} 
+                                    src={getThumbnail(url)} 
                                     alt={`Ki Nail Room Showcase ${idx}`}
                                     className="w-full h-full object-cover pointer-events-none group-hover/img:scale-105 transition-transform duration-700"
                                     referrerPolicy="no-referrer"
                                     loading="lazy"
                                     draggable="false"
                                 />
-                                {/* Overlay on Hover */}
                                 <div className="absolute inset-0 bg-chestnut-900/0 hover:bg-chestnut-900/10 transition-colors duration-300"></div>
                             </div>
                         </div>
                     ))}
                 </div>
-                
-                {/* Fade effect on sides (optional, can remove if arrows are enough) */}
-                <div className="absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-white to-transparent pointer-events-none md:block hidden"></div>
-                <div className="absolute top-0 left-0 h-full w-4 bg-gradient-to-r from-white to-transparent pointer-events-none md:block hidden"></div>
             </div>
 
-             {/* Moved "Lướt xem thêm" below images */}
              <div className="flex items-center justify-center mt-6 text-sm text-chestnut-400 font-menu animate-pulse">
                 <ChevronLeft className="w-4 h-4 mr-1 animate-bounce-horizontal" />
                 Lướt xem thêm 
