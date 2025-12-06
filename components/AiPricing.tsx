@@ -116,7 +116,7 @@ const AiPricing: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative animate-float">
             <Bot className="h-8 w-8 text-chestnut-600" />
-            <span className="absolute -top-2 -right-12 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">BETA</span>
+            <span className="absolute -top-2 -right-12 bg-orange-600 text-white text-[10px] px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">v3.8</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             AI Báo Giá Nhanh
