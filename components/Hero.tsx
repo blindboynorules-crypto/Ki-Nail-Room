@@ -82,7 +82,8 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
           
           {/* Image Side - Composition Layering */}
           <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-8">
-             <div className="relative w-64 md:w-80 group">
+             {/* INCREASED WIDTH HERE: w-72 md:w-96 lg:w-[28rem] */}
+             <div className="relative w-72 md:w-96 lg:w-[28rem] group">
                 
                 {/* Decorative border ring */}
                 <div className="absolute inset-0 border-[1px] border-chestnut-300 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
