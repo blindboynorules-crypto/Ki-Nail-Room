@@ -93,7 +93,7 @@ async function handleReferral(sender_psid, recordId) {
                 payload: {
                     template_type: "button",
                     text: "💅 Móng Úp + Vẽ: 130.000đ\n(Đây là tin nhắn mẫu)",
-                    buttons: [{ type: "postback", title: "Gặp nhân viên", payload: "CHAT_HUMAN" }]
+                    buttons: [{ type: "postback", title: "Liên Hệ KiNailRoom", payload: "CHAT_HUMAN" }]
                 }
             }
         });
@@ -155,7 +155,7 @@ async function handleReferral(sender_psid, recordId) {
                     template_type: "button",
                     text: msgBody.substring(0, 640), // Cắt bớt nếu quá dài để tránh lỗi
                     buttons: [
-                        { type: "postback", title: "Gặp nhân viên", payload: "CHAT_WITH_HUMAN" }
+                        { type: "postback", title: "Liên Hệ KiNailRoom", payload: "CHAT_WITH_HUMAN" }
                     ]
                 }
             }
