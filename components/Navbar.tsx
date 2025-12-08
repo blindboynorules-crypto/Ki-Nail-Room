@@ -26,12 +26,13 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
   ];
 
   const handleNavClick = (id: string) => {
+    setIsOpen(false); // Đóng menu ngay lập tức
     onNavigate(id);
-    setIsOpen(false);
   };
 
   // --- LOGO CLICK LOGIC ---
   const handleLogoClick = (e: React.MouseEvent) => {
+    setIsOpen(false); // Đóng menu nếu đang mở
     onNavigate('home');
 
     setLogoClickCount(prev => {
@@ -151,6 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               href={MESSENGER_LINK}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => setIsOpen(false)}
               className="block w-full text-center px-4 py-3 font-bold text-base rounded-xl mt-4 font-vn active:scale-95 transition-transform
                          bg-chestnut-600/90 text-white backdrop-blur-sm border border-white/20 shadow-lg ring-1 ring-white/20 ring-inset"
             >
