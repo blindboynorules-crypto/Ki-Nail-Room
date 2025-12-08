@@ -70,8 +70,12 @@ async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return console.error("Missing Page Access Token");
 
+    // Gửi tín hiệu "Đang soạn tin..." (Typing...)
+    await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
+
     // 1. XỬ LÝ MOCK / DEMO
     if (recordId && recordId.startsWith('MOCK_')) {
+        await new Promise(r => setTimeout(r, 1000)); // Giả vờ đợi 1s
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "🚧 Đang hiển thị dữ liệu DEMO (Do chưa kết nối Database):" });
         await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, "https://drive.google.com/thumbnail?id=1XSy0IKZ_D_bUcfHrmADzfctEuIkeCWIM&sz=w1000");
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
@@ -84,6 +88,7 @@ async function handleReferral(sender_psid, recordId) {
                 }
             }
         });
+        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
         return;
     }
 
@@ -106,6 +111,7 @@ async function handleReferral(sender_psid, recordId) {
             await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
                 text: "⚠️ Không tìm thấy đơn báo giá này. Có thể đơn đã hết hạn." 
             });
+            await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
             return;
         }
 
@@ -129,6 +135,9 @@ async function handleReferral(sender_psid, recordId) {
             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
         }
 
+        // Tạm dừng 1 xíu cho tin nhắn ảnh load xong (tạo cảm giác tự nhiên)
+        await new Promise(r => setTimeout(r, 500));
+
         // GỬI TIN 2: CHI TIẾT
         const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n\n💰 TỔNG CỘNG: ${totalFormatted}\n\n⚠️ Đây là giá được phân tích và báo giá bằng AI, để biết giá cụ thể bạn cứ liên hệ trực tiếp Ki Nail hén.\n\nChat với tụi mình để chốt lịch nhé! 👇`;
         
@@ -147,10 +156,27 @@ async function handleReferral(sender_psid, recordId) {
 
     } catch (error) {
         console.error("Airtable Fetch Error:", error);
+    } finally {
+        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
     }
 }
 
 // --- HELPER FUNCTIONS ---
+async function sendSenderAction(token, psid, action) {
+    try {
+        await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                recipient: { id: psid },
+                sender_action: action
+            })
+        });
+    } catch (e) {
+        console.error("Sender Action Error:", e);
+    }
+}
+
 async function sendFacebookMessage(token, psid, messageContent) {
     try {
         const res = await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, {
