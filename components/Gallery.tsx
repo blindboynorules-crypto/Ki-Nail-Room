@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GALLERY_IMAGES as FALLBACK_IMAGES } from '../constants';
 import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
@@ -88,7 +89,21 @@ const Gallery: React.FC = () => {
   };
 
   const getCardStyle = (index: number) => {
-    const distance = index - activeIndex;
+    const total = images.length;
+    if (total === 0) return {};
+
+    // --- LOGIC VÒNG LẶP VÔ TẬN (INFINITE LOOP) ---
+    // Tính khoảng cách cơ bản
+    let distance = index - activeIndex;
+
+    // Điều chỉnh khoảng cách để tạo vòng tròn
+    // Ví dụ: Có 20 ảnh. Đang ở ảnh 0. Ảnh 19 (cách 19 đơn vị) sẽ được coi là -1 (ngay bên trái)
+    if (distance > total / 2) {
+        distance -= total;
+    } else if (distance < -total / 2) {
+        distance += total;
+    }
+
     const isActive = distance === 0;
     
     let xTranslate = '0%';
@@ -128,9 +143,11 @@ const Gallery: React.FC = () => {
         zIndex = 10;
         rotateY = '25deg';
     } else {
+        // Các ảnh ở xa ẩn đi nhưng vẫn giữ logic 3D để animation mượt
         opacity = 0;
         scale = 0.5;
         zIndex = 0;
+        // Nếu distance > 0 thì đẩy hẳn sang phải, < 0 đẩy sang trái
         xTranslate = distance > 0 ? '200%' : '-200%';
     }
 
@@ -197,7 +214,12 @@ const Gallery: React.FC = () => {
                     <div className="relative w-full max-w-[300px] md:max-w-[400px] h-[400px] md:h-[550px] flex items-center justify-center">
                         {images.map((url, idx) => {
                             const style = getCardStyle(idx);
-                            const isActive = idx === activeIndex;
+                            const distance = idx - activeIndex; // Chỉ dùng để so sánh index
+                            let normalizedDistance = distance;
+                            if (distance > images.length / 2) normalizedDistance -= images.length;
+                            if (distance < -images.length / 2) normalizedDistance += images.length;
+
+                            const isActive = normalizedDistance === 0;
                             
                             return (
                                 <div 
