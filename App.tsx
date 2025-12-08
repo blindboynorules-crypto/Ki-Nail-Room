@@ -8,23 +8,38 @@ import Training from './components/Training';
 import Gallery from './components/Gallery';
 import Footer from './components/Footer';
 import CleanupDemo from './components/CleanupDemo';
+import Privacy from './components/Privacy';
 
-type ViewState = 'home' | 'ai-pricing' | 'cleanup-demo';
+type ViewState = 'home' | 'ai-pricing' | 'cleanup-demo' | 'privacy';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
+
+  // Xử lý URL path khi load trang lần đầu để hỗ trợ link trực tiếp /privacy
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/privacy') {
+      setCurrentView('privacy');
+    }
+  }, []);
 
   const handleNavigation = (id: string) => {
     if (id === 'ai-pricing') {
       setCurrentView('ai-pricing');
       window.scrollTo(0, 0);
+      window.history.pushState(null, '', '/');
     } else if (id === 'cleanup-demo') {
       setCurrentView('cleanup-demo');
       window.scrollTo(0, 0);
+    } else if (id === 'privacy') {
+      setCurrentView('privacy');
+      window.scrollTo(0, 0);
+      window.history.pushState(null, '', '/privacy');
     } else {
       // Nếu đang ở trang khác mà muốn về section của trang chủ
       if (currentView !== 'home') {
         setCurrentView('home');
+        window.history.pushState(null, '', '/');
         // Đợi render xong trang home rồi mới cuộn
         setTimeout(() => {
           const element = document.getElementById(id);
@@ -54,7 +69,11 @@ const App: React.FC = () => {
   }, []);
 
   if (currentView === 'cleanup-demo') {
-    return <CleanupDemo onBack={() => setCurrentView('home')} />;
+    return <CleanupDemo onBack={() => handleNavigation('home')} />;
+  }
+
+  if (currentView === 'privacy') {
+    return <Privacy onBack={() => handleNavigation('home')} />;
   }
 
   return (
@@ -66,7 +85,6 @@ const App: React.FC = () => {
           <>
             <Hero onCtaClick={() => handleNavigation('contact')} />
             <Services />
-            {/* AiPricing removed from here */}
             <Training />
             <Gallery />
           </>
@@ -75,7 +93,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <Footer />
+      <Footer onPrivacyClick={() => handleNavigation('privacy')} />
     </div>
   );
 };

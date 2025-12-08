@@ -13,7 +13,11 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onPrivacyClick?: () => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
   const FACEBOOK_LINK = "https://www.facebook.com/kinailroom/";
   const INSTAGRAM_LINK = "https://www.instagram.com/kinailroom/";
   const TIKTOK_LINK = "https://www.tiktok.com/@kinailroom/";
@@ -132,7 +136,12 @@ const Footer: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 font-menu">
-          <p>&copy; {new Date().getFullYear()} Ki Nail Room. All rights reserved.</p>
+          <p className="flex items-center gap-4">
+            <span>&copy; {new Date().getFullYear()} Ki Nail Room. All rights reserved.</span>
+            {onPrivacyClick && (
+              <button onClick={onPrivacyClick} className="hover:text-chestnut-500 hover:underline">Privacy Policy</button>
+            )}
+          </p>
           <p className="mt-2 md:mt-0 font-script text-xl text-chestnut-400 animate-pulse-slow">Thank you for choosing us!</p>
         </div>
       </div>
