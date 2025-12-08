@@ -91,7 +91,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 {/* Main Image Container */}
                 <div className="relative rounded-t-full rounded-b-[100px] overflow-hidden shadow-2xl border-[4px] border-white z-10 aspect-[3/4] bg-chestnut-100">
                   <img 
-                    src="https://drive.google.com/thumbnail?id=1XSy0IKZ_D_bUcfHrmADzfctEuIkeCWIM&sz=w1000" 
+                    src="https://res.cloudinary.com/dgiqdfycy/image/upload/v1765187884/z2443874988342_ee70257e4b87e0fec6616a9d04274cf1_twruo3.jpg" 
                     alt="Ki Nail Room Style" 
                     className="w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-110"
                     referrerPolicy="no-referrer"
