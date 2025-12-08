@@ -13,14 +13,32 @@ import Privacy from './components/Privacy';
 type ViewState = 'home' | 'ai-pricing' | 'cleanup-demo' | 'privacy';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<ViewState>('home');
-
-  // Xử lý URL path khi load trang lần đầu để hỗ trợ link trực tiếp /privacy
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/privacy') {
-      setCurrentView('privacy');
+  // CẢI TIẾN: Kiểm tra URL ngay lúc khởi tạo để hiển thị đúng trang lập tức
+  const [currentView, setCurrentView] = useState<ViewState>(() => {
+    if (typeof window !== 'undefined') {
+      // Loại bỏ dấu gạch chéo cuối nếu có để so sánh chính xác (vd: /privacy/ -> /privacy)
+      const path = window.location.pathname.replace(/\/$/, '');
+      if (path === '/privacy') return 'privacy';
+      if (path === '/cleanup-demo') return 'cleanup-demo';
     }
+    return 'home';
+  });
+
+  // Lắng nghe sự kiện Back/Forward của trình duyệt để chuyển trang đúng
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.replace(/\/$/, '');
+      if (path === '/privacy') {
+        setCurrentView('privacy');
+      } else if (path === '/cleanup-demo') {
+        setCurrentView('cleanup-demo');
+      } else {
+        setCurrentView('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const handleNavigation = (id: string) => {
@@ -31,12 +49,13 @@ const App: React.FC = () => {
     } else if (id === 'cleanup-demo') {
       setCurrentView('cleanup-demo');
       window.scrollTo(0, 0);
+      // Demo trang admin nội bộ, không cần đổi URL quá phức tạp
     } else if (id === 'privacy') {
       setCurrentView('privacy');
       window.scrollTo(0, 0);
       window.history.pushState(null, '', '/privacy');
     } else {
-      // Nếu đang ở trang khác mà muốn về section của trang chủ
+      // Logic điều hướng trong trang chủ (Scroll to section)
       if (currentView !== 'home') {
         setCurrentView('home');
         window.history.pushState(null, '', '/');
@@ -61,6 +80,7 @@ const App: React.FC = () => {
     }
   };
 
+  // Smooth scroll behavior global
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
     return () => {
