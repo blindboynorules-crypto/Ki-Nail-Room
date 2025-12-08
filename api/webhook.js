@@ -3,8 +3,7 @@
 export default async function handler(req, res) {
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   
-  // 1. XÁC MINH WEBHOOK (FACEBOOK VERIFICATION)
-  // Facebook sẽ gửi yêu cầu GET đến URL này để kiểm tra xem server có sống không
+  // 1. XÁC MINH WEBHOOK
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
@@ -20,20 +19,16 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. XỬ LÝ SỰ KIỆN TỪ FACEBOOK (POST)
+  // 2. XỬ LÝ SỰ KIỆN POST
   if (req.method === 'POST') {
     const body = req.body;
 
     if (body.object === 'page') {
-      // Duyệt qua các sự kiện (thường là messaging)
       for (const entry of body.entry) {
-        // Facebook trả về một mảng messaging
         const webhook_event = entry.messaging[0];
         const sender_psid = webhook_event.sender.id;
 
-        // KIỂM TRA: CÓ PHẢI USER VÀO TỪ LINK CÓ THAM SỐ REF KHÔNG?
-        // Ví dụ: m.me/kinailroom?ref=REC12345
-        // Sự kiện này nằm trong `referral` hoặc `postback.referral` (nếu bấm nút Get Started)
+        // Kiểm tra tham số REF từ đường dẫn m.me
         let refParam = null;
         if (webhook_event.referral) {
             refParam = webhook_event.referral.ref;
@@ -42,8 +37,7 @@ export default async function handler(req, res) {
         }
 
         if (refParam) {
-            console.log(`[WEBHOOK] Nhận được REF: ${refParam} từ User: ${sender_psid}`);
-            // Xử lý gửi tin nhắn lại cho khách
+            console.log(`[WEBHOOK] Ref: ${refParam} | User: ${sender_psid}`);
             await handleReferral(sender_psid, refParam);
         }
       }
@@ -53,73 +47,90 @@ export default async function handler(req, res) {
   }
 }
 
-// HÀM XỬ LÝ LOGIC: TRA CỨU AIRTABLE -> GỬI TIN NHẮN FACEBOOK
+// HÀM XỬ LÝ GỬI TIN NHẮN
 async function handleReferral(sender_psid, recordId) {
     const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 
     if (!AIRTABLE_API_TOKEN || !FB_PAGE_ACCESS_TOKEN) {
-        console.error("[WEBHOOK ERROR] Thiếu biến môi trường FB hoặc Airtable");
+        console.error("Missing Env Variables");
         return;
     }
 
     try {
-        // BƯỚC A: LẤY DỮ LIỆU TỪ AIRTABLE
-        // Dùng recordId (chính là refParam) để lấy thông tin đơn hàng
+        // 1. LẤY DỮ LIỆU TỪ AIRTABLE
         const airtableRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Quotes/${recordId}`, {
             headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
         });
         
-        if (!airtableRes.ok) {
-            console.error("[WEBHOOK ERROR] Không tìm thấy Record trong Airtable:", recordId);
-            return;
-        }
+        if (!airtableRes.ok) return;
 
         const record = await airtableRes.json();
-        const { "Image URL": imageUrl, "Total Estimate": total } = record.fields;
+        const { "Image URL": imageUrl, "Total Estimate": total, "Items Detail": itemsJson } = record.fields;
 
-        // BƯỚC B: SOẠN TIN NHẮN "GENERIC TEMPLATE" ĐẸP MẮT
-        // Gồm: Hình ảnh móng + Giá tiền + Nút bấm
-        const responseMessage = {
-            "attachment": {
-                "type": "template",
-                "payload": {
-                    "template_type": "generic",
-                    "elements": [{
-                        "title": `Báo Giá AI: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}`,
-                        "subtitle": "Ki Nail Room đã nhận được mẫu của bạn. Nhân viên sẽ tư vấn chi tiết ngay ạ! 👇",
-                        "image_url": imageUrl,
-                        "buttons": [
-                            {
-                                "type": "postback",
-                                "title": "Chat với nhân viên",
-                                "payload": "CHAT_WITH_HUMAN"
-                            }
-                        ]
-                    }]
-                }
+        // 2. XỬ LÝ DỮ LIỆU TEXT
+        let detailsText = "";
+        try {
+            // Parse JSON danh sách các mục (nếu có)
+            const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
+            if (Array.isArray(items)) {
+                detailsText = items.map(i => `▫️ ${i.item}: ${new Intl.NumberFormat('vi-VN').format(i.cost)}đ`).join('\n');
             }
-        };
+        } catch (e) {
+            console.error("Parse items error", e);
+        }
 
-        // BƯỚC C: GỌI FACEBOOK GRAPH API ĐỂ GỬI TIN
-        const fbRes = await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${FB_PAGE_ACCESS_TOKEN}`, {
+        const totalFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total);
+
+        // 3. GỬI TIN NHẮN 1: ẢNH (Image Attachment - Để hiển thị Full Size không bị crop)
+        await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${FB_PAGE_ACCESS_TOKEN}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 recipient: { id: sender_psid },
-                message: responseMessage
+                message: {
+                    attachment: {
+                        type: "image",
+                        payload: { 
+                            url: imageUrl, 
+                            is_reusable: true 
+                        }
+                    }
+                }
             })
         });
 
-        if (fbRes.ok) {
-            console.log("[WEBHOOK SUCCESS] Đã gửi báo giá cho khách hàng.");
-        } else {
-            const errData = await fbRes.json();
-            console.error("[WEBHOOK ERROR] Lỗi gửi tin FB:", errData);
-        }
+        // 4. GỬI TIN NHẮN 2: CHI TIẾT BÁO GIÁ + NÚT BẤM (Button Template)
+        const messageText = `💅 AI BÁO GIÁ CHI TIẾT:\n\n${detailsText}\n\n💎 TỔNG ƯỚC TÍNH: ${totalFormatted}\n\n(Giá này chỉ là tham khảo dựa trên ảnh, nhân viên Ki Nail Room sẽ tư vấn chốt giá kỹ hơn cho bạn nhé! 👇)`;
+
+        await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${FB_PAGE_ACCESS_TOKEN}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                recipient: { id: sender_psid },
+                message: {
+                    attachment: {
+                        type: "template",
+                        payload: {
+                            template_type: "button",
+                            text: messageText, // Text giới hạn 640 ký tự
+                            buttons: [
+                                {
+                                    type: "postback",
+                                    title: "Chat với nhân viên 👩‍💼",
+                                    payload: "CHAT_WITH_HUMAN"
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        });
+
+        console.log("[WEBHOOK SUCCESS] Messages sent.");
 
     } catch (error) {
-        console.error("[WEBHOOK CRITICAL ERROR]:", error);
+        console.error("[WEBHOOK ERROR]:", error);
     }
 }
