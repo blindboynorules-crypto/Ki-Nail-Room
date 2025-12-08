@@ -257,7 +257,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        - Charm: 20.000 VNĐ / cái.
        - *** LƯU Ý ĐẶC BIỆT VỀ ĐẾM ĐÁ (CHỐNG ẢO GIÁC): ***
          AI thường đếm nhầm bóng sáng phản quang hoặc chấm bi vẽ thành đá.
-         => HÃY ĐẾM BẢO THỦ (CONSERVATIVE). Chỉ đếm những viên có khối 3D rõ ràng.
+         => HÃY ĐẾM CẨN THẬN (theo AI phân tích số lượng). Chỉ đếm những viên có khối 3D rõ ràng.
 
     LƯU Ý KHI SUY LUẬN:
     - Nếu phân vân giữa các mức giá, hãy chọn MỨC GIÁ THẤP để báo giá mang tính tham khảo.
@@ -266,7 +266,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     {
       "items": [
         { "item": "Sơn Gel trơn", "cost": 80000, "reason": "Sơn nền" },
-        { "item": "Đính đá nhỏ (8 viên)", "cost": 24000, "reason": "3.000đ x 8 viên (đếm bảo thủ)" }
+        { "item": "Đính đá nhỏ (8 viên)", "cost": 24000, "reason": "3.000đ x 8 viên (theo AI phân tích số lượng)" }
       ],
       "totalEstimate": 104000,
       "note": "..."
