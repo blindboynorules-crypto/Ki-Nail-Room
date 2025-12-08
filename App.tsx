@@ -92,9 +92,7 @@ const App: React.FC = () => {
     return <CleanupDemo onBack={() => handleNavigation('home')} />;
   }
 
-  if (currentView === 'privacy') {
-    return <Privacy onBack={() => handleNavigation('home')} />;
-  }
+  // Đã xóa early return của Privacy để nó render chung với Navbar/Footer bên dưới
 
   return (
     <div className="min-h-screen bg-vanilla-50 flex flex-col">
@@ -108,9 +106,11 @@ const App: React.FC = () => {
             <Training />
             <Gallery />
           </>
-        ) : (
+        ) : currentView === 'ai-pricing' ? (
           <AiPricing />
-        )}
+        ) : currentView === 'privacy' ? (
+          <Privacy onBack={() => handleNavigation('home')} />
+        ) : null}
       </main>
 
       <Footer onPrivacyClick={() => handleNavigation('privacy')} />
