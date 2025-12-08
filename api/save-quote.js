@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   try {
     const { imageUrl, totalEstimate, items, note } = req.body;
 
-    // Chuẩn bị dữ liệu
+    // Chuẩn bị dữ liệu khớp với tên cột trong Airtable
     const fields = {
       "Image URL": imageUrl,
       "Total Estimate": Number(totalEstimate), // Đảm bảo là số
@@ -54,7 +54,9 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
         console.error("Airtable Error Response:", data);
-        throw new Error(data.error?.message || data.error || 'Lỗi không xác định từ Airtable');
+        // Trả về lỗi chi tiết từ Airtable để hiển thị ở Frontend
+        const errorMessage = data.error?.message || data.error || 'Lỗi không xác định từ Airtable';
+        throw new Error(errorMessage);
     }
 
     return res.status(200).json({ 

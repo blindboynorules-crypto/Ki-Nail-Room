@@ -78,7 +78,7 @@ const AiPricing: React.FC = () => {
     try {
       // Kiểm tra môi trường Preview
       if (!window.location.hostname.includes('kinailroom.vercel.app')) {
-          alert("Bạn đang ở chế độ Preview. Đơn hàng giả lập thành công!");
+          alert("Bạn đang ở chế độ Preview (Local). Hệ thống sẽ giả lập thành công mà không lưu vào Airtable.");
           window.open("https://m.me/kinailroom", "_blank");
           setIsSaving(false);
           return;
@@ -98,18 +98,20 @@ const AiPricing: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        // Ném lỗi chi tiết ra để hiển thị trong Alert
         throw new Error(data.error || data.message || 'Lỗi khi lưu đơn hàng');
       }
 
       const orderRef = data.recordId;
 
       // Thành công -> Chuyển hướng
-      console.log("Đơn hàng đã lưu:", orderRef);
+      console.log("Đơn hàng đã lưu thành công:", orderRef);
       window.location.href = `https://m.me/kinailroom?ref=${orderRef}`;
 
     } catch (err: any) {
       console.error("Smart Send Error:", err);
-      alert(`Lỗi hệ thống: ${err.message}. Đang mở Messenger thủ công.`);
+      // Hiển thị Alert lỗi để người dùng biết tại sao không lưu được
+      alert(`⚠️ Lỗi hệ thống: ${err.message}\n\nĐang mở Messenger thủ công để bạn chat trực tiếp.`);
       window.open("https://m.me/kinailroom", "_blank");
     } finally {
       setIsSaving(false);
