@@ -146,14 +146,14 @@ async function handleReferral(sender_psid, recordId) {
 
         // GỬI TIN 2: CHI TIẾT & NÚT
         // Lưu ý: Text button tối đa 20 ký tự. Text message tối đa 640 ký tự.
-        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n\n💰 TỔNG CỘNG: ${totalFormatted}\n\nChat với tụi mình để chốt lịch nhé! 👇`;
+        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n\n💰 TỔNG CỘNG: ${totalFormatted}\n\n⚠️ Đây là giá được phân tích và báo giá bằng AI, để biết giá cụ thể bạn cứ liên hệ trực tiếp Ki Nail hén.\n\nChat với tụi mình để chốt lịch nhé! 👇`;
         
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
             attachment: {
                 type: "template",
                 payload: {
                     template_type: "button",
-                    text: msgBody.substring(0, 630), // Cắt bớt nếu quá dài để tránh lỗi
+                    text: msgBody.substring(0, 640), // Cắt bớt nếu quá dài để tránh lỗi
                     buttons: [
                         { type: "postback", title: "Gặp nhân viên", payload: "CHAT_WITH_HUMAN" }
                     ]
