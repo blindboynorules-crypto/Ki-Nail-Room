@@ -76,7 +76,7 @@ const AiPricing: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // Kiểm tra môi trường Preview
+      // 1. Kiểm tra môi trường Preview
       if (!window.location.hostname.includes('kinailroom.vercel.app')) {
           alert("Bạn đang ở chế độ Preview (Local). Hệ thống sẽ giả lập thành công mà không lưu vào Airtable.");
           window.open("https://m.me/kinailroom", "_blank");
@@ -84,6 +84,7 @@ const AiPricing: React.FC = () => {
           return;
       }
 
+      // 2. Gọi API lưu vào Airtable
       const response = await fetch('/api/save-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,20 +99,19 @@ const AiPricing: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        // Ném lỗi chi tiết ra để hiển thị trong Alert
         throw new Error(data.error || data.message || 'Lỗi khi lưu đơn hàng');
       }
 
       const orderRef = data.recordId;
 
-      // Thành công -> Chuyển hướng
-      console.log("Đơn hàng đã lưu thành công:", orderRef);
+      // 3. Chuyển hướng sang Messenger với tham số ref
+      // Khi khách bấm "Bắt đầu" (Get Started) trên Messenger, FB sẽ gửi sự kiện về Webhook
+      console.log("Redirecting to Messenger with Ref:", orderRef);
       window.location.href = `https://m.me/kinailroom?ref=${orderRef}`;
 
     } catch (err: any) {
       console.error("Smart Send Error:", err);
-      // Hiển thị Alert lỗi để người dùng biết tại sao không lưu được
-      alert(`⚠️ Lỗi hệ thống: ${err.message}\n\nĐang mở Messenger thủ công để bạn chat trực tiếp.`);
+      alert(`⚠️ Lỗi hệ thống: ${err.message}\n\nĐang mở Messenger thủ công.`);
       window.open("https://m.me/kinailroom", "_blank");
     } finally {
       setIsSaving(false);
@@ -299,7 +299,7 @@ const AiPricing: React.FC = () => {
                             {isSaving ? (
                                 <>
                                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Đang gửi đơn...
+                                    Đang kết nối Facebook...
                                 </>
                             ) : (
                                 <>

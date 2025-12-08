@@ -1,16 +1,17 @@
 
-// Đây là file xử lý Webhook từ Facebook
+// api/webhook.js
 export default async function handler(req, res) {
+  const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
+  
   // 1. XÁC MINH WEBHOOK (FACEBOOK VERIFICATION)
+  // Facebook sẽ gửi yêu cầu GET đến URL này để kiểm tra xem server có sống không
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
-
     if (mode && token) {
-      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      if (mode === 'subscribe' && token === FB_VERIFY_TOKEN) {
         console.log('WEBHOOK_VERIFIED');
         return res.status(200).send(challenge);
       } else {
@@ -19,27 +20,31 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. XỬ LÝ SỰ KIỆN (POST)
+  // 2. XỬ LÝ SỰ KIỆN TỪ FACEBOOK (POST)
   if (req.method === 'POST') {
     const body = req.body;
 
     if (body.object === 'page') {
-      // Duyệt qua các entry (thường chỉ có 1)
+      // Duyệt qua các sự kiện (thường là messaging)
       for (const entry of body.entry) {
+        // Facebook trả về một mảng messaging
         const webhook_event = entry.messaging[0];
         const sender_psid = webhook_event.sender.id;
 
-        // KIỂM TRA XEM CÓ PHẢI LÀ REFERRAL (BẤM TỪ LINK M.ME) KHÔNG?
-        // Cấu trúc: m.me/PageID?ref=RECORD_ID
-        if (webhook_event.referral || (webhook_event.postback && webhook_event.postback.referral)) {
-            
-            const refParam = webhook_event.referral?.ref || webhook_event.postback?.referral?.ref;
-            
-            if (refParam) {
-                console.log(`Nhận được Ref: ${refParam} từ User: ${sender_psid}`);
-                // Gọi hàm xử lý gửi tin nhắn lại cho khách
-                await handleReferral(sender_psid, refParam);
-            }
+        // KIỂM TRA: CÓ PHẢI USER VÀO TỪ LINK CÓ THAM SỐ REF KHÔNG?
+        // Ví dụ: m.me/kinailroom?ref=REC12345
+        // Sự kiện này nằm trong `referral` hoặc `postback.referral` (nếu bấm nút Get Started)
+        let refParam = null;
+        if (webhook_event.referral) {
+            refParam = webhook_event.referral.ref;
+        } else if (webhook_event.postback && webhook_event.postback.referral) {
+            refParam = webhook_event.postback.referral.ref;
+        }
+
+        if (refParam) {
+            console.log(`[WEBHOOK] Nhận được REF: ${refParam} từ User: ${sender_psid}`);
+            // Xử lý gửi tin nhắn lại cho khách
+            await handleReferral(sender_psid, refParam);
         }
       }
       return res.status(200).send('EVENT_RECEIVED');
@@ -48,28 +53,34 @@ export default async function handler(req, res) {
   }
 }
 
-// HÀM XỬ LÝ LOGIC TRẢ LỜI
+// HÀM XỬ LÝ LOGIC: TRA CỨU AIRTABLE -> GỬI TIN NHẮN FACEBOOK
 async function handleReferral(sender_psid, recordId) {
     const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 
     if (!AIRTABLE_API_TOKEN || !FB_PAGE_ACCESS_TOKEN) {
-        console.error("Thiếu biến môi trường FB hoặc Airtable");
+        console.error("[WEBHOOK ERROR] Thiếu biến môi trường FB hoặc Airtable");
         return;
     }
 
     try {
-        // 1. Lấy dữ liệu báo giá từ Airtable dựa trên recordId (ref)
+        // BƯỚC A: LẤY DỮ LIỆU TỪ AIRTABLE
+        // Dùng recordId (chính là refParam) để lấy thông tin đơn hàng
         const airtableRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Quotes/${recordId}`, {
             headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
         });
         
-        if (!airtableRes.ok) throw new Error("Không tìm thấy đơn hàng trong Airtable");
-        const record = await airtableRes.json();
-        const { "Image URL": imageUrl, "Total Estimate": total, "Items Detail": itemsJson } = record.fields;
+        if (!airtableRes.ok) {
+            console.error("[WEBHOOK ERROR] Không tìm thấy Record trong Airtable:", recordId);
+            return;
+        }
 
-        // 2. Soạn tin nhắn trả lời (Generic Template)
+        const record = await airtableRes.json();
+        const { "Image URL": imageUrl, "Total Estimate": total } = record.fields;
+
+        // BƯỚC B: SOẠN TIN NHẮN "GENERIC TEMPLATE" ĐẸP MẮT
+        // Gồm: Hình ảnh móng + Giá tiền + Nút bấm
         const responseMessage = {
             "attachment": {
                 "type": "template",
@@ -77,7 +88,7 @@ async function handleReferral(sender_psid, recordId) {
                     "template_type": "generic",
                     "elements": [{
                         "title": `Báo Giá AI: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}`,
-                        "subtitle": "Đây là mẫu nail bạn vừa chọn. Shop sẽ tư vấn chi tiết ngay ạ! 👇",
+                        "subtitle": "Ki Nail Room đã nhận được mẫu của bạn. Nhân viên sẽ tư vấn chi tiết ngay ạ! 👇",
                         "image_url": imageUrl,
                         "buttons": [
                             {
@@ -91,8 +102,8 @@ async function handleReferral(sender_psid, recordId) {
             }
         };
 
-        // 3. Gửi tin nhắn qua Graph API
-        await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${FB_PAGE_ACCESS_TOKEN}`, {
+        // BƯỚC C: GỌI FACEBOOK GRAPH API ĐỂ GỬI TIN
+        const fbRes = await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${FB_PAGE_ACCESS_TOKEN}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -101,7 +112,14 @@ async function handleReferral(sender_psid, recordId) {
             })
         });
 
+        if (fbRes.ok) {
+            console.log("[WEBHOOK SUCCESS] Đã gửi báo giá cho khách hàng.");
+        } else {
+            const errData = await fbRes.json();
+            console.error("[WEBHOOK ERROR] Lỗi gửi tin FB:", errData);
+        }
+
     } catch (error) {
-        console.error("Error handling referral:", error);
+        console.error("[WEBHOOK CRITICAL ERROR]:", error);
     }
 }
