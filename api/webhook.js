@@ -12,39 +12,39 @@ const TRAINING_DATA = [
         // 1. Hỏi địa chỉ
         keywords: ['địa chỉ', 'ở đâu', 'chỗ nào', 'đường nào', 'vị trí', 'map', 'bản đồ', 'đc', 'add', 'tiệm nằm', 'tiệm đâu', 'ghé làm'],
         // Dòng chữ địa chỉ chính xác + Link Google Maps
-        text: "🏡 Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha 👇:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc"
+        text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc"
     },
     {
         // 2. Hỏi Bảng giá / Menu
         keywords: ['bảng giá', 'giá', 'menu', 'dịch vụ', 'nhiêu tiền', 'bao nhiêu', 'nhiu', 'bnhieu', 'cost', 'price', 'rổ rá', 'giá rổ', 'bộ này'],
-        text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha 💅✨. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
+        text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
         imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
     },
     {
         // 3. Hỏi Khuyến mãi / Combo
         keywords: ['khuyến mãi', 'combo', 'ưu đãi', 'giảm giá', 'chương trình', 'offer', 'ctkm', 'km', 'sale', 'deal', 'có giảm', 'quà', 'tặng', 'discount'],
-        text: "Dạ Ki gởi mình chương trình khuyến mãi HOT hiện tại nha 🔥🎁. Nàng xem qua kẻo lỡ ưu đãi xịn nè!",
+        text: "Dạ Ki gởi mình chương trình khuyến mãi HOT hiện tại nha. Nàng xem qua kẻo lỡ ưu đãi xịn nè!",
         imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
     },
     {
         // 4. Hỏi Số tài khoản (STK)
         keywords: ['stk', 'số tài khoản', 'chuyển khoản', 'bank', 'ngân hàng', 'ck'],
-        text: "💳 Dạ thông tin chuyển khoản của Ki Nail Room đây ạ:\n\n✨ Ngân hàng: MB Bank (Quân Đội)\n✨ Số TK: 0919979763\n✨ Chủ TK: VO THI KIEU OANH\n\nNàng chuyển xong chụp màn hình gửi Ki check với nha! 🥰"
+        text: "Dạ thông tin chuyển khoản của Ki Nail Room đây ạ:\n\nNgân hàng: MB Bank (Quân Đội)\nSố TK: 0919979763\nChủ TK: VO THI KIEU OANH\n\nNàng chuyển xong chụp màn hình gửi Ki check với nha!"
     },
     {
         // 5. Hỏi Wifi
         keywords: ['wifi', 'pass', 'mật khẩu mạng', 'mạng'],
-        text: "📶 Wifi nhà Ki nè nàng ơi, mạnh xỉu luôn:\n\n👉 Tên: Ki Nail Room\n👉 Pass: 88888888 (8 số 8)\n\nNàng kết nối để lướt nét trong lúc làm đẹp nha! 🚀"
+        text: "Wifi nhà Ki nè nàng ơi, mạnh xỉu luôn:\n\nTên: Ki Nail Room\nPass: 88888888 (8 số 8)\n\nNàng kết nối để lướt nét trong lúc làm đẹp nha!"
     },
     {
         // 6. Hỏi Giờ làm việc
         keywords: ['mấy giờ', 'giờ mở cửa', 'đóng cửa', 'lịch làm', 'open', 'close', 'mở cửa', 'đến mấy giờ'],
-        text: "⏰ Tụi mình mở cửa từ: 9:30 sáng - 20:00 tối (Tất cả các ngày trong tuần) 🗓️.\n\nNàng ghé khung giờ nào nhắn Ki giữ lịch trước để không phải đợi lâu nha! 💖"
+        text: "Tụi mình mở cửa từ: 9:30 sáng - 20:00 tối (Tất cả các ngày trong tuần).\n\nNàng ghé khung giờ nào nhắn Ki giữ lịch trước để không phải đợi lâu nha!"
     },
     {
         // 7. Hỏi Hotline
         keywords: ['sđt', 'số điện thoại', 'hotline', 'gọi', 'alo', 'phone', 'liên lạc'],
-        text: "📞 Hotline / Zalo của tụi mình: 0919 979 763.\n\nNàng cần gấp cứ gọi, Ki nghe máy liền ạ! 🤙"
+        text: "Hotline / Zalo của tụi mình: 0919 979 763.\n\nNàng cần gấp cứ gọi, Ki nghe máy liền ạ!"
     }
 ];
 // ============================================================
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
                 const payload = webhook_event.postback.payload;
                 if (payload === 'CHAT_WITH_HUMAN' || payload === 'CHAT_HUMAN') {
                     await sendFacebookMessage(process.env.FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                        text: "Dạ vâng, em đã nhận thông tin ạ. Nàng đợi xíu nhân viên sẽ vào tư vấn trực tiếp cho mình nha! 💕" 
+                        text: "Dạ vâng, em đã nhận thông tin ạ. Nàng đợi xíu nhân viên sẽ vào tư vấn trực tiếp cho mình nha!" 
                     });
                 }
             }
@@ -161,7 +161,7 @@ async function handleReferral(sender_psid, recordId) {
                 type: "template",
                 payload: {
                     template_type: "button",
-                    text: "💅 Móng Úp + Vẽ: 130.000đ\n(Đây là tin nhắn mẫu)",
+                    text: "Móng Úp + Vẽ: 130.000đ\n(Đây là tin nhắn mẫu)",
                     buttons: [{ type: "postback", title: "Liên Hệ KiNailRoom", payload: "CHAT_HUMAN" }]
                 }
             }
@@ -201,7 +201,7 @@ async function handleReferral(sender_psid, recordId) {
         if (imageUrl) await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
         await new Promise(r => setTimeout(r, 500));
 
-        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n💰 TỔNG CỘNG: ${totalFormatted}\n\n⚠️ Đây là giá được phân tích và báo giá bằng AI, để biết giá cụ thể bạn cứ liên hệ trực tiếp Ki Nail hén.\n\nChat với tụi mình để chốt lịch nhé! 👇`;
+        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\nTỔNG CỘNG: ${totalFormatted}\n\nĐây là giá được phân tích và báo giá bằng AI, để biết giá cụ thể bạn cứ liên hệ trực tiếp Ki Nail hén.\n\nChat với tụi mình để chốt lịch nhé!`;
         
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
             attachment: {
