@@ -10,41 +10,41 @@
 const TRAINING_DATA = [
     {
         // 1. Hỏi địa chỉ
-        keywords: ['địa chỉ', 'ở đâu', 'chỗ nào', 'đường nào', 'vị trí', 'map', 'bản đồ'],
+        keywords: ['địa chỉ', 'ở đâu', 'chỗ nào', 'đường nào', 'vị trí', 'map', 'bản đồ', 'đc', 'add', 'tiệm nằm', 'tiệm đâu', 'ghé làm'],
         // Dòng chữ địa chỉ chính xác + Link Google Maps
-        text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân\n\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc"
+        text: "🏡 Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha 👇:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc"
     },
     {
         // 2. Hỏi Bảng giá / Menu
-        keywords: ['bảng giá', 'giá', 'menu', 'dịch vụ', 'nhiêu tiền', 'bao nhiêu'],
-        text: "Dạ Ki gởi mình bảng giá dịch vụ nha.",
+        keywords: ['bảng giá', 'giá', 'menu', 'dịch vụ', 'nhiêu tiền', 'bao nhiêu', 'nhiu', 'bnhieu', 'cost', 'price', 'rổ rá', 'giá rổ', 'bộ này'],
+        text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha 💅✨. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
         imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
     },
     {
         // 3. Hỏi Khuyến mãi / Combo
-        keywords: ['khuyến mãi', 'combo', 'ưu đãi', 'giảm giá', 'chương trình', 'offer'],
-        text: "Dạ Ki gởi mình chương trình khuyến mãi hiện tại nha.",
+        keywords: ['khuyến mãi', 'combo', 'ưu đãi', 'giảm giá', 'chương trình', 'offer', 'ctkm', 'km', 'sale', 'deal', 'có giảm', 'quà', 'tặng', 'discount'],
+        text: "Dạ Ki gởi mình chương trình khuyến mãi HOT hiện tại nha 🔥🎁. Nàng xem qua kẻo lỡ ưu đãi xịn nè!",
         imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
     },
     {
         // 4. Hỏi Số tài khoản (STK)
-        keywords: ['stk', 'số tài khoản', 'chuyển khoản', 'bank', 'ngân hàng'],
-        text: "💳 Thông tin chuyển khoản của Ki Nail Room:\n\nNgân hàng: MB Bank (Quân Đội)\nSố TK: 0919979763\nChủ TK: VO THI KIEU OANH\n\nNàng chuyển xong chụp màn hình gửi Ki check nha! 🥰"
+        keywords: ['stk', 'số tài khoản', 'chuyển khoản', 'bank', 'ngân hàng', 'ck'],
+        text: "💳 Dạ thông tin chuyển khoản của Ki Nail Room đây ạ:\n\n✨ Ngân hàng: MB Bank (Quân Đội)\n✨ Số TK: 0919979763\n✨ Chủ TK: VO THI KIEU OANH\n\nNàng chuyển xong chụp màn hình gửi Ki check với nha! 🥰"
     },
     {
         // 5. Hỏi Wifi
-        keywords: ['wifi', 'pass', 'mật khẩu mạng'],
-        text: "📶 Wifi nhà Ki nè nàng ơi:\n\nTên: Ki Nail Room\nPass: 88888888 (8 số 8)\n\nMạng 5G mạnh xỉu luôn á! 🚀"
+        keywords: ['wifi', 'pass', 'mật khẩu mạng', 'mạng'],
+        text: "📶 Wifi nhà Ki nè nàng ơi, mạnh xỉu luôn:\n\n👉 Tên: Ki Nail Room\n👉 Pass: 88888888 (8 số 8)\n\nNàng kết nối để lướt nét trong lúc làm đẹp nha! 🚀"
     },
     {
         // 6. Hỏi Giờ làm việc
-        keywords: ['mấy giờ', 'giờ mở cửa', 'đóng cửa', 'lịch làm'],
-        text: "⏰ Tụi mình mở cửa từ: 9:30 sáng - 20:00 tối (Tất cả các ngày trong tuần).\n\nNàng ghé khung giờ nào nhắn Ki giữ lịch trước nha!"
+        keywords: ['mấy giờ', 'giờ mở cửa', 'đóng cửa', 'lịch làm', 'open', 'close', 'mở cửa', 'đến mấy giờ'],
+        text: "⏰ Tụi mình mở cửa từ: 9:30 sáng - 20:00 tối (Tất cả các ngày trong tuần) 🗓️.\n\nNàng ghé khung giờ nào nhắn Ki giữ lịch trước để không phải đợi lâu nha! 💖"
     },
     {
         // 7. Hỏi Hotline
-        keywords: ['sđt', 'số điện thoại', 'hotline', 'gọi'],
-        text: "📞 Hotline / Zalo của tụi mình: 0919 979 763. Nàng cần gấp cứ gọi nha!"
+        keywords: ['sđt', 'số điện thoại', 'hotline', 'gọi', 'alo', 'phone', 'liên lạc'],
+        text: "📞 Hotline / Zalo của tụi mình: 0919 979 763.\n\nNàng cần gấp cứ gọi, Ki nghe máy liền ạ! 🤙"
     }
 ];
 // ============================================================
