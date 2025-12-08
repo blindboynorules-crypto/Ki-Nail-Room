@@ -125,16 +125,19 @@ async function handleReferral(sender_psid, recordId) {
         const record = await airtableRes.json();
         const { "Image URL": imageUrl, "Total Estimate": total, "Items Detail": itemsJson } = record.fields;
 
+        // Helper format tiền tệ
+        const fmt = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        const totalFormatted = fmt(total);
+
         let detailsText = "";
         try {
             const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
             if (Array.isArray(items)) {
-                // Tạo list ngắn gọn: Tên món - Giá
-                detailsText = items.map(i => `- ${i.item}`).join('\n');
+                // Tạo list chi tiết: Tên món: Giá tiền
+                detailsText = items.map(i => `- ${i.item}: ${fmt(i.cost)}`).join('\n');
             }
         } catch (e) { console.error(e); }
 
-        const totalFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total);
 
         // GỬI TIN 1: ẢNH (QUAN TRỌNG ĐỂ KHÔNG BỊ CROP)
         if (imageUrl) {
@@ -143,7 +146,7 @@ async function handleReferral(sender_psid, recordId) {
 
         // GỬI TIN 2: CHI TIẾT & NÚT
         // Lưu ý: Text button tối đa 20 ký tự. Text message tối đa 640 ký tự.
-        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n\n💰 TỔNG: ${totalFormatted}\n\nChat với tụi mình để chốt lịch nhé! 👇`;
+        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n\n💰 TỔNG CỘNG: ${totalFormatted}\n\nChat với tụi mình để chốt lịch nhé! 👇`;
         
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
             attachment: {
