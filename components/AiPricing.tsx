@@ -11,16 +11,13 @@ const AiPricing: React.FC = () => {
   const [result, setResult] = useState<PricingResult | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // Trạng thái đang lưu đơn hàng
   const [error, setError] = useState<string | null>(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
-  
-  // Change isCopied to a step state: 'initial' | 'copied'
-  const [contactStep, setContactStep] = useState<'initial' | 'copied'>('initial');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check if API key is loaded on mount
     if (!isAiAvailable()) {
       setApiKeyMissing(true);
     }
@@ -31,10 +28,9 @@ const AiPricing: React.FC = () => {
       const file = e.target.files[0];
       setSelectedImage(file);
       setPreviewUrl(URL.createObjectURL(file));
-      setResult(null); // Reset result when new file selected
+      setResult(null);
       setUploadedImageUrl(null);
       setError(null);
-      setContactStep('initial');
     }
   };
 
@@ -45,12 +41,8 @@ const AiPricing: React.FC = () => {
     setError(null);
     setResult(null);
     setUploadedImageUrl(null);
-    setContactStep('initial');
 
     try {
-      // Chạy song song: Vừa phân tích AI, vừa upload ảnh lên Cloudinary
-      // Điều này giúp tiết kiệm thời gian chờ đợi của khách
-      // [UPDATE]: Đưa ảnh vào folder 'AIPhanTich' và gắn thẻ 'temp'
       const [pricingData, cloudUrl] = await Promise.all([
         analyzeNailImage(selectedImage),
         uploadToCloudinary(selectedImage, 'AIPhanTich', ['ai_temp', 'delete_after_3_days'])
@@ -61,7 +53,6 @@ const AiPricing: React.FC = () => {
       
     } catch (err: any) {
       console.error(err);
-      // Display the actual error message from the service
       setError(err.message || "Có lỗi khi phân tích ảnh. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
@@ -74,34 +65,52 @@ const AiPricing: React.FC = () => {
     setResult(null);
     setUploadedImageUrl(null);
     setError(null);
-    setContactStep('initial');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleCopyAndPrepare = () => {
-    if (!result) return;
-
-    const imageUrlText = uploadedImageUrl ? `\n\nMẪU DESIGN CỦA BẠN ĐÃ CHỌN: ${uploadedImageUrl}` : '\n(Khách chưa gửi ảnh)';
-    const itemsText = result.items.map(i => `- ${i.item}: ${formatCurrency(i.cost)}`).join('\n');
+  // --- LOGIC MỚI: GỬI THẲNG QUA MESSENGER (AUTOMATION) ---
+  const handleSmartSend = async () => {
+    if (!result || !uploadedImageUrl) return;
     
-    // Soạn nội dung tin nhắn chi tiết
-    const message = `Chào Ki Nail Room, mình muốn làm mẫu này:${imageUrlText}\n\n💰 BÁO GIÁ AI ƯỚC TÍNH: ${formatCurrency(result.totalEstimate)}\n\nChi tiết dịch vụ do AI của KiNail gợi ý:\n${itemsText}\n\nShop kiểm tra và báo giá chính xác giúp mình nhé!`;
+    setIsSaving(true);
 
-    // Copy vào clipboard
-    navigator.clipboard.writeText(message).then(() => {
-      setContactStep('copied');
-    }).catch(() => {
-       // Fallback nếu trình duyệt chặn copy
-       setContactStep('copied');
-    });
-  };
+    try {
+      // 1. Gọi API nội bộ để lưu thông tin vào Airtable
+      const response = await fetch('/api/save-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: uploadedImageUrl,
+          totalEstimate: result.totalEstimate,
+          items: result.items,
+          note: result.note
+        })
+      });
 
-  const handleOpenMessenger = () => {
-     window.open("https://m.me/kinailroom", "_blank");
-     // Reset sau khi mở xong để khách có thể copy lại nếu muốn
-     setTimeout(() => setContactStep('initial'), 5000);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Lỗi khi lưu đơn hàng');
+      }
+
+      // 2. Lấy được mã đơn hàng (ref) từ Airtable
+      const orderRef = data.recordId;
+
+      // 3. Chuyển hướng sang Messenger với tham số ref
+      // Khi khách bấm "Bắt đầu" trên Messenger, Facebook sẽ gửi Webhook kèm mã ref này về server
+      // Server sẽ tra cứu Airtable và tự động trả lời.
+      window.location.href = `https://m.me/kinailroom?ref=${orderRef}`;
+
+    } catch (err: any) {
+      console.error("Smart Send Error:", err);
+      // Fallback: Nếu lỗi server/airtable, vẫn mở messenger trơn để khách tự chat
+      alert("Hệ thống lưu trữ đang bận, sẽ chuyển bạn đến Messenger ngay.");
+      window.open("https://m.me/kinailroom", "_blank");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -116,7 +125,7 @@ const AiPricing: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative animate-float">
             <Bot className="h-8 w-8 text-chestnut-600" />
-            <span className="absolute -top-2 -right-12 bg-zinc-600 text-white text-[10px] px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">v4.5</span>
+            <span className="absolute -top-2 -right-12 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-pulse">BETA</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-bold text-chestnut-700 mb-4 drop-shadow-sm">
             AI Báo Giá Nhanh
@@ -217,15 +226,13 @@ const AiPricing: React.FC = () => {
             )}
           </div>
 
-          {/* Result Section - Only visible when result is available */}
+          {/* Result Section */}
           {result && (
             <div className="relative animate-fade-in">
-               {/* Receipt UI */}
                <div className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 relative overflow-hidden min-h-[400px] flex flex-col hover:shadow-chestnut-200/50 transition-shadow duration-500">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-chestnut-300 via-vanilla-300 to-chestnut-300"></div>
-                  <div className="absolute -right-16 -top-16 w-32 h-32 bg-vanilla-100 rounded-full blur-3xl opacity-50 animate-pulse-slow"></div>
-
+                  
                   <div className="flex items-center justify-between mb-8 pb-6 border-b border-dashed border-gray-200">
                      <div className="flex items-center">
                         <div className="p-2 bg-chestnut-50 rounded-lg mr-3">
@@ -274,34 +281,33 @@ const AiPricing: React.FC = () => {
                             Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
                          </p>
                          
-                         {contactStep === 'initial' ? (
-                            <button 
-                                onClick={handleCopyAndPrepare}
-                                className="w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 bg-chestnut-600 hover:bg-chestnut-700 shadow-chestnut-200 hover:scale-105"
-                            >
-                                <Copy className="w-5 h-5 mr-2" />
-                                <span className="mr-1">Gửi Báo Giá cho KiNailRoom</span>
-                            </button>
-                         ) : (
-                            <button 
-                                onClick={handleOpenMessenger}
-                                className="w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200 animate-pulse"
-                            >
-                                <MessageCircle className="w-5 h-5 mr-2" />
-                                <span>Mở Messenger ngay (Đã Copy)</span>
-                                <ArrowRight className="w-4 h-4 ml-1" />
-                            </button>
-                         )}
+                         {/* SMART BUTTON SEND TO MESSENGER */}
+                         <button 
+                            onClick={handleSmartSend}
+                            disabled={isSaving}
+                            className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 hover:scale-105 ${
+                                isSaving 
+                                ? 'bg-chestnut-400 cursor-wait'
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-200'
+                            }`}
+                         >
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    Đang kết nối Facebook...
+                                </>
+                            ) : (
+                                <>
+                                    <MessageCircle className="w-5 h-5 mr-2" />
+                                    <span>Gửi Qua Messenger</span>
+                                    <ArrowRight className="w-4 h-4 ml-1" />
+                                </>
+                            )}
+                         </button>
                          
-                         {/* Friendly Paste Instruction */}
-                         <div className="mt-3 flex items-start gap-2 bg-vanilla-100 p-3 rounded-xl border border-vanilla-200 w-full animate-pulse-slow">
-                            <div className="bg-white p-1 rounded-full shadow-sm shrink-0">
-                                <ClipboardPaste className="w-4 h-4 text-chestnut-600" />
-                            </div>
-                            <p className="text-xs text-chestnut-800 font-menu text-left leading-relaxed">
-                               Sau khi bấm nút trên, bạn sẽ được chuyển thẳng qua ứng dụng Messenger. Việc còn lại bạn chỉ cần bấm <span className="font-bold text-chestnut-600 bg-white px-1.5 py-0.5 rounded border border-chestnut-100 shadow-sm mx-0.5">Dán (Paste)</span> nội dung vào ô chat gửi cho Ki Nail là được nha! 🥰
-                            </p>
-                         </div>
+                         <p className="text-[10px] text-gray-400 mt-2 italic">
+                            *Hệ thống sẽ tự động gửi ảnh và báo giá vào hộp thoại chat của bạn.
+                         </p>
                       </div>
                    </div>
                </div>

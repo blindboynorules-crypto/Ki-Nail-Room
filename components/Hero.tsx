@@ -82,8 +82,8 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
           
           {/* Image Side - Composition Layering */}
           <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-8">
-             {/* INCREASED WIDTH HERE: w-72 md:w-96 lg:w-[28rem] */}
-             <div className="relative w-72 md:w-96 lg:w-[28rem] group">
+             {/* INCREASED WIDTH HERE: w-80 md:w-[28rem] lg:w-[32rem] */}
+             <div className="relative w-80 md:w-[28rem] lg:w-[32rem] group transition-all duration-500">
                 
                 {/* Decorative border ring */}
                 <div className="absolute inset-0 border-[1px] border-chestnut-300 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
@@ -122,12 +122,12 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                   <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-chestnut-900/40 to-transparent pointer-events-none"></div>
                 </div>
 
-                {/* SNOWMAN IMAGE (Góc dưới trái) */}
+                {/* SNOWMAN IMAGE (Góc dưới trái) - MÀU GỐC (TRẮNG XANH) */}
                 <div className="absolute -bottom-2 -left-6 z-30 animate-bounce-slow hover:scale-110 transition-transform cursor-pointer">
                   <img 
                     src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Snowman.png" 
                     alt="Cute Snowman" 
-                    className="w-24 h-24 drop-shadow-lg filter hover:brightness-110"
+                    className="w-24 h-24 drop-shadow-lg transition-all"
                   />
                 </div>
              </div>
