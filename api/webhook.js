@@ -3,7 +3,7 @@
 export default async function handler(req, res) {
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   
-  // 1. XÁC MINH WEBHOOK
+  // 1. XÁC MINH WEBHOOK (Facebook Ping)
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
@@ -19,41 +19,43 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. XỬ LÝ SỰ KIỆN POST
+  // 2. XỬ LÝ TIN NHẮN ĐẾN (POST)
   if (req.method === 'POST') {
     const body = req.body;
 
     if (body.object === 'page') {
       try {
-        // Duyệt qua tất cả các entry (có thể có nhiều event cùng lúc)
         for (const entry of body.entry) {
           const webhook_event = entry.messaging ? entry.messaging[0] : null;
           
           if (webhook_event) {
             const sender_psid = webhook_event.sender.id;
             
-            // A. TÌM MÃ ĐƠN HÀNG (REF)
+            // --- TRƯỜNG HỢP 1: CÓ REF (TỪ WEB BÁO GIÁ AI CHUYỂN SANG) ---
+            // Đây là tính năng chính bạn muốn giữ lại
             let refParam = null;
-            
-            if (webhook_event.referral) {
-                refParam = webhook_event.referral.ref;
-            } 
-            else if (webhook_event.postback && webhook_event.postback.referral) {
-                refParam = webhook_event.postback.referral.ref;
-            }
-            else if (webhook_event.optin && webhook_event.optin.ref) {
-                refParam = webhook_event.optin.ref;
-            }
+            if (webhook_event.referral) refParam = webhook_event.referral.ref;
+            else if (webhook_event.postback?.referral) refParam = webhook_event.postback.referral.ref;
+            else if (webhook_event.optin?.ref) refParam = webhook_event.optin.ref;
 
-            // B. XỬ LÝ LOGIC (CHỈ TRẢ LỜI KHI CÓ REF)
             if (refParam) {
-                console.log(`[WEBHOOK] FOUND REF: ${refParam} -> Processing AI Quote`);
+                console.log(`[WEBHOOK] FOUND REF: ${refParam}`);
                 await handleReferral(sender_psid, refParam);
-            } else {
-                // Nếu là tin nhắn thường hoặc click nút mà không có Ref từ web
-                // -> IM LẶNG HOÀN TOÀN để nhân viên tư vấn
-                console.log("[WEBHOOK] Normal interaction (No Ref) -> Ignored (Silent Mode)");
+            } 
+            // --- TRƯỜNG HỢP 2: KHÁCH BẤM NÚT TRONG THẺ BÁO GIÁ ---
+            // Giữ lại cái này để khi khách bấm "Liên Hệ KiNailRoom" thì có phản hồi xác nhận
+            else if (webhook_event.postback) {
+                const payload = webhook_event.postback.payload;
+                if (payload === 'CHAT_WITH_HUMAN' || payload === 'CHAT_HUMAN') {
+                    // Chỉ xác nhận ngắn gọn là đã nhận thông tin
+                    await sendFacebookMessage(process.env.FB_PAGE_ACCESS_TOKEN, sender_psid, { 
+                        text: "Dạ vâng, em đã nhận thông tin ạ. Nàng đợi xíu nhân viên sẽ vào tư vấn trực tiếp cho mình nha! 💕" 
+                    });
+                }
             }
+            
+            // ĐÃ XÓA: Phần xử lý tin nhắn văn bản thường (webhook_event.message.text)
+            // Bot sẽ IM LẶNG khi khách chat bình thường.
           }
         }
       } catch (e) {
@@ -65,18 +67,18 @@ export default async function handler(req, res) {
   }
 }
 
-// --- HÀM XỬ LÝ KHI CÓ MÃ ĐƠN HÀNG TỪ WEB ---
+// --- HÀM XỬ LÝ REF (BÁO GIÁ TỪ WEB) ---
 async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
-    if (!FB_PAGE_ACCESS_TOKEN) return console.error("Missing Page Access Token");
+    if (!FB_PAGE_ACCESS_TOKEN) return;
 
-    // Gửi tín hiệu "Đang soạn tin..." (Typing...)
+    // Bật typing để khách biết đang xử lý
     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
 
-    // 1. XỬ LÝ MOCK / DEMO
+    // Xử lý Mock/Demo
     if (recordId && recordId.startsWith('MOCK_')) {
-        await new Promise(r => setTimeout(r, 1000)); // Giả vờ đợi 1s
-        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "🚧 Đang hiển thị dữ liệu DEMO (Do chưa kết nối Database):" });
+        await new Promise(r => setTimeout(r, 1000));
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "🚧 Đang hiển thị dữ liệu DEMO:" });
         await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, "https://drive.google.com/thumbnail?id=1XSy0IKZ_D_bUcfHrmADzfctEuIkeCWIM&sz=w1000");
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
             attachment: {
@@ -92,28 +94,18 @@ async function handleReferral(sender_psid, recordId) {
         return;
     }
 
-    // 2. XỬ LÝ PRODUCTION (LẤY TỪ AIRTABLE)
+    // Xử lý lấy dữ liệu thật từ Airtable
     const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 
-    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-         // Chỉ báo lỗi nếu thực sự là flow Báo Giá nhưng server lỗi
-         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "⚠️ Lỗi: Server chưa cấu hình Airtable." });
-         return;
-    }
+    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) return;
 
     try {
         const airtableRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Quotes/${recordId}`, {
             headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
         });
         
-        if (!airtableRes.ok) {
-            await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                text: "⚠️ Không tìm thấy đơn báo giá này. Có thể đơn đã hết hạn." 
-            });
-            await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
-            return;
-        }
+        if (!airtableRes.ok) return;
 
         const record = await airtableRes.json();
         const { "Image URL": imageUrl, "Total Estimate": total, "Items Detail": itemsJson } = record.fields;
@@ -125,21 +117,18 @@ async function handleReferral(sender_psid, recordId) {
         try {
             const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
             if (Array.isArray(items)) {
-                detailsText = items.map(i => `- ${i.item}: ${fmt(i.cost)}`).join('\n');
+                items.forEach(i => {
+                     detailsText += `- ${i.item}: ${fmt(i.cost)}\n`;
+                });
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {}
 
-
-        // GỬI TIN 1: ẢNH
-        if (imageUrl) {
-            await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
-        }
-
-        // Tạm dừng 1 xíu cho tin nhắn ảnh load xong (tạo cảm giác tự nhiên)
+        // Gửi Ảnh
+        if (imageUrl) await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
         await new Promise(r => setTimeout(r, 500));
 
-        // GỬI TIN 2: CHI TIẾT
-        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n\n💰 TỔNG CỘNG: ${totalFormatted}\n\n⚠️ Đây là giá được phân tích và báo giá bằng AI, để biết giá cụ thể bạn cứ liên hệ trực tiếp Ki Nail hén.\n\nChat với tụi mình để chốt lịch nhé! 👇`;
+        // Gửi nội dung text + nút bấm
+        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\n💰 TỔNG CỘNG: ${totalFormatted}\n\n⚠️ Đây là giá được phân tích và báo giá bằng AI, để biết giá cụ thể bạn cứ liên hệ trực tiếp Ki Nail hén.\n\nChat với tụi mình để chốt lịch nhé! 👇`;
         
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
             attachment: {
@@ -147,15 +136,13 @@ async function handleReferral(sender_psid, recordId) {
                 payload: {
                     template_type: "button",
                     text: msgBody.substring(0, 640), 
-                    buttons: [
-                        { type: "postback", title: "Liên Hệ KiNailRoom", payload: "CHAT_WITH_HUMAN" }
-                    ]
+                    buttons: [{ type: "postback", title: "Liên Hệ KiNailRoom", payload: "CHAT_HUMAN" }]
                 }
             }
         });
 
     } catch (error) {
-        console.error("Airtable Fetch Error:", error);
+        console.error("Error:", error);
     } finally {
         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
     }
@@ -167,43 +154,26 @@ async function sendSenderAction(token, psid, action) {
         await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                recipient: { id: psid },
-                sender_action: action
-            })
+            body: JSON.stringify({ recipient: { id: psid }, sender_action: action })
         });
-    } catch (e) {
-        console.error("Sender Action Error:", e);
-    }
+    } catch (e) {}
 }
 
 async function sendFacebookMessage(token, psid, messageContent) {
     try {
-        const res = await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, {
+        await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                recipient: { id: psid },
-                message: messageContent
-            })
+            body: JSON.stringify({ recipient: { id: psid }, message: messageContent })
         });
-        const data = await res.json();
-        if (data.error) {
-            console.error("FB API Error:", data.error);
-        }
-    } catch (e) {
-        console.error("Fetch Error:", e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function sendFacebookImage(token, psid, imageUrl) {
      await sendFacebookMessage(token, psid, {
         attachment: {
             type: "image",
-            payload: { 
-                url: imageUrl, 
-                is_reusable: true 
-            }
+            payload: { url: imageUrl, is_reusable: true }
         }
     });
 }

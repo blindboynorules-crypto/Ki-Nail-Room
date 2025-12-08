@@ -76,7 +76,6 @@ const AiPricing: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // 1. Kiểm tra môi trường Preview
       if (!window.location.hostname.includes('kinailroom.vercel.app')) {
           alert("Bạn đang ở chế độ Preview (Local). Hệ thống sẽ giả lập thành công mà không lưu vào Airtable.");
           window.open("https://m.me/kinailroom", "_blank");
@@ -84,7 +83,6 @@ const AiPricing: React.FC = () => {
           return;
       }
 
-      // 2. Gọi API lưu vào Airtable
       const response = await fetch('/api/save-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,9 +101,6 @@ const AiPricing: React.FC = () => {
       }
 
       const orderRef = data.recordId;
-
-      // 3. Chuyển hướng sang Messenger với tham số ref
-      // Khi khách bấm "Bắt đầu" (Get Started) trên Messenger, FB sẽ gửi sự kiện về Webhook
       console.log("Redirecting to Messenger with Ref:", orderRef);
       window.location.href = `https://m.me/kinailroom?ref=${orderRef}`;
 
@@ -128,7 +123,6 @@ const AiPricing: React.FC = () => {
         
         {/* Header */}
         <div className="text-center mb-12">
-          {/* SỬA ĐỔI Ở ĐÂY: Tách animation riêng biệt */}
           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-chestnut-100 to-vanilla-100 rounded-2xl mb-4 shadow-inner relative">
             <Bot className="h-8 w-8 text-chestnut-600 animate-float" />
             <span className="absolute -top-2 -right-12 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm animate-wiggle">BETA</span>
@@ -173,9 +167,13 @@ const AiPricing: React.FC = () => {
                     className="absolute inset-0 w-full h-full object-contain p-4 z-10" 
                   />
                   <div className="absolute inset-0 bg-chestnut-900/5 z-0"></div>
+                  
+                  {/* GLASS CLEAR BUTTON */}
                   <button 
                     onClick={handleClear}
-                    className="absolute top-4 right-4 z-20 p-2 bg-white rounded-full shadow-md text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors hover:scale-110 active:scale-90"
+                    className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center transition-all
+                               bg-white/60 backdrop-blur-md border border-white/50 shadow-md ring-1 ring-white/50
+                               text-gray-500 hover:text-red-500 hover:bg-red-50 hover:scale-110 active:scale-90"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -203,15 +201,16 @@ const AiPricing: React.FC = () => {
               />
             </div>
 
+            {/* GLASS PRIMARY BUTTON */}
             <button
               onClick={handleAnalyze}
               disabled={!selectedImage || isLoading || apiKeyMissing}
-              className={`w-full py-4 rounded-xl font-bold text-lg font-vn transition-all shadow-lg flex items-center justify-center ${
+              className={`w-full py-4 rounded-full font-bold text-lg font-vn transition-all shadow-lg flex items-center justify-center border border-white/20 ring-1 ring-white/20 ring-inset backdrop-blur-md ${
                 !selectedImage || apiKeyMissing
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-200/50 text-gray-400 cursor-not-allowed'
                   : isLoading 
-                    ? 'bg-chestnut-400 text-white cursor-wait'
-                    : 'bg-chestnut-600 text-white hover:bg-chestnut-700 hover:scale-[1.02] active:scale-95'
+                    ? 'bg-chestnut-400/90 text-white cursor-wait'
+                    : 'bg-chestnut-600/90 text-white hover:bg-chestnut-700/90 hover:scale-[1.02] active:scale-95 shadow-chestnut-500/40'
               }`}
             >
               {isLoading ? (
@@ -289,14 +288,14 @@ const AiPricing: React.FC = () => {
                               Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
                            </p>
                            
-                           {/* SMART BUTTON SEND TO MESSENGER */}
+                           {/* SMART BUTTON SEND TO MESSENGER - GLASSMORPHISM */}
                            <button 
                               onClick={handleSmartSend}
                               disabled={isSaving}
-                              className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 hover:scale-105 ${
+                              className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 hover:scale-105 border border-white/20 ring-1 ring-white/20 ring-inset backdrop-blur-md ${
                                   isSaving 
                                   ? 'bg-chestnut-400 cursor-wait'
-                                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-200'
+                                  : 'bg-gradient-to-r from-blue-500/90 to-blue-600/90 hover:from-blue-600 hover:to-blue-700 shadow-blue-200/50'
                               }`}
                            >
                               {isSaving ? (

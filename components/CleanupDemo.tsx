@@ -50,7 +50,8 @@ const CleanupDemo: React.FC<CleanupDemoProps> = ({ onBack }) => {
           <div className="bg-gray-50 p-4 text-center border-t border-gray-100">
             <button 
               onClick={onBack} 
-              className="text-chestnut-600 hover:text-chestnut-500 font-bold text-sm transition-colors flex items-center justify-center gap-2 group w-full"
+              className="font-bold text-sm transition-colors flex items-center justify-center gap-2 group w-full py-3 rounded-xl
+                         bg-white border border-gray-200 shadow-sm text-chestnut-600 hover:bg-chestnut-50 hover:border-chestnut-200"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Quay về trang chủ
             </button>

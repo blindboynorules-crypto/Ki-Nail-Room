@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Phone, MapPin, Clock, Facebook, Instagram, ArrowRight } from 'lucide-react';
 
-// Custom TikTok Icon component since it's not in Lucide
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg 
     viewBox="0 0 24 24" 
@@ -29,7 +29,6 @@ const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
           
-          {/* Brand Column (Span 5) */}
           <div className="md:col-span-5 flex flex-col items-start">
             <div className="mb-8">
                <h3 className="text-4xl md:text-5xl font-serif font-black text-chestnut-600 tracking-tight leading-none uppercase drop-shadow-sm hover:scale-105 transition-transform duration-500 origin-left cursor-default">
@@ -43,7 +42,6 @@ const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
               Góc nhỏ làm đẹp với phong cách Hàn - Nhật nhẹ nhàng. Nơi nâng niu đôi bàn tay và giúp nàng thêm tự tin, rạng rỡ mỗi ngày. 🌿💅
             </p>
             
-            {/* Social Icons */}
             <div className="flex space-x-4">
               <a 
                 href={FACEBOOK_LINK} 
@@ -75,7 +73,6 @@ const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
             </div>
           </div>
 
-          {/* Contact Info (Span 3) */}
           <div className="md:col-span-3">
             <h4 className="text-xl md:text-2xl font-serif font-bold text-chestnut-700 mb-8 flex items-center">
               <span className="w-8 h-[3px] bg-chestnut-400 mr-3 rounded-full"></span>
@@ -102,7 +99,6 @@ const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
             </ul>
           </div>
 
-          {/* Hours & CTA (Span 4) */}
           <div className="md:col-span-4">
             <h4 className="text-xl md:text-2xl font-serif font-bold text-chestnut-700 mb-8 flex items-center">
               <span className="w-8 h-[3px] bg-chestnut-400 mr-3 rounded-full"></span>
@@ -120,12 +116,14 @@ const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
                 href={MESSENGER_LINK} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="block w-full group relative overflow-hidden bg-chestnut-600 text-white p-4 rounded-2xl text-center transition-all hover:bg-chestnut-700 active:scale-95 shadow-lg shadow-chestnut-200"
+                className="block w-full group relative overflow-hidden bg-chestnut-600/90 text-white p-4 rounded-2xl text-center transition-all hover:bg-chestnut-700/90 active:scale-95 shadow-lg shadow-chestnut-200 border border-white/20 backdrop-blur-md ring-1 ring-white/20 ring-inset"
               >
                 <div className="relative z-10 flex items-center justify-center font-bold text-base uppercase tracking-widest">
                   Đặt lịch ngay
                   <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-50 pointer-events-none"></div>
               </a>
               <p className="text-center text-sm text-gray-400 mt-4 italic font-menu">
                 Vui lòng đặt lịch trước qua điện thoại hoặc Messenger.
@@ -134,7 +132,6 @@ const Footer: React.FC<FooterProps> = ({ onPrivacyClick }) => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 font-menu">
           <p className="flex items-center gap-4">
             <span>&copy; {new Date().getFullYear()} Ki Nail Room. All rights reserved.</span>

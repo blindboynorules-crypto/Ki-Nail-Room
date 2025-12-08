@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GALLERY_IMAGES as FALLBACK_IMAGES } from '../constants';
 import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
@@ -5,7 +6,7 @@ import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
 const Gallery: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0); // MẶC ĐỊNH LÀ 0 (ẢNH MỚI NHẤT)
+  const [activeIndex, setActiveIndex] = useState(0); 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const touchEndRef = useRef(0);
@@ -18,7 +19,6 @@ const Gallery: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
-            // Giới hạn tối đa 20 ảnh ngay tại frontend để chắc chắn
             setImages(data.slice(0, 20));
             setSource('cloudinary');
             setActiveIndex(0);
@@ -26,14 +26,11 @@ const Gallery: React.FC = () => {
             return;
           }
         }
-        // Nếu API lỗi hoặc không có dữ liệu, không throw Error nữa để tránh rác console
-        // Tự động chuyển sang fallback
         setImages(FALLBACK_IMAGES.slice(0, 20));
         setSource('fallback');
         setActiveIndex(0);
         setIsLoading(false);
       } catch (error) {
-        // Lỗi mạng hoặc lỗi khác -> Fallback âm thầm
         setImages(FALLBACK_IMAGES.slice(0, 20));
         setSource('fallback');
         setActiveIndex(0);
@@ -58,12 +55,10 @@ const Gallery: React.FC = () => {
   };
 
   const handleNext = () => {
-    // Loop Logic: Nếu là ảnh cuối cùng -> Quay về 0
     setActiveIndex((prev) => (prev + 1) < images.length ? prev + 1 : 0);
   };
 
   const handlePrev = () => {
-    // Loop Logic: Nếu là ảnh đầu tiên -> Quay về cuối
     setActiveIndex((prev) => (prev - 1) >= 0 ? prev - 1 : images.length - 1);
   };
 
@@ -96,12 +91,8 @@ const Gallery: React.FC = () => {
     const total = images.length;
     if (total === 0) return {};
 
-    // --- LOGIC VÒNG LẶP VÔ TẬN (INFINITE LOOP) ---
-    // Tính khoảng cách cơ bản
     let distance = index - activeIndex;
 
-    // Điều chỉnh khoảng cách để tạo vòng tròn
-    // Ví dụ: Có 20 ảnh. Đang ở ảnh 0. Ảnh 19 (cách 19 đơn vị) sẽ được coi là -1 (ngay bên trái)
     if (distance > total / 2) {
         distance -= total;
     } else if (distance < -total / 2) {
@@ -147,11 +138,9 @@ const Gallery: React.FC = () => {
         zIndex = 10;
         rotateY = '25deg';
     } else {
-        // Các ảnh ở xa ẩn đi nhưng vẫn giữ logic 3D để animation mượt
         opacity = 0;
         scale = 0.5;
         zIndex = 0;
-        // Nếu distance > 0 thì đẩy hẳn sang phải, < 0 đẩy sang trái
         xTranslate = distance > 0 ? '200%' : '-200%';
     }
 
@@ -170,7 +159,7 @@ const Gallery: React.FC = () => {
     <section id="gallery" className="py-16 md:py-24 bg-vanilla-50 border-t border-chestnut-100 overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 md:mb-16">
-           <div className="inline-flex items-center justify-center p-3 mb-5 bg-white rounded-[1.5rem] shadow-xl shadow-chestnut-200/50 border-2 border-vanilla-200 relative group">
+           <div className="inline-flex items-center justify-center p-3 mb-5 bg-white/80 backdrop-blur-sm rounded-[1.5rem] shadow-xl shadow-chestnut-200/50 border border-white/50 relative group">
              <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-yellow-400 fill-vanilla-100 animate-pulse" style={{ animationDuration: '2s' }} />
              <Sparkles className="absolute -bottom-1 -left-2 w-3 h-3 text-chestnut-300 animate-bounce" style={{ animationDuration: '3s' }} />
              <div className="absolute top-0 left-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
@@ -208,17 +197,19 @@ const Gallery: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    <button onClick={handlePrev} className="absolute left-4 md:left-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block group">
-                        <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
+                    {/* GLASS ARROW BUTTON LEFT */}
+                    <button onClick={handlePrev} className="absolute left-4 md:left-20 z-50 p-4 rounded-full bg-white/60 hover:bg-white/80 text-chestnut-700 shadow-lg backdrop-blur-md border border-white/50 ring-1 ring-white/40 transition-all hidden md:block group hover:scale-110 active:scale-95">
+                        <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                     </button>
-                    <button onClick={handleNext} className="absolute right-4 md:right-20 z-50 p-3 rounded-full bg-white/80 hover:bg-white text-chestnut-700 shadow-lg backdrop-blur-sm transition-all hidden md:block group">
-                        <ChevronRight className="w-8 h-8 group-hover:translate-x-1 transition-transform" />
+                    {/* GLASS ARROW BUTTON RIGHT */}
+                    <button onClick={handleNext} className="absolute right-4 md:right-20 z-50 p-4 rounded-full bg-white/60 hover:bg-white/80 text-chestnut-700 shadow-lg backdrop-blur-md border border-white/50 ring-1 ring-white/40 transition-all hidden md:block group hover:scale-110 active:scale-95">
+                        <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                     </button>
 
                     <div className="relative w-full max-w-[300px] md:max-w-[400px] h-[400px] md:h-[550px] flex items-center justify-center">
                         {images.map((url, idx) => {
                             const style = getCardStyle(idx);
-                            const distance = idx - activeIndex; // Chỉ dùng để so sánh index
+                            const distance = idx - activeIndex; 
                             let normalizedDistance = distance;
                             if (distance > images.length / 2) normalizedDistance -= images.length;
                             if (distance < -images.length / 2) normalizedDistance += images.length;

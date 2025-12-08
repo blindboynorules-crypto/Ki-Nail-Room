@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Scissors, Palette, Layers, CheckCircle2, Zap, GraduationCap } from 'lucide-react';
 
@@ -126,7 +127,11 @@ const Training: React.FC = () => {
                 href="https://m.me/kinailroom" 
                 target="_blank" 
                 rel="noreferrer"
-                className="inline-flex items-center px-8 py-3.5 bg-vanilla-300 text-chestnut-900 rounded-full font-bold font-vn hover:bg-white transition-all shadow-lg shadow-chestnut-900/50 hover:shadow-vanilla-200/50 transform active:scale-95 hover:-translate-y-1"
+                className="inline-flex items-center px-8 py-4 rounded-full font-bold font-vn text-base transition-all active:scale-95
+                           bg-vanilla-300/90 text-chestnut-900 backdrop-blur-md 
+                           border border-white/20 shadow-[0_4px_14px_0_rgba(0,0,0,0.25)] 
+                           ring-1 ring-white/30 ring-inset
+                           hover:bg-white/90 hover:-translate-y-1 hover:shadow-lg"
               >
                 Đăng Ký Tư Vấn Ngay
               </a>

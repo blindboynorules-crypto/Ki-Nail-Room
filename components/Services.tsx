@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { SERVICE_MENU, SERVICE_SHOWCASE_IMAGES as FALLBACK_IMAGES } from '../constants';
 import { Sparkles, ChevronLeft, ChevronRight, Loader2, Image as ImageIcon } from 'lucide-react';
@@ -11,7 +12,6 @@ const Services: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [source, setSource] = useState<'cloudinary' | 'fallback'>('fallback');
 
-  // Fetch ảnh từ API folder 'showcase'
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -25,13 +25,11 @@ const Services: React.FC = () => {
             return;
           }
         }
-        // Fallback âm thầm, không throw Error
-        setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn 20 ảnh
+        setImages(FALLBACK_IMAGES.slice(0, 20));
         setSource('fallback');
         setIsLoading(false);
       } catch (error: any) {
-        // Fallback âm thầm, không throw Error
-        setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn 20 ảnh
+        setImages(FALLBACK_IMAGES.slice(0, 20));
         setSource('fallback');
         setIsLoading(false);
       }
@@ -56,17 +54,15 @@ const Services: React.FC = () => {
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
-      const scrollAmount = 300; // Khoảng cách mỗi lần cuộn
+      const scrollAmount = 300; 
 
       if (direction === 'left') {
         if (scrollLeft <= 0) {
-           // Nếu đang ở đầu -> Loop về cuối
            sliderRef.current.scrollTo({ left: scrollWidth, behavior: 'smooth' });
         } else {
            sliderRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         }
       } else {
-        // Nếu đang ở cuối (cộng trừ sai số nhỏ) -> Loop về đầu
         if (scrollLeft + clientWidth >= scrollWidth - 5) {
            sliderRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
@@ -159,19 +155,23 @@ const Services: React.FC = () => {
                      </div>
                 )}
 
-                {/* Left Arrow Button */}
+                {/* Left Arrow Button - GLASSMORPHISM */}
                 <button 
                   onClick={() => scroll('left')}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-white/80 hover:bg-white text-chestnut-600 rounded-full shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 backdrop-blur-sm hover:scale-110 active:scale-90"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 
+                             bg-white/40 backdrop-blur-md border border-white/50 shadow-lg ring-1 ring-white/40
+                             text-chestnut-700 hover:bg-white/70 hover:scale-110 active:scale-95"
                   aria-label="Scroll left"
                 >
                   <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
 
-                {/* Right Arrow Button */}
+                {/* Right Arrow Button - GLASSMORPHISM */}
                 <button 
                   onClick={() => scroll('right')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-white/80 hover:bg-white text-chestnut-600 rounded-full shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 backdrop-blur-sm hover:scale-110 active:scale-90"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 md:opacity-100 
+                             bg-white/40 backdrop-blur-md border border-white/50 shadow-lg ring-1 ring-white/40
+                             text-chestnut-700 hover:bg-white/70 hover:scale-110 active:scale-95"
                    aria-label="Scroll right"
                 >
                   <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />

@@ -32,7 +32,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
           <div className="text-center md:text-left order-2 md:order-1 flex flex-col items-center md:items-start">
             
             {/* Tagline */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-chestnut-100 shadow-sm mb-6 hover:shadow-md transition-shadow cursor-default">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 backdrop-blur-sm border border-chestnut-200/50 shadow-sm mb-6 hover:shadow-md transition-shadow cursor-default ring-1 ring-white/50">
               <span className="w-1.5 h-1.5 rounded-full bg-chestnut-500 animate-pulse"></span>
               <span className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-chestnut-600 uppercase">
                 Est. 2020 — Korean & Japanese Style
@@ -58,31 +58,42 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
               Nơi mang lại vẻ đẹp nhẹ nhàng, tinh tế và trendy nhất cho đôi bàn tay của bạn.
             </p>
 
-            {/* Buttons - Always Row - Fixed for Mobile */}
-            <div className="flex flex-row items-center gap-3 w-full max-w-md md:max-w-none">
+            {/* Buttons - GLASSMORPHISM STYLE */}
+            <div className="flex flex-row items-center gap-4 w-full max-w-md md:max-w-none">
               <a 
                 href={MESSENGER_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center px-2 py-3.5 md:px-8 bg-chestnut-600 text-white rounded-full font-bold font-vn hover:bg-chestnut-700 transition-all shadow-lg shadow-chestnut-200 active:scale-95 text-[13px] md:text-base hover:-translate-y-1 whitespace-nowrap overflow-hidden"
+                className="relative flex-1 flex items-center justify-center px-2 py-4 md:px-8 rounded-full font-bold font-vn text-[13px] md:text-base whitespace-nowrap overflow-hidden transition-all duration-300 shadow-lg active:scale-95
+                           bg-chestnut-600/90 backdrop-blur-md border border-white/20 shadow-chestnut-500/40 ring-1 ring-white/20 ring-inset text-white
+                           hover:bg-chestnut-500/90 hover:-translate-y-1 hover:shadow-chestnut-500/60"
               >
-                Đặt Lịch Ngay
-                <ArrowRight className="ml-1 md:ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
+                <span className="relative z-10 flex items-center">
+                    Đặt Lịch Ngay
+                    <ArrowRight className="ml-1 md:ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
+                </span>
+                {/* Shine effect */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent opacity-50 pointer-events-none"></div>
               </a>
               
               <a 
                 href="tel:0919979763"
-                className="flex-1 flex items-center justify-center px-2 py-3.5 md:px-8 bg-white text-chestnut-600 border-2 border-chestnut-100 rounded-full font-bold font-vn hover:border-chestnut-600 hover:text-chestnut-700 transition-all shadow-sm active:scale-95 text-[13px] md:text-base active:bg-green-600 active:text-white active:border-green-600 active:shadow-inner whitespace-nowrap overflow-hidden"
+                className="relative flex-1 flex items-center justify-center px-2 py-4 md:px-8 rounded-full font-bold font-vn text-[13px] md:text-base whitespace-nowrap overflow-hidden transition-all duration-300 shadow-lg active:scale-95
+                           bg-white/60 backdrop-blur-md border border-white/60 shadow-gray-200/50 ring-1 ring-white/40 ring-inset text-chestnut-700
+                           hover:bg-white/80 hover:-translate-y-1 hover:shadow-xl"
               >
-                <Phone className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 group-hover:animate-wiggle group-active:text-white" />
-                Gọi Hotline
+                <span className="relative z-10 flex items-center">
+                    <Phone className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 group-hover:animate-wiggle" />
+                    Gọi Hotline
+                </span>
+                 {/* Shine effect */}
+                 <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/40 to-transparent opacity-60 pointer-events-none"></div>
               </a>
             </div>
           </div>
           
           {/* Image Side - Composition Layering */}
           <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-8">
-             {/* INCREASED WIDTH HERE: w-80 md:w-[28rem] lg:w-[32rem] */}
              <div className="relative w-80 md:w-[28rem] lg:w-[32rem] group transition-all duration-500">
                 
                 {/* Decorative border ring */}

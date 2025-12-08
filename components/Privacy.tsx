@@ -12,7 +12,7 @@ const Privacy: React.FC<PrivacyProps> = ({ onBack }) => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <button 
           onClick={onBack}
-          className="inline-flex items-center px-5 py-2.5 bg-chestnut-100 text-chestnut-700 rounded-full font-bold mb-8 hover:bg-chestnut-600 hover:text-white transition-all group shadow-sm"
+          className="inline-flex items-center px-6 py-3 bg-chestnut-100/50 text-chestnut-700 rounded-full font-bold mb-8 hover:bg-chestnut-600 hover:text-white transition-all group shadow-sm backdrop-blur-md border border-chestnut-200/50 ring-1 ring-white/40"
         >
           <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" /> 
           Quay lại trang chủ
