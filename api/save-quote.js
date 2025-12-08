@@ -13,13 +13,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  // Lấy cấu hình Airtable từ biến môi trường
-  const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
-  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-  const AIRTABLE_TABLE_NAME = 'Quotes'; // Tên bảng trong Airtable của bạn
+  // Lấy cấu hình Airtable và cắt bỏ khoảng trắng thừa (nếu có)
+  const AIRTABLE_API_TOKEN = (process.env.AIRTABLE_API_TOKEN || '').trim();
+  const AIRTABLE_BASE_ID = (process.env.AIRTABLE_BASE_ID || '').trim();
+  const AIRTABLE_TABLE_NAME = 'Quotes'; 
 
   if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-    // Nếu chưa cấu hình Airtable, trả về ID giả lập để test trên Frontend
     console.warn("Chưa cấu hình Airtable. Sử dụng Mock ID.");
     return res.status(200).json({ 
         success: true, 
@@ -31,14 +30,16 @@ export default async function handler(req, res) {
   try {
     const { imageUrl, totalEstimate, items, note } = req.body;
 
-    // Chuẩn bị dữ liệu gửi lên Airtable
+    // Chuẩn bị dữ liệu
     const fields = {
       "Image URL": imageUrl,
-      "Total Estimate": totalEstimate,
-      "Items Detail": JSON.stringify(items),
+      "Total Estimate": Number(totalEstimate), // Đảm bảo là số
+      "Items Detail": JSON.stringify(items, null, 2), // Format đẹp
       "Note": note,
       "Created At": new Date().toISOString()
     };
+
+    console.log("Sending to Airtable...", fields);
 
     const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`, {
       method: 'POST',
@@ -52,10 +53,10 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error?.message || 'Airtable Error');
+        console.error("Airtable Error Response:", data);
+        throw new Error(data.error?.message || data.error || 'Lỗi không xác định từ Airtable');
     }
 
-    // Trả về ID của bản ghi vừa tạo (đây chính là mã ref)
     return res.status(200).json({ 
         success: true, 
         recordId: data.id 

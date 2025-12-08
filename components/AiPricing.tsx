@@ -11,7 +11,7 @@ const AiPricing: React.FC = () => {
   const [result, setResult] = useState<PricingResult | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); // Trạng thái đang lưu đơn hàng
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   
@@ -70,14 +70,20 @@ const AiPricing: React.FC = () => {
     }
   };
 
-  // --- LOGIC MỚI: GỬI THẲNG QUA MESSENGER (AUTOMATION) ---
   const handleSmartSend = async () => {
     if (!result || !uploadedImageUrl) return;
     
     setIsSaving(true);
 
     try {
-      // 1. Gọi API nội bộ để lưu thông tin vào Airtable
+      // Kiểm tra môi trường Preview
+      if (!window.location.hostname.includes('kinailroom.vercel.app')) {
+          alert("Bạn đang ở chế độ Preview. Đơn hàng giả lập thành công!");
+          window.open("https://m.me/kinailroom", "_blank");
+          setIsSaving(false);
+          return;
+      }
+
       const response = await fetch('/api/save-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,21 +98,18 @@ const AiPricing: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Lỗi khi lưu đơn hàng');
+        throw new Error(data.error || data.message || 'Lỗi khi lưu đơn hàng');
       }
 
-      // 2. Lấy được mã đơn hàng (ref) từ Airtable
       const orderRef = data.recordId;
 
-      // 3. Chuyển hướng sang Messenger với tham số ref
-      // Khi khách bấm "Bắt đầu" trên Messenger, Facebook sẽ gửi Webhook kèm mã ref này về server
-      // Server sẽ tra cứu Airtable và tự động trả lời.
+      // Thành công -> Chuyển hướng
+      console.log("Đơn hàng đã lưu:", orderRef);
       window.location.href = `https://m.me/kinailroom?ref=${orderRef}`;
 
     } catch (err: any) {
       console.error("Smart Send Error:", err);
-      // Fallback: Nếu lỗi server/airtable, vẫn mở messenger trơn để khách tự chat
-      alert("Hệ thống lưu trữ đang bận, sẽ chuyển bạn đến Messenger ngay.");
+      alert(`Lỗi hệ thống: ${err.message}. Đang mở Messenger thủ công.`);
       window.open("https://m.me/kinailroom", "_blank");
     } finally {
       setIsSaving(false);
@@ -294,7 +297,7 @@ const AiPricing: React.FC = () => {
                             {isSaving ? (
                                 <>
                                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Đang kết nối Facebook...
+                                    Đang gửi đơn...
                                 </>
                             ) : (
                                 <>
