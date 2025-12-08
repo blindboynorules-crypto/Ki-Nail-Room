@@ -280,40 +280,42 @@ const AiPricing: React.FC = () => {
                          </p>
                       </div>
 
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col items-center">
-                         <p className="text-[11px] md:text-xs text-gray-500 text-center font-sans leading-relaxed mb-3">
-                            <span className="font-bold text-red-400 block mb-1 uppercase tracking-wide">Lưu ý quan trọng</span>
-                            Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
-                         </p>
-                         
-                         {/* SMART BUTTON SEND TO MESSENGER */}
-                         <button 
-                            onClick={handleSmartSend}
-                            disabled={isSaving}
-                            className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 hover:scale-105 ${
-                                isSaving 
-                                ? 'bg-chestnut-400 cursor-wait'
-                                : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-200'
-                            }`}
-                         >
-                            {isSaving ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Đang kết nối Facebook...
-                                </>
-                            ) : (
-                                <>
-                                    <MessageCircle className="w-5 h-5 mr-2" />
-                                    <span>Gửi Qua Messenger</span>
-                                    <ArrowRight className="w-4 h-4 ml-1" />
-                                </>
-                            )}
-                         </button>
-                         
-                         <p className="text-[10px] text-gray-400 mt-2 italic">
-                            *Hệ thống sẽ tự động gửi ảnh và báo giá vào hộp thoại chat của bạn.
-                         </p>
-                      </div>
+                      {result.totalEstimate > 0 && (
+                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col items-center">
+                           <p className="text-[11px] md:text-xs text-gray-500 text-center font-sans leading-relaxed mb-3">
+                              <span className="font-bold text-red-400 block mb-1 uppercase tracking-wide">Lưu ý quan trọng</span>
+                              Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
+                           </p>
+                           
+                           {/* SMART BUTTON SEND TO MESSENGER */}
+                           <button 
+                              onClick={handleSmartSend}
+                              disabled={isSaving}
+                              className={`w-full flex items-center justify-center px-5 py-3 text-white text-sm font-bold font-vn rounded-full transition-all shadow-md active:scale-95 hover:scale-105 ${
+                                  isSaving 
+                                  ? 'bg-chestnut-400 cursor-wait'
+                                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-200'
+                              }`}
+                           >
+                              {isSaving ? (
+                                  <>
+                                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                      Đang kết nối Facebook...
+                                  </>
+                              ) : (
+                                  <>
+                                      <MessageCircle className="w-5 h-5 mr-2" />
+                                      <span>Gửi Qua Messenger</span>
+                                      <ArrowRight className="w-4 h-4 ml-1" />
+                                  </>
+                              )}
+                           </button>
+                           
+                           <p className="text-[10px] text-gray-400 mt-2 italic">
+                              *Hệ thống sẽ tự động gửi ảnh và báo giá vào hộp thoại chat của bạn.
+                           </p>
+                        </div>
+                      )}
                    </div>
                </div>
             </div>
