@@ -5,12 +5,12 @@ import { ChatMessage, PricingResult } from "../types";
 // NOTE: Ensure process.env.API_KEY is defined in your build tool (Vite)
 const apiKey = process.env.API_KEY || ''; 
 
-// Debug log (will show in browser console)
-if (!apiKey) {
-  console.warn("⚠️ Gemini API Key is missing. Features relying on AI will fail.");
-} else {
-  console.log("✅ Gemini API Key detected.");
-}
+// User requested to hide these technical logs
+// if (!apiKey) {
+//   console.warn("⚠️ Gemini API Key is missing. Features relying on AI will fail.");
+// } else {
+//   console.log("✅ Gemini API Key detected.");
+// }
 
 let aiClient: GoogleGenAI | null = null;
 

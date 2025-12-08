@@ -25,9 +25,12 @@ const Services: React.FC = () => {
             return;
           }
         }
-        throw new Error(`API: ${response.status}`);
+        // Fallback âm thầm, không throw Error
+        setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn 20 ảnh
+        setSource('fallback');
+        setIsLoading(false);
       } catch (error: any) {
-        console.warn("Showcase: Using fallback images.", error);
+        // Fallback âm thầm, không throw Error
         setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn 20 ảnh
         setSource('fallback');
         setIsLoading(false);

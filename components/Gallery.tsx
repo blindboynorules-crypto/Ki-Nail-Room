@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { GALLERY_IMAGES as FALLBACK_IMAGES } from '../constants';
 import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
@@ -27,10 +26,15 @@ const Gallery: React.FC = () => {
             return;
           }
         }
-        throw new Error(`API: ${response.status}`);
-      } catch (error: any) {
-        console.warn("Gallery: Using fallback images.", error);
-        setImages(FALLBACK_IMAGES.slice(0, 20)); // Giới hạn fallback cũng 20 ảnh
+        // Nếu API lỗi hoặc không có dữ liệu, không throw Error nữa để tránh rác console
+        // Tự động chuyển sang fallback
+        setImages(FALLBACK_IMAGES.slice(0, 20));
+        setSource('fallback');
+        setActiveIndex(0);
+        setIsLoading(false);
+      } catch (error) {
+        // Lỗi mạng hoặc lỗi khác -> Fallback âm thầm
+        setImages(FALLBACK_IMAGES.slice(0, 20));
         setSource('fallback');
         setActiveIndex(0);
         setIsLoading(false);
