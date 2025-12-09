@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 // api/webhook.js
 // CHẾ ĐỘ: HYBRID AI BOT (GEMINI 2.5 FLASH + KEYWORD FALLBACK)
 // Sử dụng AI để hiểu ý định, nhưng trả lời bằng nội dung cứng để đảm bảo chuẩn xác.
+// Updated: V40 Force Deploy
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU (KHÔNG ĐƯỢC SỬA BỞI AI)
@@ -143,7 +144,7 @@ export default async function handler(req, res) {
                 
                 // LỆNH PING
                 if (userMessage.toLowerCase() === 'ping') {
-                    const statusMsg = `PONG! Bot Gemini 2.5 Flash [V35] Online.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}`;
+                    const statusMsg = `PONG! Bot Gemini 2.5 Flash [V40] Online.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
