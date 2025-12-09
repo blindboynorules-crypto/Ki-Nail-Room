@@ -74,7 +74,7 @@ export const getAiConsultation = async (
   }
 
   try {
-    // Sử dụng 'gemini-2.5-flash' - Model chuẩn hiện tại
+    // Sử dụng 'gemini-2.5-flash' cho Chat tư vấn để đồng bộ và thông minh hơn
     const chat = aiClient.chats.create({
       model: "gemini-2.5-flash",
       config: {
@@ -170,7 +170,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   `;
 
   try {
-    // Sử dụng 'gemini-2.5-flash' để tránh lỗi 404 (Not Found)
+    // Sử dụng 'gemini-2.5-flash' để khắc phục lỗi 404 Not Found từ bản 1.5 cũ
     const result = await aiClient.models.generateContent({
       model: "gemini-2.5-flash",
       contents: {
