@@ -27,25 +27,13 @@ const TRAINING_DATA = [
         imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
     },
     {
-        // 4. Hỏi Số tài khoản (STK)
-        keywords: ['stk', 'số tài khoản', 'chuyển khoản', 'bank', 'ngân hàng', 'ck'],
-        text: "Dạ thông tin chuyển khoản của Ki Nail Room đây ạ:\n\nNgân hàng: MB Bank (Quân Đội)\nSố TK: 0919979763\nChủ TK: VO THI KIEU OANH\n\nNàng chuyển xong chụp màn hình gửi Ki check với nha!"
-    },
-    {
-        // 5. Hỏi Wifi
-        keywords: ['wifi', 'pass', 'mật khẩu mạng', 'mạng'],
-        text: "Wifi nhà Ki nè nàng ơi, mạnh xỉu luôn:\n\nTên: Ki Nail Room\nPass: 88888888 (8 số 8)\n\nNàng kết nối để lướt nét trong lúc làm đẹp nha!"
-    },
-    {
-        // 6. Hỏi Giờ làm việc
-        keywords: ['mấy giờ', 'giờ mở cửa', 'đóng cửa', 'lịch làm', 'open', 'close', 'mở cửa', 'đến mấy giờ'],
-        text: "Tụi mình mở cửa từ: 9:30 sáng - 20:00 tối (Tất cả các ngày trong tuần).\n\nNàng ghé khung giờ nào nhắn Ki giữ lịch trước để không phải đợi lâu nha!"
-    },
-    {
-        // 7. Hỏi Hotline
-        keywords: ['sđt', 'số điện thoại', 'hotline', 'gọi', 'alo', 'phone', 'liên lạc'],
-        text: "Hotline / Zalo của tụi mình: 0919 979 763.\n\nNàng cần gấp cứ gọi, Ki nghe máy liền ạ!"
+        // 4. Hỏi Giờ làm việc (Đã cập nhật nội dung mới)
+        // LƯU Ý: Đã xóa từ khóa 'lịch làm' để tránh bot bắt nhầm câu 'đặt lịch làm móng'
+        keywords: ['mấy giờ', 'giờ mở cửa', 'đóng cửa', 'open', 'close', 'mở cửa', 'đến mấy giờ', 'hoạt động'],
+        text: "Dạ Ki mở cửa từ 9:30 - nhận khách cuối lúc 19:45 (7:45) ạ"
     }
+    
+    // ĐÃ TẮT CÁC MỤC KHÁC (STK, WIFI, HOTLINE) THEO YÊU CẦU ĐỂ BOT KHÔNG TỰ TRẢ LỜI
 ];
 // ============================================================
 // HẾT PHẦN TRAINING - KHÔNG SỬA CODE BÊN DƯỚI NẾU KHÔNG RÀNH
