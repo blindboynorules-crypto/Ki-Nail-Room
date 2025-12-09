@@ -93,8 +93,8 @@ async function classifyIntentWithGemini(userMessage) {
 }
 
 export default async function handler(req, res) {
-  // FORCE V21 UPDATE LOG
-  console.log("[BOT V21] Webhook handler loaded.");
+  // FORCE V22 UPDATE LOG
+  console.log("[BOT V22] Webhook handler loaded. Checking connectivity...");
 
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
@@ -146,7 +146,8 @@ export default async function handler(req, res) {
                 
                 // === CHẨN ĐOÁN HỆ THỐNG (DIAGNOSTIC PING) ===
                 if (userMessage.toLowerCase() === 'ping') {
-                    const statusMsg = `PONG! Hệ thống Ki Nail Room [V21] đang hoạt động.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}`;
+                    // Trả lời rõ version để user biết code đã cập nhật
+                    const statusMsg = `PONG! Hệ thống [V22] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
