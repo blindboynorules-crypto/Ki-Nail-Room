@@ -25,8 +25,8 @@ const FIXED_ANSWERS = {
 async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
-        console.error("Thiếu API_KEY");
-        return "SILENCE"; 
+        console.error("FATAL ERROR: Thiếu API_KEY của Google Gemini trong Vercel Settings.");
+        return "ERROR_MISSING_KEY"; 
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -77,9 +77,9 @@ async function classifyIntentWithGemini(userMessage) {
             }
         });
         
-        const intent = result.text.trim().toUpperCase();
+        let intent = result.text.trim().toUpperCase();
         
-        // Safety check: Đảm bảo AI chỉ trả về các từ khóa cho phép, kể cả khi nó trả lời dài dòng
+        // Safety check: Đảm bảo AI chỉ trả về các từ khóa cho phép
         if (intent.includes("ADDRESS")) return "ADDRESS";
         if (intent.includes("PRICE")) return "PRICE";
         if (intent.includes("PROMOTION")) return "PROMOTION";
@@ -87,12 +87,15 @@ async function classifyIntentWithGemini(userMessage) {
         return "SILENCE";
 
     } catch (error) {
-        console.error("Gemini Error:", error);
-        return "SILENCE"; // Lỗi thì im lặng cho an toàn
+        console.error("Gemini AI Error:", error);
+        return "ERROR_AI"; // Báo lỗi AI cụ thể
     }
 }
 
 export default async function handler(req, res) {
+  // FORCE V21 UPDATE LOG
+  console.log("[BOT V21] Webhook handler loaded.");
+
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
   
@@ -128,7 +131,6 @@ export default async function handler(req, res) {
             const sender_psid = webhook_event.sender.id;
 
             // --- TRƯỜNG HỢP 1: CÓ REF (TỪ WEB BÁO GIÁ AI CHUYỂN SANG) ---
-            // (Giữ nguyên logic cũ cho tính năng Web Báo Giá)
             let refParam = null;
             if (webhook_event.referral) refParam = webhook_event.referral.ref;
             else if (webhook_event.postback?.referral) refParam = webhook_event.postback.referral.ref;
@@ -137,16 +139,31 @@ export default async function handler(req, res) {
             if (refParam) {
                 await handleReferral(sender_psid, refParam);
             } 
-            // --- TRƯỜNG HỢP 2: KHÁCH NHẮN TIN CHỮ (TEXT) -> DÙNG AI ĐỂ PHÂN LOẠI ---
+            // --- TRƯỜNG HỢP 2: KHÁCH NHẮN TIN CHỮ (TEXT) ---
             else if (webhook_event.message && webhook_event.message.text) {
-                const userMessage = webhook_event.message.text;
+                const userMessage = webhook_event.message.text.trim();
                 console.log(`[USER MESSAGE]: ${userMessage}`);
                 
+                // === CHẨN ĐOÁN HỆ THỐNG (DIAGNOSTIC PING) ===
+                if (userMessage.toLowerCase() === 'ping') {
+                    const statusMsg = `PONG! Hệ thống Ki Nail Room [V21] đang hoạt động.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}`;
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
+                    return res.status(200).send('EVENT_RECEIVED');
+                }
+
                 // GỌI AI ĐỂ PHÂN TÍCH Ý ĐỊNH
                 const intent = await classifyIntentWithGemini(userMessage);
-                console.log(`[INTENT]: ${intent}`);
+                console.log(`[INTENT RESULT]: ${intent}`);
 
-                if (intent !== "SILENCE" && FIXED_ANSWERS[intent]) {
+                if (intent === "ERROR_MISSING_KEY") {
+                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
+                        text: "⚠️ LỖI HỆ THỐNG: Bot chưa có API Key của Google Gemini. Vui lòng liên hệ Admin để thêm API_KEY vào Vercel." 
+                    });
+                } else if (intent === "ERROR_AI") {
+                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
+                        text: "⚠️ LỖI AI: Hệ thống AI đang gặp sự cố kết nối. Vui lòng thử lại sau." 
+                    });
+                } else if (intent !== "SILENCE" && FIXED_ANSWERS[intent]) {
                     // Nếu AI bảo trả lời -> Lấy nội dung cố định gửi đi
                     const answerData = FIXED_ANSWERS[intent];
 
@@ -165,7 +182,7 @@ export default async function handler(req, res) {
                     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                 } else {
                     // Nếu AI bảo SILENCE -> Không làm gì cả
-                    console.log(`[BOT] Silenced by AI rule for message: "${userMessage}"`);
+                    console.log(`[BOT] Silenced by AI rule.`);
                 }
             }
           }
