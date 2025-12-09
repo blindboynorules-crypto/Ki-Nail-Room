@@ -48,12 +48,18 @@ async function classifyIntentWithGemini(userMessage) {
     - Khách tâm sự, khen chê, chào hỏi, hoặc nói bất cứ điều gì khác.
     - Tin nhắn không rõ ràng.
 
+    *** QUY TẮC QUAN TRỌNG:
+    - Bỏ qua các từ đệm cảm thán như: "ơi", "ạ", "dạ", "shop ơi", "ad ơi", "thế", "nào".
+    - Ví dụ: "Shop ơi địa chỉ ở đâu thế ạ" => Phải hiểu là hỏi "ADDRESS".
+    - Ví dụ: "Ki Nail ơi giá sao" => Phải hiểu là hỏi "PRICE".
+
     *** VÍ DỤ HUẤN LUYỆN (FEW-SHOT):
     - Khách: "Shop ở đâu dạ" -> Output: ADDRESS
     - Khách: "Cho xin cái menu" -> Output: PRICE
     - Khách: "Đang có km gì ko" -> Output: PROMOTION
     - Khách: "2ng đc hông Ki ui" -> Output: SILENCE (Vì đây là đặt lịch, chữ 'đc' là được, không phải địa chỉ)
     - Khách: "Em xin giá bộ này" -> Output: SILENCE (Vì hỏi giá mẫu cụ thể)
+    - Khách: "Ki Nail ơi địa chỉ mình ở đâu thía ạ" -> Output: ADDRESS
     - Khách: "Alo" -> Output: SILENCE
 
     Tin nhắn của khách: "${userMessage}"
