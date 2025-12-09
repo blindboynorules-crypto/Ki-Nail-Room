@@ -1,104 +1,73 @@
 
-import { GoogleGenAI } from "@google/genai";
+// api/webhook.js
+// CHATBOT: PHIÊN BẢN TỪ KHÓA (KEYWORD-BASED) - KHÔNG DÙNG AI
+// Tốc độ nhanh, chính xác 100% theo kịch bản, không tốn quota AI.
 
 // ============================================================
-// 🔒 DỮ LIỆU TRẢ LỜI CỐ ĐỊNH (KHÔNG CHO AI TỰ BỊA)
+// 1. DỮ LIỆU HUẤN LUYỆN (TỪ KHÓA & CÂU TRẢ LỜI)
 // ============================================================
-const FIXED_ANSWERS = {
-    ADDRESS: {
-        text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc",
-        imageUrl: null
+const TRAINING_DATA = [
+    {
+        // MỤC 1: ĐỊA CHỈ
+        // Từ khóa kích hoạt: địa chỉ, ở đâu, map, bản đồ, đường đi...
+        keywords: ["địa chỉ", "ở đâu", "map", "bản đồ", "add", "tọa độ", "đường nào", "vị trí"],
+        response: {
+            text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc",
+            imageUrl: null
+        }
     },
-    PRICE: {
-        text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
-        imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
+    {
+        // MỤC 2: BẢNG GIÁ / MENU
+        // Từ khóa kích hoạt: giá, menu, tiền, nhiêu...
+        keywords: ["giá", "menu", "nhiêu", "tiền", "bảng giá", "chi phí", "cost", "price"],
+        response: {
+            text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
+            imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
+        }
     },
-    PROMOTION: {
-        text: "Dạ Ki gởi mình chương trình khuyến mãi HOT hiện tại nha. Nàng xem qua kẻo lỡ ưu đãi xịn nè!",
-        imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
+    {
+        // MỤC 3: KHUYẾN MÃI
+        // Từ khóa kích hoạt: khuyến mãi, ưu đãi, sale, km...
+        keywords: ["khuyến mãi", "km", "sale", "ưu đãi", "giảm giá", "promotion", "combo"],
+        response: {
+            text: "Dạ Ki gởi mình chương trình khuyến mãi HOT hiện tại nha. Nàng xem qua kẻo lỡ ưu đãi xịn nè!",
+            imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
+        }
     }
-};
+];
 
 // ============================================================
-// 🧠 HÀM PHÂN TÍCH Ý ĐỊNH BẰNG AI (GEMINI)
+// 2. HÀM XỬ LÝ LOGIC TÌM TỪ KHÓA
 // ============================================================
-async function classifyIntentWithGemini(userMessage) {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-        console.error("FATAL ERROR: Thiếu API_KEY của Google Gemini trong Vercel Settings.");
-        return { intent: "ERROR_MISSING_KEY", error: "Missing API Key" }; 
+function findKeywordResponse(userMessage) {
+    // Chuyển tin nhắn về chữ thường để so sánh (ví dụ: "GIÁ" -> "giá")
+    const lowerMsg = userMessage.toLowerCase().trim();
+
+    // Duyệt qua từng kịch bản
+    for (const data of TRAINING_DATA) {
+        // Kiểm tra xem tin nhắn có chứa từ khóa nào trong danh sách không
+        // Sử dụng .some() để tìm bất kỳ từ nào khớp
+        const hasKeyword = data.keywords.some(keyword => lowerMsg.includes(keyword));
+        
+        if (hasKeyword) {
+            return data.response; // Tìm thấy thì trả về câu trả lời ngay
+        }
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
-    // PROMPT NGHIÊM NGẶT - CHỈ ĐẠO HÀNH VI CỦA BOT
-    const prompt = `
-    Bạn là bộ lọc tin nhắn cho tiệm Nail "Ki Nail Room".
-    Nhiệm vụ: Phân tích tin nhắn của khách và chỉ được phép chọn 1 trong 4 hành động dưới đây.
-
-    *** CÁC LOẠI CÂU HỎI ĐƯỢC PHÉP TRẢ LỜI:
-    1. "ADDRESS": Khách hỏi địa chỉ, ở đâu, đường đi, bản đồ, chỗ nào.
-    2. "PRICE": Khách hỏi bảng giá chung, menu, bao nhiêu tiền (chung chung), giá dịch vụ.
-    3. "PROMOTION": Khách hỏi khuyến mãi, ưu đãi, giảm giá, combo.
-
-    *** CÁC TRƯỜNG HỢP PHẢI IM LẶNG ("SILENCE"):
-    - Khách hỏi đặt lịch (Ví dụ: "2 người được không", "còn chỗ không", "book lịch", "mấy giờ làm được").
-    - Khách hỏi giá của MỘT MẪU CỤ THỂ (Ví dụ: "bộ này bao nhiêu", "mẫu này giá sao", gửi kèm ảnh).
-    - Khách hỏi giờ mở cửa/đóng cửa.
-    - Khách tâm sự, khen chê, chào hỏi, hoặc nói bất cứ điều gì khác.
-    - Tin nhắn không rõ ràng.
-
-    *** QUY TẮC QUAN TRỌNG:
-    - Bỏ qua các từ đệm cảm thán như: "ơi", "ạ", "dạ", "shop ơi", "ad ơi", "thế", "nào", "vậy".
-    - Ví dụ: "Shop ơi địa chỉ ở đâu thế ạ" => Phải hiểu là hỏi "ADDRESS".
-    - Ví dụ: "Ki Nail ơi giá sao" => Phải hiểu là hỏi "PRICE".
-
-    *** VÍ DỤ HUẤN LUYỆN (FEW-SHOT):
-    - Khách: "Shop ở đâu dạ" -> Output: ADDRESS
-    - Khách: "Cho xin cái menu" -> Output: PRICE
-    - Khách: "Đang có km gì ko" -> Output: PROMOTION
-    - Khách: "2ng đc hông Ki ui" -> Output: SILENCE (Vì đây là đặt lịch, chữ 'đc' là được, không phải địa chỉ)
-    - Khách: "Em xin giá bộ này" -> Output: SILENCE (Vì hỏi giá mẫu cụ thể)
-    - Khách: "Ki Nail ơi địa chỉ mình ở đâu thía ạ" -> Output: ADDRESS
-    - Khách: "Alo" -> Output: SILENCE
-
-    Tin nhắn của khách: "${userMessage}"
-    
-    Chỉ trả về đúng 1 từ duy nhất: ADDRESS, PRICE, PROMOTION hoặc SILENCE. Không giải thích gì thêm.
-    `;
-
-    try {
-        const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash", // Dùng bản 2.5 Flash thông minh hơn theo yêu cầu
-            contents: { parts: [{ text: prompt }] },
-            config: {
-                temperature: 0, 
-                maxOutputTokens: 10,
-            }
-        });
-        
-        let intent = result.text.trim().toUpperCase();
-        
-        // Safety check logic
-        if (intent.includes("ADDRESS")) return { intent: "ADDRESS" };
-        if (intent.includes("PRICE")) return { intent: "PRICE" };
-        if (intent.includes("PROMOTION")) return { intent: "PROMOTION" };
-        
-        return { intent: "SILENCE" };
-
-    } catch (error) {
-        console.error("Gemini AI Error:", error);
-        return { intent: "ERROR_AI", error: error.message || error.toString() };
-    }
+    // Nếu không khớp từ khóa nào -> Trả về null (Để Bot im lặng)
+    return null;
 }
 
+// ============================================================
+// 3. MAIN HANDLER
+// ============================================================
 export default async function handler(req, res) {
-  console.log("[BOT V29] Webhook handler loaded. Using gemini-2.5-flash.");
+  console.log("[BOT V30] Webhook loaded. Mode: KEYWORD (Legacy).");
 
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
   
-  // 1. XÁC MINH WEBHOOK
+  // 3.1. XÁC MINH WEBHOOK (FACEBOOK YÊU CẦU)
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
@@ -113,7 +82,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. XỬ LÝ TIN NHẮN
+  // 3.2. XỬ LÝ TIN NHẮN ĐẾN
   if (req.method === 'POST') {
     const body = req.body;
 
@@ -125,7 +94,7 @@ export default async function handler(req, res) {
           if (webhook_event) {
             const sender_psid = webhook_event.sender.id;
 
-            // --- TRƯỜNG HỢP 1: CÓ REF ---
+            // --- TRƯỜNG HỢP A: BẤM NÚT "BẮT ĐẦU" HOẶC TỪ QUẢNG CÁO (CÓ REF) ---
             let refParam = null;
             if (webhook_event.referral) refParam = webhook_event.referral.ref;
             else if (webhook_event.postback?.referral) refParam = webhook_event.postback.referral.ref;
@@ -134,46 +103,37 @@ export default async function handler(req, res) {
             if (refParam) {
                 await handleReferral(sender_psid, refParam);
             } 
-            // --- TRƯỜNG HỢP 2: TIN NHẮN CHỮ ---
+            // --- TRƯỜNG HỢP B: KHÁCH NHẮN TIN CHỮ ---
             else if (webhook_event.message && webhook_event.message.text) {
                 const userMessage = webhook_event.message.text.trim();
                 
-                // === CHẨN ĐOÁN ===
+                // === CHẨN ĐOÁN HỆ THỐNG (PING) ===
                 if (userMessage.toLowerCase() === 'ping') {
-                    const statusMsg = `PONG! Hệ thống [V29] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}\n- Model: gemini-2.5-flash`;
+                    const statusMsg = `PONG! Hệ thống [V30 - Keyword Mode] đang hoạt động.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- Cơ chế: Từ khóa (Không dùng AI)`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
 
-                // GỌI AI
-                const result = await classifyIntentWithGemini(userMessage);
-                const intent = result.intent;
+                // === LOGIC TÌM TỪ KHÓA ===
+                const matchedResponse = findKeywordResponse(userMessage);
 
-                if (intent === "ERROR_MISSING_KEY") {
-                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                        text: "⚠️ LỖI HỆ THỐNG: Bot chưa có API Key." 
-                    });
-                } else if (intent === "ERROR_AI") {
-                     // Báo lỗi chi tiết để debug
-                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                        text: `⚠️ LỖI KẾT NỐI AI: ${result.error || 'Unknown Error'}. Vui lòng thử lại sau.` 
-                    });
-                } else if (intent !== "SILENCE" && FIXED_ANSWERS[intent]) {
-                    const answerData = FIXED_ANSWERS[intent];
-
+                if (matchedResponse) {
+                    // CÓ TỪ KHÓA -> TRẢ LỜI
                     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-                    await new Promise(r => setTimeout(r, 1000));
+                    await new Promise(r => setTimeout(r, 800)); // Giả vờ gõ phím
                     
-                    if (answerData.text) {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: answerData.text });
+                    if (matchedResponse.text) {
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: matchedResponse.text });
                     }
-                    if (answerData.imageUrl) {
+                    if (matchedResponse.imageUrl) {
                         await new Promise(r => setTimeout(r, 500));
-                        await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, answerData.imageUrl);
+                        await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, matchedResponse.imageUrl);
                     }
                     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                 } else {
-                    console.log(`[BOT] Silenced by AI rule.`);
+                    // KHÔNG CÓ TỪ KHÓA -> IM LẶNG (SILENCE)
+                    // Để chủ shop tự trả lời
+                    console.log(`[BOT] Ignored message: "${userMessage}" (No keyword match)`);
                 }
             }
           }
@@ -187,7 +147,7 @@ export default async function handler(req, res) {
   }
 }
 
-// --- GIỮ NGUYÊN CÁC HÀM HỖ TRỢ ---
+// --- CÁC HÀM HỖ TRỢ GỬI TIN NHẮN (GIỮ NGUYÊN) ---
 async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
