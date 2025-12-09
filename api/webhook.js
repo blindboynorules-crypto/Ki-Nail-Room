@@ -49,7 +49,7 @@ async function classifyIntentWithGemini(userMessage) {
     - Tin nhắn không rõ ràng.
 
     *** QUY TẮC QUAN TRỌNG:
-    - Bỏ qua các từ đệm cảm thán như: "ơi", "ạ", "dạ", "shop ơi", "ad ơi", "thế", "nào".
+    - Bỏ qua các từ đệm cảm thán như: "ơi", "ạ", "dạ", "shop ơi", "ad ơi", "thế", "nào", "vậy".
     - Ví dụ: "Shop ơi địa chỉ ở đâu thế ạ" => Phải hiểu là hỏi "ADDRESS".
     - Ví dụ: "Ki Nail ơi giá sao" => Phải hiểu là hỏi "PRICE".
 
@@ -69,7 +69,7 @@ async function classifyIntentWithGemini(userMessage) {
 
     try {
         const result = await ai.models.generateContent({
-            model: "gemini-1.5-flash", // Sử dụng bản 1.5 Stable để đảm bảo kết nối Server luôn OK
+            model: "gemini-2.5-flash", // Dùng bản 2.5 Flash thông minh hơn theo yêu cầu
             contents: { parts: [{ text: prompt }] },
             config: {
                 temperature: 0, 
@@ -79,7 +79,7 @@ async function classifyIntentWithGemini(userMessage) {
         
         let intent = result.text.trim().toUpperCase();
         
-        // Safety check
+        // Safety check logic
         if (intent.includes("ADDRESS")) return { intent: "ADDRESS" };
         if (intent.includes("PRICE")) return { intent: "PRICE" };
         if (intent.includes("PROMOTION")) return { intent: "PROMOTION" };
@@ -93,7 +93,7 @@ async function classifyIntentWithGemini(userMessage) {
 }
 
 export default async function handler(req, res) {
-  console.log("[BOT V28] Webhook handler loaded. Using gemini-1.5-flash (STABLE).");
+  console.log("[BOT V29] Webhook handler loaded. Using gemini-2.5-flash.");
 
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
@@ -140,7 +140,7 @@ export default async function handler(req, res) {
                 
                 // === CHẨN ĐOÁN ===
                 if (userMessage.toLowerCase() === 'ping') {
-                    const statusMsg = `PONG! Hệ thống [V28] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}\n- Model: gemini-1.5-flash (Stable)`;
+                    const statusMsg = `PONG! Hệ thống [V29] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}\n- Model: gemini-2.5-flash`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
