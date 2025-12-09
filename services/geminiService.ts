@@ -74,9 +74,9 @@ export const getAiConsultation = async (
   }
 
   try {
-    // Sử dụng 'gemini-1.5-flash' - Model ổn định và quota cao hơn
+    // Sử dụng 'gemini-2.5-flash' - Model chuẩn hiện tại
     const chat = aiClient.chats.create({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       config: {
         systemInstruction: `Bạn là một chuyên gia tư vấn Nail (làm móng) chuyên nghiệp, dễ thương và có gu thẩm mỹ cao tại 'Ki Nail Room'.
         Phong cách chủ đạo của tiệm là: Hàn Quốc và Nhật Bản (nhẹ nhàng, trong trẻo, tinh tế, cute).
@@ -170,9 +170,9 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   `;
 
   try {
-    // Sử dụng 'gemini-1.5-flash' để tối ưu chi phí và tránh lỗi quota
+    // Sử dụng 'gemini-2.5-flash' để tránh lỗi 404 (Not Found)
     const result = await aiClient.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: {
         parts: [
             imagePart,
@@ -217,6 +217,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     if (msg.includes("403")) msg = "Lỗi xác thực (403): API Key không hợp lệ.";
     if (msg.includes("400")) msg = "Ảnh không hợp lệ hoặc sai định dạng.";
     if (msg.includes("429")) msg = "Hệ thống đang quá tải (429). Vui lòng thử lại sau vài giây.";
+    if (msg.includes("404")) msg = "Lỗi kết nối AI (404). Đang thử lại với model khác...";
     throw new Error(msg);
   }
 };
