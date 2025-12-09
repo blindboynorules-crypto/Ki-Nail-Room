@@ -2,11 +2,11 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// CHẾ ĐỘ: IM LẶNG LÀ VÀNG (SILENT ERROR MODE)
-// CÔNG NGHỆ MỚI (V49): STATELESS QUOTE (Q_...)
+// CHẾ ĐỘ: AIRTABLE STATEFUL (V55) - Lấy dữ liệu từ Database
+// CHATBOT: GEMINI 2.5 FLASH (Kỷ luật thép)
 
 // ============================================================
-// 1. DỮ LIỆU CÂU TRẢ LỜI MẪU (KHÔNG ĐƯỢC SỬA BỞI AI)
+// 1. DỮ LIỆU CÂU TRẢ LỜI MẪU
 // ============================================================
 const RESPONSE_TEMPLATES = {
     PROMOTION: {
@@ -24,7 +24,7 @@ const RESPONSE_TEMPLATES = {
 };
 
 // ============================================================
-// 2. XỬ LÝ AI GEMINI
+// 2. XỬ LÝ AI GEMINI (PHÂN LOẠI)
 // ============================================================
 async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
@@ -41,7 +41,7 @@ async function classifyIntentWithGemini(userMessage) {
     2. PRICE: User asks for the general menu, price list. (Keywords: bảng giá, menu, giá sao, bao nhiêu tiền, mắc không...)
     3. PROMOTION: User asks for discounts, sales, current offers. 
        - Keywords: khuyến mãi, giảm giá, ưu đãi, km, ctkm...
-       - IMPORTANT: If user asks about FUTURE promotions, CLASSIFY AS PROMOTION.
+       - IMPORTANT: If user asks about FUTURE promotions (sắp tới), STILL CLASSIFY AS PROMOTION.
     4. SILENCE: User asks for ANYTHING ELSE (Booking, Specific Price, Chat, Complaints).
 
     RULES:
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
                 const userMessage = webhook_event.message.text.trim();
                 
                 if (userMessage.toLowerCase() === 'ping') {
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V49 Stateless Quote.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V55 Airtable Restored.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
 
@@ -155,51 +155,75 @@ export default async function handler(req, res) {
   }
 }
 
-// --- HELPERS ---
+// --- AIRTABLE HELPERS ---
 
-async function handleReferral(sender_psid, refData) {
+async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
 
     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
 
-    // 1. XỬ LÝ STATELESS QUOTE (Mới - V49)
-    // Ref có dạng: Q_<Base64>
-    if (refData && refData.startsWith('Q_')) {
-        try {
-            // Giải mã Base64 (đảo ngược quy trình URL Safe)
-            const base64 = refData.substring(2).replace(/-/g, '+').replace(/_/g, '/');
-            const decodedString = Buffer.from(base64, 'base64').toString('utf-8');
-            const data = JSON.parse(decodedString);
-            
-            const imageUrl = data.i;
-            const price = data.t;
-            const fmtPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-
-            // Gửi ảnh trước
-            if (imageUrl) {
-                await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
-            }
-
-            // Gửi báo giá
-            const msgBody = `💰 BÁO GIÁ AI ƯỚC TÍNH:\n--------------------\nTổng cộng: ${fmtPrice}\n--------------------\n⚠️ Lưu ý: Đây chỉ là giá tham khảo. Giá thực tế có thể thay đổi tùy tình trạng móng thật của bạn.\n\nNàng muốn đặt lịch làm mẫu này luôn không ạ?`;
-            
-            await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
-                attachment: { type: "template", payload: { template_type: "button", text: msgBody, buttons: [{ type: "postback", title: "Chat Nhân Viên", payload: "CHAT_HUMAN" }] } }
-            });
-            return; // Xong, thoát luôn
-
-        } catch (e) {
-            console.error("Stateless Quote Error:", e);
-            // Lỗi giải mã -> Gửi tin nhắn xin lỗi
-            await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Dạ Ki đã nhận được ảnh nhưng bị lỗi hiển thị. Nàng gửi lại ảnh vào đây giúp Ki nha! ❤️" });
-            return;
-        }
+    // MOCK ID (Trường hợp chưa cấu hình DB mà vẫn bấm gửi)
+    if (recordId.startsWith('MOCK_')) {
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Chào nàng! Ki đã nhận được yêu cầu. Nàng chờ xíu nhân viên sẽ vào tư vấn trực tiếp nha! ❤️" });
+        return;
     }
 
-    // 2. XỬ LÝ MOCK / CŨ (Fallback)
-    // Nếu ref không phải Q_ (ví dụ MOCK_ hoặc ID cũ), xử lý như cũ hoặc báo lỗi nhẹ
-    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Chào nàng! Ki đã nhận được tín hiệu. Nàng chờ xíu nhân viên sẽ vào tư vấn trực tiếp nha! ❤️" });
+    // AIRTABLE FETCH
+    const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_TABLE_NAME = 'Quotes';
+
+    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
+        // Fallback nếu quên cấu hình Key
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hệ thống đang bảo trì dữ liệu. Nhân viên sẽ hỗ trợ nàng ngay ạ!" });
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`, {
+            headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
+        });
+
+        if (!response.ok) throw new Error('Airtable Fetch Failed');
+
+        const record = await response.json();
+        const fields = record.fields;
+        
+        const imageUrl = fields["Image URL"];
+        const itemsJson = fields["Items Detail"];
+        const total = fields["Total Estimate"];
+
+        // 1. Gửi Ảnh trước
+        if (imageUrl) {
+            await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
+        }
+
+        // 2. Tạo nội dung MENU chi tiết từ JSON
+        let menuText = "🧾 CHI TIẾT BÁO GIÁ:\n";
+        try {
+            const items = JSON.parse(itemsJson);
+            items.forEach(item => {
+                const cost = new Intl.NumberFormat('vi-VN').format(item.cost);
+                menuText += `- ${item.item}: ${cost}đ\n`;
+            });
+        } catch (e) {
+            menuText += "(Chi tiết đang cập nhật)\n";
+        }
+
+        const totalFmt = new Intl.NumberFormat('vi-VN').format(total);
+        menuText += `--------------------\n💰 TỔNG CỘNG: ${totalFmt}đ\n--------------------\n⚠️ Giá tham khảo, có thể thay đổi tùy thực tế. Nàng muốn đặt lịch luôn không ạ?`;
+
+        // 3. Gửi Text báo giá
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
+             attachment: { type: "template", payload: { template_type: "button", text: menuText, buttons: [{ type: "postback", title: "Chat Nhân Viên", payload: "CHAT_HUMAN" }] } }
+        });
+
+    } catch (e) {
+        console.error("Airtable Logic Error:", e);
+        // Fallback an toàn
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Dạ Ki đã nhận được ảnh. Nàng chờ xíu Ki báo giá chi tiết nha! ❤️" });
+    }
 }
 
 async function sendSenderAction(token, psid, action) {

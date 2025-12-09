@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle, Check, Copy, Hand, ArrowRight, ClipboardPaste } from 'lucide-react';
+import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle, ArrowRight } from 'lucide-react';
 import { analyzeNailImage, isAiAvailable } from '../services/geminiService';
 import { uploadToCloudinary } from '../services/cloudinaryService';
 import { PricingResult } from '../types';
@@ -76,31 +76,33 @@ const AiPricing: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // CÔNG NGHỆ MỚI (V49): STATELESS MESSENGER REF
-      // Không cần lưu vào Database (Airtable) nữa.
-      // Mã hóa trực tiếp Link ảnh và Giá tiền vào URL Messenger.
-      // Format: Q_<Base64EncodedData>
-      
-      const payload = JSON.stringify({
-          i: uploadedImageUrl, // Image URL
-          t: result.totalEstimate // Total Price
+      // 1. Lưu dữ liệu vào Airtable (Backend)
+      const response = await fetch('/api/save-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: uploadedImageUrl,
+          totalEstimate: result.totalEstimate,
+          items: result.items,
+          note: result.note
+        })
       });
 
-      // Encode Base64 an toàn cho URL (URL Safe Base64)
-      const encodedPayload = btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      const refParam = `Q_${encodedPayload}`;
+      const data = await response.json();
 
-      // Kiểm tra độ dài (Messenger giới hạn 2000 ký tự)
-      if (refParam.length > 2000) {
-          throw new Error("Dữ liệu quá dài, vui lòng thử lại ảnh khác.");
+      if (!data.success) {
+        throw new Error(data.message || "Không thể lưu đơn hàng.");
       }
 
-      console.log("Direct Messenger Redirect:", refParam);
-      window.location.href = `https://m.me/kinailroom?ref=${refParam}`;
+      const recordId = data.recordId; // ID từ Airtable
+
+      // 2. Chuyển hướng sang Messenger với ID đơn hàng
+      console.log("Redirecting to Messenger with ID:", recordId);
+      window.location.href = `https://m.me/kinailroom?ref=${recordId}`;
 
     } catch (err: any) {
-      console.error("Smart Send Error:", err);
-      alert(`⚠️ Không thể mở Messenger: ${err.message}`);
+      console.error("Save Error:", err);
+      alert(`⚠️ Lỗi: ${err.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -281,7 +283,7 @@ const AiPricing: React.FC = () => {
                               Đây là báo giá ước tính của AI dựa trên hình ảnh. Giá thực tế có thể thay đổi tùy tình trạng móng. Quý khách vui lòng liên hệ trực tiếp KINAILROOM để được tư vấn và báo giá chính xác hơn.
                            </p>
                            
-                           {/* SMART BUTTON SEND TO MESSENGER - GLASSMORPHISM */}
+                           {/* BUTTON GỬI AIRTABLE */}
                            <button 
                               onClick={handleSmartSend}
                               disabled={isSaving}
@@ -294,7 +296,7 @@ const AiPricing: React.FC = () => {
                               {isSaving ? (
                                   <>
                                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                      Đang tạo liên kết...
+                                      Đang lưu & gửi...
                                   </>
                               ) : (
                                   <>
@@ -306,7 +308,7 @@ const AiPricing: React.FC = () => {
                            </button>
                            
                            <p className="text-[10px] text-gray-400 mt-2 italic">
-                              *Hệ thống sẽ tự động gửi ảnh và báo giá vào hộp thoại chat của bạn.
+                              *Hệ thống sẽ lưu đơn hàng và gửi chi tiết qua Messenger.
                            </p>
                         </div>
                       )}
