@@ -9,10 +9,17 @@ import Gallery from './components/Gallery';
 import Footer from './components/Footer';
 import CleanupDemo from './components/CleanupDemo';
 import Privacy from './components/Privacy';
+import { applyTheme } from './theme';
 
 type ViewState = 'home' | 'ai-pricing' | 'cleanup-demo' | 'privacy';
 
 const App: React.FC = () => {
+  // KHỞI TẠO THEME
+  useEffect(() => {
+    // Gọi hàm này để áp dụng theme được cài đặt trong file theme.ts
+    applyTheme();
+  }, []);
+
   // CẢI TIẾN: Kiểm tra URL ngay lúc khởi tạo để hiển thị đúng trang lập tức
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     if (typeof window !== 'undefined') {
@@ -92,10 +99,8 @@ const App: React.FC = () => {
     return <CleanupDemo onBack={() => handleNavigation('home')} />;
   }
 
-  // Đã xóa early return của Privacy để nó render chung với Navbar/Footer bên dưới
-
   return (
-    <div className="min-h-screen bg-vanilla-50 flex flex-col">
+    <div className="min-h-screen bg-vanilla-50 flex flex-col transition-colors duration-700">
       <Navbar onNavigate={handleNavigation} />
       
       <main className="flex-grow">
