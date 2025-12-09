@@ -26,7 +26,7 @@ async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
         console.error("FATAL ERROR: Thiếu API_KEY của Google Gemini trong Vercel Settings.");
-        return "ERROR_MISSING_KEY"; 
+        return { intent: "ERROR_MISSING_KEY", error: "Missing API Key" }; 
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -69,56 +69,51 @@ async function classifyIntentWithGemini(userMessage) {
 
     try {
         const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash", // Cập nhật lên model mới nhất theo yêu cầu
+            model: "gemini-1.5-flash", // Sử dụng bản 1.5 Stable để đảm bảo kết nối Server luôn OK
             contents: { parts: [{ text: prompt }] },
             config: {
-                temperature: 0, // Nhiệt độ 0 để AI trả lời chính xác như máy, không sáng tạo
+                temperature: 0, 
                 maxOutputTokens: 10,
             }
         });
         
         let intent = result.text.trim().toUpperCase();
         
-        // Safety check: Đảm bảo AI chỉ trả về các từ khóa cho phép
-        if (intent.includes("ADDRESS")) return "ADDRESS";
-        if (intent.includes("PRICE")) return "PRICE";
-        if (intent.includes("PROMOTION")) return "PROMOTION";
+        // Safety check
+        if (intent.includes("ADDRESS")) return { intent: "ADDRESS" };
+        if (intent.includes("PRICE")) return { intent: "PRICE" };
+        if (intent.includes("PROMOTION")) return { intent: "PROMOTION" };
         
-        return "SILENCE";
+        return { intent: "SILENCE" };
 
     } catch (error) {
         console.error("Gemini AI Error:", error);
-        return "ERROR_AI"; // Báo lỗi AI cụ thể
+        return { intent: "ERROR_AI", error: error.message || error.toString() };
     }
 }
 
 export default async function handler(req, res) {
-  // FORCE V27 UPDATE LOG
-  console.log("[BOT V27] Webhook handler loaded. Using gemini-2.5-flash.");
+  console.log("[BOT V28] Webhook handler loaded. Using gemini-1.5-flash (STABLE).");
 
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
   
-  // 1. XÁC MINH WEBHOOK (Facebook Ping)
+  // 1. XÁC MINH WEBHOOK
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    console.log("[WEBHOOK VERIFY REQUEST]", { mode, token, challenge });
-
     if (mode && token) {
       if (mode === 'subscribe' && token === FB_VERIFY_TOKEN) {
-        console.log("WEBHOOK VERIFIED SUCCESS");
         return res.status(200).send(challenge);
       } else {
-        console.error("WEBHOOK VERIFICATION FAILED: Token mismatch");
         return res.status(403).send('Verification failed');
       }
     }
   }
 
-  // 2. XỬ LÝ TIN NHẮN ĐẾN (POST)
+  // 2. XỬ LÝ TIN NHẮN
   if (req.method === 'POST') {
     const body = req.body;
 
@@ -130,7 +125,7 @@ export default async function handler(req, res) {
           if (webhook_event) {
             const sender_psid = webhook_event.sender.id;
 
-            // --- TRƯỜNG HỢP 1: CÓ REF (TỪ WEB BÁO GIÁ AI CHUYỂN SANG) ---
+            // --- TRƯỜNG HỢP 1: CÓ REF ---
             let refParam = null;
             if (webhook_event.referral) refParam = webhook_event.referral.ref;
             else if (webhook_event.postback?.referral) refParam = webhook_event.postback.referral.ref;
@@ -139,50 +134,45 @@ export default async function handler(req, res) {
             if (refParam) {
                 await handleReferral(sender_psid, refParam);
             } 
-            // --- TRƯỜNG HỢP 2: KHÁCH NHẮN TIN CHỮ (TEXT) ---
+            // --- TRƯỜNG HỢP 2: TIN NHẮN CHỮ ---
             else if (webhook_event.message && webhook_event.message.text) {
                 const userMessage = webhook_event.message.text.trim();
-                console.log(`[USER MESSAGE]: ${userMessage}`);
                 
-                // === CHẨN ĐOÁN HỆ THỐNG (DIAGNOSTIC PING) ===
+                // === CHẨN ĐOÁN ===
                 if (userMessage.toLowerCase() === 'ping') {
-                    // Trả lời rõ version để user biết code đã cập nhật
-                    const statusMsg = `PONG! Hệ thống [V27] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}\n- Model: gemini-2.5-flash`;
+                    const statusMsg = `PONG! Hệ thống [V28] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}\n- Model: gemini-1.5-flash (Stable)`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
 
-                // GỌI AI ĐỂ PHÂN TÍCH Ý ĐỊNH
-                const intent = await classifyIntentWithGemini(userMessage);
-                console.log(`[INTENT RESULT]: ${intent}`);
+                // GỌI AI
+                const result = await classifyIntentWithGemini(userMessage);
+                const intent = result.intent;
 
                 if (intent === "ERROR_MISSING_KEY") {
                      await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                        text: "⚠️ LỖI HỆ THỐNG: Bot chưa có API Key của Google Gemini. Vui lòng liên hệ Admin để thêm API_KEY vào Vercel." 
+                        text: "⚠️ LỖI HỆ THỐNG: Bot chưa có API Key." 
                     });
                 } else if (intent === "ERROR_AI") {
+                     // Báo lỗi chi tiết để debug
                      await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                        text: "⚠️ LỖI AI: Hệ thống AI đang gặp sự cố kết nối. Vui lòng thử lại sau." 
+                        text: `⚠️ LỖI KẾT NỐI AI: ${result.error || 'Unknown Error'}. Vui lòng thử lại sau.` 
                     });
                 } else if (intent !== "SILENCE" && FIXED_ANSWERS[intent]) {
-                    // Nếu AI bảo trả lời -> Lấy nội dung cố định gửi đi
                     const answerData = FIXED_ANSWERS[intent];
 
                     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-                    await new Promise(r => setTimeout(r, 1000)); // Delay nhẹ cho tự nhiên
+                    await new Promise(r => setTimeout(r, 1000));
                     
-                    // Gửi Text
                     if (answerData.text) {
                         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: answerData.text });
                     }
-                    // Gửi Ảnh (nếu có)
                     if (answerData.imageUrl) {
                         await new Promise(r => setTimeout(r, 500));
                         await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, answerData.imageUrl);
                     }
                     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                 } else {
-                    // Nếu AI bảo SILENCE -> Không làm gì cả
                     console.log(`[BOT] Silenced by AI rule.`);
                 }
             }
@@ -197,7 +187,7 @@ export default async function handler(req, res) {
   }
 }
 
-// --- GIỮ NGUYÊN CÁC HÀM HỖ TRỢ CŨ (KHÔNG ĐỔI) ---
+// --- GIỮ NGUYÊN CÁC HÀM HỖ TRỢ ---
 async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
