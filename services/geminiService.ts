@@ -5,13 +5,6 @@ import { ChatMessage, PricingResult } from "../types";
 // NOTE: Ensure process.env.API_KEY is defined in your build tool (Vite)
 const apiKey = process.env.API_KEY || ''; 
 
-// User requested to hide these technical logs
-// if (!apiKey) {
-//   console.warn("⚠️ Gemini API Key is missing. Features relying on AI will fail.");
-// } else {
-//   console.log("✅ Gemini API Key detected.");
-// }
-
 let aiClient: GoogleGenAI | null = null;
 
 if (apiKey) {
@@ -20,21 +13,54 @@ if (apiKey) {
 
 export const isAiAvailable = (): boolean => !!aiClient;
 
-// Helper to convert File to Base64
+// Helper to convert File to Base64 with Compression
+// Optimization: Resize image to max 1024px and compress to JPEG to save bandwidth and ensure fast processing
+// Việc này giúp giảm tải dung lượng gửi đi, tiết kiệm quota và tăng tốc độ phản hồi.
 const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64Data = reader.result as string;
-      const base64Content = base64Data.split(',')[1];
-      resolve({
-        inlineData: {
-          data: base64Content,
-          mimeType: file.type,
-        },
-      });
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        // Giới hạn kích thước tối đa là 1024px (đủ nét cho AI nhìn, nhưng nhẹ hơn nhiều so với ảnh gốc 4000px)
+        const MAX_SIZE = 1024; 
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Compress to JPEG with 0.7 quality (Nén ảnh giảm dung lượng)
+          const base64Data = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+          resolve({
+            inlineData: {
+              data: base64Data,
+              mimeType: 'image/jpeg',
+            },
+          });
+        } else {
+          reject(new Error("Failed to get canvas context"));
+        }
+      };
+      img.onerror = (err) => reject(err);
     };
-    reader.onerror = reject;
+    reader.onerror = (err) => reject(err);
     reader.readAsDataURL(file);
   });
 };
@@ -48,6 +74,7 @@ export const getAiConsultation = async (
   }
 
   try {
+    // Sử dụng 'gemini-2.5-flash' - Model nhanh và tối ưu chi phí nhất hiện nay
     const chat = aiClient.chats.create({
       model: "gemini-2.5-flash",
       config: {
@@ -84,6 +111,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     throw new Error("LỖI CẤU HÌNH: Chưa tìm thấy API Key trong biến môi trường. Vui lòng thêm API_KEY vào Vercel Settings.");
   }
 
+  // Nén ảnh trước khi gửi để tối ưu tốc độ và chi phí
   const imagePart = await fileToGenerativePart(imageFile);
   
   const prompt = `
@@ -95,138 +123,6 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       -> Trả về JSON lỗi: {"error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"}
 
     NHIỆM VỤ 2: BÁO GIÁ CHI TIẾT (NẾU LÀ ẢNH NAIL)
-    
-    *** VÍ DỤ VÀNG SỐ 1 (CASE STUDY CHUẨN - FRENCH ĐỎ & HỌA TIẾT NƠ/CHERRY):
-    Khách gửi ảnh mẫu: Tay làm móng úp form nhọn/bầu, sơn nền nude trong trẻo. Có vẽ french đầu móng màu đỏ (khoảng 6 ngón). Có vẽ dây nơ trắng mảnh và vẽ quả cherry đỏ (khoảng 5 ngón). Đính đá nhỏ (khoảng 14 viên).
-    QUY TẮC QUAN TRỌNG: 
-    - Màu đỏ ở đầu móng đã tính trong giá "French", KHÔNG TÍNH tiền "Sơn thêm màu".
-    - Đá chỉ đếm những viên thực sự nổi khối. Các đốm sáng do đèn phản chiếu vào gel bóng KHÔNG PHẢI LÀ ĐÁ.
-    => AI phải tính ra kết quả tương tự như sau:
-    1. Up móng base: 120.000 VNĐ
-    2. Sơn gel: 80.000 VNĐ
-    3. French (6 ngón x 10.000): 60.000 VNĐ
-    4. Vẽ đơn giản (5 ngón x 15.000): 75.000 VNĐ (Vẽ nơ trắng, vẽ cherry)
-    5. Đá nhỏ (14 viên x 3.000): 42.000 VNĐ
-    => TỔNG CỘNG: 377.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 2 (CASE STUDY NÂNG CAO - OMBRE & TRÁNG GƯƠNG):
-    Khách gửi ảnh mẫu: Móng úp form base nhọn/dài, sơn hiệu ứng ombre loang màu toàn bộ móng, VÀ có lớp tráng gương bóng lộn (chrome) lên toàn bộ. Đính đá ở chân móng.
-    QUY TẮC: Nếu thấy móng bóng loáng như kim loại/ngọc trai => CÓ Tráng gương. Ombre và Tráng gương tính riêng từng bộ.
-    => AI phải tính như sau:
-    1. Up móng base: 120.000 VNĐ
-    2. Sơn gel: 80.000 VNĐ
-    3. Ombre bộ: 70.000 VNĐ
-    4. Tráng gương bộ: 70.000 VNĐ
-    5. Đá nhỏ (4 viên x 3.000): 12.000 VNĐ
-    6. Đá phối (10 viên x 4.000): 40.000 VNĐ
-    => TỔNG CỘNG: 392.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 3 (CASE STUDY HỖN HỢP - KHÔNG ÚP MÓNG & MIX DESIGN):
-    Khách gửi ảnh mẫu: Tay móng thật (độ dài vừa phải, đầu tròn/oval tự nhiên), sơn gel (phối đỏ và nude). Có 2 ngón vẽ French đỏ. Có 2 ngón vẽ hoa loang kết hợp đính hạt vàng ở giữa nhụy.
-    QUY TẮC:
-    1. Móng này độ dài trung bình, nhìn tự nhiên -> TÍNH LÀ MÓNG THẬT (0đ), KHÔNG TÍNH Up móng.
-    2. Ngón có hoa + hạt vàng: Vì vừa có vẽ, vừa có phụ kiện nhỏ -> Tính gộp vào giá "Trang trí vẽ + phụ kiện nhỏ" (20k/ngón).
-    => AI phải tính như sau:
-    1. Sơn gel: 80.000 VNĐ
-    2. Sơn thêm 1 màu: 10.000 VNĐ
-    3. French (2 ngón x 10.000): 20.000 VNĐ
-    4. Trang trí vẽ + phụ kiện nhỏ (2 ngón x 20.000): 40.000 VNĐ
-    => TỔNG CỘNG: 150.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 4 (CASE STUDY BÒ SỮA - MÓNG NGẮN - KHÔNG ÚP - KHÔNG CẮT DA):
-    Khách gửi ảnh mẫu: Tay móng vuông ngắn (sát đầu ngón tay), sơn gel phối 3 màu (xanh, đen, nền móng), vẽ họa tiết bò sữa (cow print) trên 6 ngón.
-    LƯU Ý ĐẶC BIỆT: 
-    - Móng ngắn -> Mặc định MÓNG THẬT (0đ Up móng).
-    - Cắt da -> Mặc định KHÔNG TÍNH (0đ).
-    - Bò sữa là vẽ gel.
-    => AI phải tính như sau:
-    1. Sơn gel: 80.000 VNĐ
-    2. Sơn thêm 2 màu: 20.000 VNĐ
-    3. Vẽ gel (6 ngón x 20.000): 120.000 VNĐ
-    => TỔNG CỘNG: 220.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 5 (CASE STUDY NHŨ VÀNG & VẼ NỔI TRÁNG GƯƠNG):
-    Khách gửi ảnh mẫu: Tay làm móng úp base, sơn gel tông đen lì, có phối thêm màu nhũ vàng ở 8 ngón, và 2 ngón vẽ gân nổi tráng gương vàng.
-    QUY TẮC QUAN TRỌNG: Mặc dù đã tính tiền Nhũ Vàng (Design), nhưng vì đây là phối màu (Đen + Vàng) nên VẪN PHẢI TÍNH tiền "Sơn thêm 1 màu".
-    => AI phải tính như sau:
-    1. Up móng base: 120.000 VNĐ
-    2. Sơn gel: 80.000 VNĐ
-    3. Sơn thêm 1 màu: 10.000 VNĐ (Phối đen và nhũ vàng)
-    4. Nhũ vàng (8 ngón x 10.000): 80.000 VNĐ
-    5. Vẽ nổi + tráng gương (2 ngón x 15.000): 30.000 VNĐ
-    => TỔNG CỘNG: 320.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 6 (FRENCH BIẾN TẤU):
-    Khách gửi ảnh mẫu: Móng nhọn, đầu móng sơn màu (xanh, đỏ, tím, vàng...) hoặc đầu móng chữ V (V-cut), hoặc sơn xéo (Diagonal).
-    QUY TẮC: Dù đầu móng màu gì, hình dáng gì (tròn, V, xéo), miễn là kiểu sơn đầu móng thì ĐỀU TÍNH LÀ FRENCH (10k/ngón).
-    => AI phải tính: French (x số ngón).
-
-    *** VÍ DỤ VÀNG SỐ 7 (CASE STUDY MẮT MÈO & VẼ BI):
-    Khách gửi ảnh mẫu: Tay làm móng úp, sơn hiệu ứng mắt mèo (Cat Eye) tông nâu/trầm. Có phối màu nude ở vài ngón. Có 2 ngón vẽ chấm bi (polka dots). Có 2 ngón French đầu móng.
-    QUY TẮC ĐẶC BIỆT:
-    1. "Mắt mèo kèm nền": Nếu làm bộ mắt mèo, tính gộp giá là 130.000 VNĐ (Thay vì tính lẻ Sơn gel 80 + Mắt mèo 70 = 150).
-    2. Vẽ chấm bi (bi): Tính là "Vẽ đơn giản" (15k/ngón).
-    => AI phải tính như sau:
-    1. Up móng base: 120.000 VNĐ
-    2. Mắt mèo kèm nền: 130.000 VNĐ (Combo nền + hiệu ứng)
-    3. Sơn thêm 1 màu: 10.000 VNĐ (Phối màu mắt mèo và màu nude)
-    4. Vẽ đơn giản (2 ngón x 15.000): 30.000 VNĐ (Vẽ bi)
-    5. French (2 ngón x 10.000): 20.000 VNĐ
-    => TỔNG CỘNG: 310.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 8 (CASE STUDY FULL COMBO: TRÁNG GƯƠNG + FRENCH):
-    Khách gửi ảnh mẫu: Tay làm móng úp base. Sơn nền gel. Có lớp tráng gương (chrome) phủ lên toàn bộ các ngón. Sau đó vẽ French đầu móng lên toàn bộ.
-    QUY TẮC TÍNH:
-    1. Đây là combo 2 bộ Design lớn: Tráng gương bộ (70k) VÀ French bộ (100k). Cả 2 đều phải tính tiền.
-    => AI phải tính như sau:
-    1. Up móng base: 120.000 VNĐ
-    2. Sơn gel: 80.000 VNĐ
-    3. Tráng gương bộ: 70.000 VNĐ
-    4. French bộ (10 ngón): 100.000 VNĐ
-    => TỔNG CỘNG: 370.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 9 (CASE STUDY VẼ MIX - ĐƠN GIẢN & SIÊU ĐƠN GIẢN):
-    Khách gửi ảnh mẫu: Sơn gel phối 3 màu (tổng cộng 20k tiền màu). Có 2 ngón vẽ hình hoa/tim (chi tiết vừa - 15k). Có 8 ngón vẽ các đường line mảnh hoặc họa tiết siêu nhỏ/sticker (10k).
-    QUY TẮC:
-    - Sơn thêm 2 màu: 20.000 VNĐ.
-    - Vẽ đơn giản (2 ngón): 15.000 VNĐ/ngón.
-    - Vẽ nét mảnh/Sticker (8 ngón): 10.000 VNĐ/ngón.
-    => AI phải tính như sau:
-    1. Sơn gel: 80.000 VNĐ
-    2. Sơn thêm 2 màu: 20.000 VNĐ
-    3. Vẽ đơn giản (2 ngón x 15.000): 30.000 VNĐ
-    4. Vẽ nét mảnh / Sticker (8 ngón x 10.000): 80.000 VNĐ
-    => TỔNG CỘNG: 210.000 VNĐ
-
-    *** VÍ DỤ VÀNG SỐ 10 (NHẬN DIỆN MẮT MÈO - CAT EYE CƠ BẢN):
-    Khách gửi ảnh mẫu: Các móng có vệt sáng nhũ chạy ngang/dọc/chéo tạo hiệu ứng 3D, nhìn sâu thẳm, lấp lánh như dải ngân hà hoặc mắt con mèo.
-    QUY TẮC:
-    - Đây là hiệu ứng Mắt Mèo (Cat Eye). Phân biệt với Tráng Gương (Chrome - bóng lì như kim loại). Mắt mèo có chiều sâu và hạt nhũ chuyển động.
-    - Mặc định tính giá gói: Mắt mèo kèm nền = 130.000 VNĐ.
-    - Không tính tách lẻ Sơn gel + Mắt mèo (trừ khi khách yêu cầu, nhưng AI nên ưu tiên báo giá gói cho rẻ/hợp lý).
-    => TỔNG CỘNG: 130.000 VNĐ (Nếu không có charm/đá).
-
-    *** VÍ DỤ VÀNG SỐ 11 (TRÁNG GƯƠNG - CHROME/AURORA CƠ BẢN):
-    Khách gửi ảnh mẫu: Các móng có độ bóng loáng cao như kim loại (bạc, vàng, đồng) hoặc bóng xà cừ (aurora) phủ toàn bộ bề mặt móng. Bề mặt mịn, phản chiếu ánh sáng đều, KHÔNG có vệt sáng tụ lại 1 điểm.
-    QUY TẮC:
-    - Đây là TRÁNG GƯƠNG (CHROME/MIRROR/AURORA). Khác với Mắt Mèo (có vệt sáng).
-    - Giá: Tráng gương bộ = 70.000 VNĐ (Thường cộng thêm với Sơn Gel).
-    - Nếu cả bàn tay đều bóng loáng -> Tính Tráng gương bộ.
-
-    *** VÍ DỤ VÀNG SỐ 12 (BIẾN THỂ MẮT MÈO - AURORA/KIM CƯƠNG/HALO):
-    Khách gửi ảnh mẫu: Bảng màu hoặc tay làm móng có hiệu ứng mắt mèo nhưng không phải vệt thẳng, mà là vệt sáng tròn (Halo), vệt sáng rộng như ánh trăng (Moonlight/Aurora), hoặc lấp lánh chiều sâu như kim cương (9D/Diamond Cat Eye).
-    QUY TẮC:
-    - Tất cả các hiệu ứng tạo độ sâu 3D, vệt sáng chuyển động khi nhìn góc khác nhau ĐỀU LÀ MẮT MÈO.
-    - Dù là mắt mèo thường hay mắt mèo kim cương/aurora -> Đều tính giá gói: Mắt mèo kèm nền = 130.000 VNĐ.
-    => AI phải tính:
-    1. Mắt mèo kèm nền (Combo): 130.000 VNĐ. (Nếu làm full bộ).
-
-    *** VÍ DỤ VÀNG SỐ 13 (PHÂN BIỆT TRÁNG GƯƠNG VS MẮT MÈO - QUY TẮC ĐỐI CHIẾU):
-    Khách gửi ảnh mẫu: Bảng màu hoặc tay mẫu.
-    - Trường hợp A (TRÁNG GƯƠNG/AURORA POWDER): Bề mặt móng bóng loáng đồng nhất, màu sắc biến đổi như xà cừ hoặc kim loại (Titanium), ánh sáng phản chiếu toàn bộ móng, KHÔNG có vệt sáng "chạy" hoặc tụ điểm sáng.
-      => Tính: Tráng gương bộ (70k).
-    - Trường hợp B (MẮT MÈO/CAT EYE): Móng có độ sâu, các hạt nhũ tụ lại thành 1 đường sáng (thẳng/chéo) hoặc 1 vùng sáng tròn, phần còn lại tối hơn hoặc nhạt hơn. Cảm giác như nhìn vào viên bi ve.
-      => Tính: Mắt mèo kèm nền (130k).
     
     *** BẢNG GIÁ CHI TIẾT & QUY TẮC TÍNH:
 
@@ -274,6 +170,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   `;
 
   try {
+    // Sử dụng 'gemini-2.5-flash' để tối ưu chi phí
     const result = await aiClient.models.generateContent({
       model: "gemini-2.5-flash",
       contents: {
@@ -285,12 +182,6 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       config: {
         responseMimeType: "application/json",
         temperature: 0, 
-        safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-        ]
       }
     });
 
