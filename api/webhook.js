@@ -2,9 +2,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// CHẾ ĐỘ: HYBRID AI BOT (GEMINI 2.5 FLASH + KEYWORD FALLBACK)
-// Sử dụng AI để hiểu ý định, nhưng trả lời bằng nội dung cứng để đảm bảo chuẩn xác.
-// Updated: V40 Force Deploy
+// CHẾ ĐỘ: IM LẶNG LÀ VÀNG (SILENT ERROR MODE - V43)
+// Nguyên tắc: Nếu gặp lỗi (AI, Database, Mạng) -> Ghi log hệ thống -> IM LẶNG với khách hàng.
+// Khách hàng không bao giờ nhìn thấy dòng lỗi kỹ thuật.
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU (KHÔNG ĐƯỢC SỬA BỞI AI)
@@ -29,7 +29,7 @@ const RESPONSE_TEMPLATES = {
 // ============================================================
 async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("Missing API_KEY");
+    if (!apiKey) return "SILENCE"; // Thiếu Key -> Im lặng luôn, không báo lỗi
 
     const ai = new GoogleGenAI({ apiKey });
     
@@ -71,10 +71,11 @@ async function classifyIntentWithGemini(userMessage) {
         if (['ADDRESS', 'PRICE', 'PROMOTION', 'SILENCE'].includes(intent)) {
             return intent;
         }
-        return "SILENCE"; // Default to silence if AI hallucinates
+        return "SILENCE";
     } catch (error) {
-        console.error("Gemini AI Error:", error);
-        throw error; // Throw to trigger fallback
+        // Ghi log lỗi để Admin biết, nhưng trả về SILENCE để Bot không nói nhảm với khách
+        console.warn("Gemini AI Error (Silent Mode):", error.message);
+        throw error; // Ném lỗi để kích hoạt Fallback Keyword
     }
 }
 
@@ -129,7 +130,7 @@ export default async function handler(req, res) {
           if (webhook_event) {
             const sender_psid = webhook_event.sender.id;
 
-            // XỬ LÝ POSTBACK / REF
+            // XỬ LÝ POSTBACK / REF (Nút Bấm)
             let refParam = null;
             if (webhook_event.referral) refParam = webhook_event.referral.ref;
             else if (webhook_event.postback?.referral) refParam = webhook_event.postback.referral.ref;
@@ -142,53 +143,50 @@ export default async function handler(req, res) {
             else if (webhook_event.message && webhook_event.message.text) {
                 const userMessage = webhook_event.message.text.trim();
                 
-                // LỆNH PING
+                // LỆNH PING (Chỉ dành cho Admin test, khách thường không biết lệnh này nên vẫn an toàn)
                 if (userMessage.toLowerCase() === 'ping') {
-                    const statusMsg = `PONG! Bot Gemini 2.5 Flash [V40] Online.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}`;
+                    const statusMsg = `PONG! Silent Mode [V43] Active.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
 
-                await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
+                // Không bật typing để tránh khách chờ đợi nếu bot quyết định im lặng
+                // await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
 
                 // --- QUY TRÌNH XỬ LÝ ---
                 let intent = 'SILENCE';
-                let source = 'AI';
-
+                
                 try {
                     // 1. Thử dùng AI trước
                     intent = await classifyIntentWithGemini(userMessage);
                 } catch (e) {
-                    // 2. Nếu AI lỗi -> Dùng Keyword
-                    console.warn("AI Failed, using Fallback:", e.message);
+                    // 2. Nếu AI lỗi -> Dùng Keyword (Im lặng, không báo lỗi)
+                    console.warn("AI Failed -> Fallback to Keyword");
                     intent = classifyIntentWithKeywords(userMessage);
-                    source = 'KEYWORD_FALLBACK';
                 }
-
-                console.log(`[BOT] Msg: "${userMessage}" -> Intent: ${intent} (${source})`);
 
                 // --- PHẢN HỒI ---
                 const template = RESPONSE_TEMPLATES[intent];
                 
                 if (template) {
-                    // Gửi tin nhắn text
+                    // Chỉ trả lời khi chắc chắn có nội dung
+                    await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on'); // Bật typing lúc này mới hợp lý
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: template.text });
                     
-                    // Gửi ảnh nếu có
                     if (template.image) {
-                        await new Promise(r => setTimeout(r, 500)); // Delay nhẹ
+                        await new Promise(r => setTimeout(r, 500));
                         await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, template.image);
                     }
+                    await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                 } else {
-                    // SILENCE: Không làm gì cả
+                    // SILENCE: Không làm gì cả. Khách sẽ nghĩ nhân viên bận.
                 }
-
-                await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
             }
           }
         }
       } catch (e) {
-        console.error("Webhook Error:", e);
+        // CATCH ALL GLOBAL ERROR: Im lặng tuyệt đối, không báo gì cho khách
+        console.error("Critical Bot Error (Silent):", e);
       }
       return res.status(200).send('EVENT_RECEIVED');
     }
@@ -201,24 +199,32 @@ export default async function handler(req, res) {
 async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
-    await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-
+    
+    // Nếu là MOCK ID (Chưa cấu hình DB) -> Gửi tin nhắn mẫu demo, không báo lỗi kỹ thuật
     if (recordId && recordId.startsWith('MOCK_')) {
-        await new Promise(r => setTimeout(r, 1000));
-        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "🚧 Đang hiển thị dữ liệu DEMO:" });
+        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Chào bạn! Ki Nail Room đã nhận được ảnh móng của bạn." });
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
-            attachment: { type: "template", payload: { template_type: "button", text: "Đơn hàng mẫu: 150.000đ", buttons: [{ type: "postback", title: "Chat Nhân Viên", payload: "CHAT_HUMAN" }] } }
+            attachment: { type: "template", payload: { template_type: "button", text: "Do hệ thống đang xử lý nhiều đơn, bạn vui lòng chờ nhân viên tư vấn trực tiếp nhé! (Demo Mode)", buttons: [{ type: "postback", title: "Chat Nhân Viên", payload: "CHAT_HUMAN" }] } }
         });
         return;
     }
 
     const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) return;
+    
+    // Nếu thiếu cấu hình -> Im lặng (Admin tự check log)
+    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
+        console.error("Missing Airtable Config in Referral");
+        return; 
+    }
 
     try {
+        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
         const airtableRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Quotes/${recordId}`, { headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` } });
-        if (!airtableRes.ok) return;
+        
+        if (!airtableRes.ok) throw new Error("Airtable fetch failed"); // Ném lỗi để vào catch
+        
         const record = await airtableRes.json();
         const { "Image URL": imageUrl, "Total Estimate": total, "Items Detail": itemsJson } = record.fields;
         const fmt = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -230,12 +236,16 @@ async function handleReferral(sender_psid, recordId) {
         } catch (e) {}
 
         if (imageUrl) await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
-        const msgBody = `CHI TIẾT BÁO GIÁ:\n${detailsText}\nTỔNG CỘNG: ${fmt(total)}\n\nĐây là giá ước tính AI. Chat để chốt lịch nhé!`;
+        const msgBody = `CHI TIẾT BÁO GIÁ AI:\n${detailsText}\nTỔNG CỘNG: ${fmt(total)}\n\nĐây là giá tham khảo. Bạn chat để chốt lịch nhé!`;
         
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
-            attachment: { type: "template", payload: { template_type: "button", text: msgBody.substring(0, 640), buttons: [{ type: "postback", title: "Chat Nhân Viên", payload: "CHAT_HUMAN" }] } }
+            attachment: { type: "template", payload: { template_type: "button", text: msgBody.substring(0, 640), buttons: [{ type: "postback", title: "Gặp Nhân Viên", payload: "CHAT_HUMAN" }] } }
         });
-    } catch (error) { console.error("Referral Error:", error); }
+    } catch (error) { 
+        // LỖI KHI GỬI BÁO GIÁ -> IM LẶNG
+        // Khách thấy bấm nút mà không gì xảy ra -> Khách sẽ tự chat hỏi -> An toàn.
+        console.error("Referral Error (Silent):", error); 
+    }
 }
 
 async function sendSenderAction(token, psid, action) {
