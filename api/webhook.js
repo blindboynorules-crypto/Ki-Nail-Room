@@ -2,9 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// CHẾ ĐỘ: IM LẶNG LÀ VÀNG (SILENT ERROR MODE - V43)
-// Nguyên tắc: Nếu gặp lỗi (AI, Database, Mạng) -> Ghi log hệ thống -> IM LẶNG với khách hàng.
-// Khách hàng không bao giờ nhìn thấy dòng lỗi kỹ thuật.
+// CHẾ ĐỘ: IM LẶNG LÀ VÀNG (SILENT ERROR MODE - V47)
+// Update V47: Dạy Bot hiểu "ctkm" và "Khuyến mãi sắp tới"
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU (KHÔNG ĐƯỢC SỬA BỞI AI)
@@ -41,7 +40,9 @@ async function classifyIntentWithGemini(userMessage) {
     CATEGORIES:
     1. ADDRESS: User asks for location, map, address, where is the shop. (Keywords: địa chỉ, ở đâu, map, đường nào, tọa độ, add...)
     2. PRICE: User asks for the general menu, price list, cost. (Keywords: bảng giá, menu, giá sao, bao nhiêu tiền, mắc không...)
-    3. PROMOTION: User asks for discounts, sales, current offers. (Keywords: khuyến mãi, giảm giá, ưu đãi, km...)
+    3. PROMOTION: User asks for discounts, sales, current offers. 
+       - Keywords: khuyến mãi, giảm giá, ưu đãi, km, ctkm...
+       - IMPORTANT: If user asks about FUTURE promotions (e.g., "Sắp tới có km không", "tháng sau có giảm giá không"), CLASSIFY AS PROMOTION. Do not hide current offers.
     4. SILENCE: User asks for ANYTHING ELSE.
        - Booking/Appointment (e.g., "2 người được không", "đặt lịch 5h", "còn chỗ không").
        - Specific Price (e.g., "bộ này bao nhiêu", "mẫu này giá sao").
@@ -85,8 +86,8 @@ async function classifyIntentWithGemini(userMessage) {
 function classifyIntentWithKeywords(text) {
     const t = text.toLowerCase();
     
-    // Ưu tiên 1: Khuyến mãi
-    if (t.includes('khuyen mai') || t.includes('giam gia') || t.includes('uu dai') || t.includes('km')) return 'PROMOTION';
+    // Ưu tiên 1: Khuyến mãi (Thêm 'ctkm', 'sap toi')
+    if (t.includes('khuyen mai') || t.includes('giam gia') || t.includes('uu dai') || t.includes('km') || t.includes('ctkm')) return 'PROMOTION';
     
     // Ưu tiên 2: Giá (phải check kỹ để tránh nhầm với "giảm giá")
     if ((t.includes('gia') || t.includes('menu') || t.includes('tien') || t.includes('phi')) && !t.includes('giam')) return 'PRICE';
@@ -145,7 +146,7 @@ export default async function handler(req, res) {
                 
                 // LỆNH PING (Chỉ dành cho Admin test, khách thường không biết lệnh này nên vẫn an toàn)
                 if (userMessage.toLowerCase() === 'ping') {
-                    const statusMsg = `PONG! Silent Mode [V43] Active.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}`;
+                    const statusMsg = `PONG! V47 Smart Promo Fix.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
