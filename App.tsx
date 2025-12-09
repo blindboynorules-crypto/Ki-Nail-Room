@@ -7,11 +7,11 @@ import AiPricing from './components/AiPricing';
 import Training from './components/Training';
 import Gallery from './components/Gallery';
 import Footer from './components/Footer';
-import CleanupDemo from './components/CleanupDemo';
+import AdminDashboard from './components/AdminDashboard';
 import Privacy from './components/Privacy';
 import { applyTheme } from './theme';
 
-type ViewState = 'home' | 'ai-pricing' | 'cleanup-demo' | 'privacy';
+type ViewState = 'home' | 'ai-pricing' | 'admin-dashboard' | 'privacy';
 
 const App: React.FC = () => {
   // KHỞI TẠO THEME
@@ -26,7 +26,7 @@ const App: React.FC = () => {
       // Loại bỏ dấu gạch chéo cuối nếu có để so sánh chính xác (vd: /privacy/ -> /privacy)
       const path = window.location.pathname.replace(/\/$/, '');
       if (path === '/privacy') return 'privacy';
-      if (path === '/cleanup-demo') return 'cleanup-demo';
+      if (path === '/admin') return 'admin-dashboard';
     }
     return 'home';
   });
@@ -37,8 +37,8 @@ const App: React.FC = () => {
       const path = window.location.pathname.replace(/\/$/, '');
       if (path === '/privacy') {
         setCurrentView('privacy');
-      } else if (path === '/cleanup-demo') {
-        setCurrentView('cleanup-demo');
+      } else if (path === '/admin') {
+        setCurrentView('admin-dashboard');
       } else {
         setCurrentView('home');
       }
@@ -53,10 +53,10 @@ const App: React.FC = () => {
       setCurrentView('ai-pricing');
       window.scrollTo(0, 0);
       window.history.pushState(null, '', '/');
-    } else if (id === 'cleanup-demo') {
-      setCurrentView('cleanup-demo');
+    } else if (id === 'admin-dashboard') {
+      setCurrentView('admin-dashboard');
       window.scrollTo(0, 0);
-      // Demo trang admin nội bộ, không cần đổi URL quá phức tạp
+      window.history.pushState(null, '', '/admin');
     } else if (id === 'privacy') {
       setCurrentView('privacy');
       window.scrollTo(0, 0);
@@ -95,8 +95,8 @@ const App: React.FC = () => {
     };
   }, []);
 
-  if (currentView === 'cleanup-demo') {
-    return <CleanupDemo onBack={() => handleNavigation('home')} />;
+  if (currentView === 'admin-dashboard') {
+    return <AdminDashboard onBack={() => handleNavigation('home')} />;
   }
 
   return (

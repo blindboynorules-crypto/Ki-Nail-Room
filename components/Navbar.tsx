@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Lock, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -56,18 +57,10 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
     setTimeout(() => {
         if (adminPassword === '220314') {
-            // CẬP NHẬT: Cho phép đăng nhập Admin trên cả domain .com
-            const hostname = window.location.hostname;
-            const isProduction = hostname.includes('kinailroom.vercel.app') || hostname.includes('kinailroom.com');
-
-            if (isProduction) {
-                window.location.href = '/api/cleanup-images';
-            } else {
-                setIsAdminModalOpen(false);
-                setAdminPassword('');
-                setIsChecking(false);
-                onNavigate('cleanup-demo'); 
-            }
+            setIsAdminModalOpen(false);
+            setAdminPassword('');
+            setIsChecking(false);
+            onNavigate('admin-dashboard'); 
         } else {
             setAdminError('Mật khẩu không chính xác');
             setIsChecking(false);
