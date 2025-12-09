@@ -69,7 +69,7 @@ async function classifyIntentWithGemini(userMessage) {
 
     try {
         const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.5-flash", // Cập nhật lên model mới nhất theo yêu cầu
             contents: { parts: [{ text: prompt }] },
             config: {
                 temperature: 0, // Nhiệt độ 0 để AI trả lời chính xác như máy, không sáng tạo
@@ -93,8 +93,8 @@ async function classifyIntentWithGemini(userMessage) {
 }
 
 export default async function handler(req, res) {
-  // FORCE V22 UPDATE LOG
-  console.log("[BOT V22] Webhook handler loaded. Checking connectivity...");
+  // FORCE V27 UPDATE LOG
+  console.log("[BOT V27] Webhook handler loaded. Using gemini-2.5-flash.");
 
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
@@ -147,7 +147,7 @@ export default async function handler(req, res) {
                 // === CHẨN ĐOÁN HỆ THỐNG (DIAGNOSTIC PING) ===
                 if (userMessage.toLowerCase() === 'ping') {
                     // Trả lời rõ version để user biết code đã cập nhật
-                    const statusMsg = `PONG! Hệ thống [V22] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}`;
+                    const statusMsg = `PONG! Hệ thống [V27] kết nối thành công.\n- FB Token: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}\n- AI Key: ${process.env.API_KEY ? 'OK' : 'MISSING'}\n- Model: gemini-2.5-flash`;
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: statusMsg });
                     return res.status(200).send('EVENT_RECEIVED');
                 }
