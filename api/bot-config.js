@@ -35,7 +35,10 @@ export default async function handler(req, res) {
         if (!ghRes.ok) throw new Error('Không tìm thấy file trên GitHub');
 
         const data = await ghRes.json();
-        const content = atob(data.content); // Decode Base64
+        
+        // --- SỬA LỖI FONT TIẾNG VIỆT ---
+        // Sử dụng Buffer để decode Base64 sang UTF-8 đúng chuẩn
+        const content = Buffer.from(data.content, 'base64').toString('utf-8');
 
         // Trích xuất phần TRAINING_DATA từ file JS bằng Regex
         // Tìm đoạn giữa "const TRAINING_DATA = [" và "];"
@@ -43,8 +46,6 @@ export default async function handler(req, res) {
         
         if (match && match[1]) {
             // Dùng eval một cách cẩn thận (vì file là JS valid) để parse mảng object
-            // Lưu ý: JSON.parse sẽ lỗi nếu file JS có comment hoặc dấu phẩy thừa.
-            // Ở đây ta dùng Function constructor để parse an toàn hơn eval trực tiếp
             const trainingData = new Function(`return ${match[1]}`)();
             return res.status(200).json({ success: true, trainingData });
         } else {
@@ -68,7 +69,9 @@ export default async function handler(req, res) {
             headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` }
         });
         const fileData = await getRes.json();
-        const currentContent = atob(fileData.content);
+        
+        // Decode content cũ để lấy cấu trúc file
+        const currentContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
         
         // 2. Tạo nội dung file mới
         // Thay thế mảng TRAINING_DATA cũ bằng mảng mới (đã convert sang string)
@@ -82,6 +85,10 @@ export default async function handler(req, res) {
 
         // 3. Đẩy lên GitHub
         const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
+        
+        // Encode sang Base64 chuẩn UTF-8 để không lỗi font khi lưu
+        const contentBase64 = Buffer.from(newContent, 'utf-8').toString('base64');
+
         const putRes = await fetch(putUrl, {
             method: 'PUT',
             headers: {
@@ -90,7 +97,7 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 message: `[Bot Admin] Update training data via Website`,
-                content: btoa(unescape(encodeURIComponent(newContent))), // Encode Base64 chuẩn UTF-8
+                content: contentBase64,
                 sha: fileData.sha,
                 branch: BRANCH
             })
