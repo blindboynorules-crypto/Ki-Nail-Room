@@ -120,10 +120,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           <div className="bg-chestnut-600 p-6 flex items-center justify-between">
             <div>
                 <h1 className="text-2xl font-serif font-bold text-white tracking-wide flex items-center gap-2">
-                <Bot className="w-8 h-8" /> QUẢN TRỊ KI NAIL
+                <Bot className="w-8 h-8" /> QUẢN TRỊ KI NAIL (V2)
                 </h1>
                 <p className="text-chestnut-200 text-xs uppercase tracking-[0.2em] mt-1 font-semibold">
-                Admin Dashboard
+                Admin Dashboard - Full Control
                 </p>
             </div>
             <button 
@@ -146,7 +146,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                 onClick={() => setActiveTab('bot')}
                 className={`flex-1 py-4 text-sm font-bold uppercase tracking-wide flex items-center justify-center gap-2 transition-colors ${activeTab === 'bot' ? 'bg-white text-chestnut-600 border-b-2 border-chestnut-600' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
             >
-                <Bot className="w-5 h-5" /> Training Bot
+                <Bot className="w-5 h-5" /> Training Bot (MỚI)
             </button>
           </div>
 
