@@ -76,42 +76,31 @@ const AiPricing: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // CẬP NHẬT: Cho phép cả domain vercel.app và domain .com hoạt động chính thức
-      const hostname = window.location.hostname;
-      const isProduction = hostname.includes('kinailroom.vercel.app') || hostname.includes('kinailroom.com');
-
-      if (!isProduction) {
-          alert("Bạn đang ở chế độ Preview (Local). Hệ thống sẽ giả lập thành công mà không lưu vào Airtable.");
-          window.open("https://m.me/kinailroom", "_blank");
-          setIsSaving(false);
-          return;
-      }
-
-      const response = await fetch('/api/save-quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: uploadedImageUrl,
-          totalEstimate: result.totalEstimate,
-          items: result.items,
-          note: result.note
-        })
+      // CÔNG NGHỆ MỚI (V49): STATELESS MESSENGER REF
+      // Không cần lưu vào Database (Airtable) nữa.
+      // Mã hóa trực tiếp Link ảnh và Giá tiền vào URL Messenger.
+      // Format: Q_<Base64EncodedData>
+      
+      const payload = JSON.stringify({
+          i: uploadedImageUrl, // Image URL
+          t: result.totalEstimate // Total Price
       });
 
-      const data = await response.json();
+      // Encode Base64 an toàn cho URL (URL Safe Base64)
+      const encodedPayload = btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const refParam = `Q_${encodedPayload}`;
 
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Lỗi khi lưu đơn hàng');
+      // Kiểm tra độ dài (Messenger giới hạn 2000 ký tự)
+      if (refParam.length > 2000) {
+          throw new Error("Dữ liệu quá dài, vui lòng thử lại ảnh khác.");
       }
 
-      const orderRef = data.recordId;
-      console.log("Redirecting to Messenger with Ref:", orderRef);
-      window.location.href = `https://m.me/kinailroom?ref=${orderRef}`;
+      console.log("Direct Messenger Redirect:", refParam);
+      window.location.href = `https://m.me/kinailroom?ref=${refParam}`;
 
     } catch (err: any) {
       console.error("Smart Send Error:", err);
-      alert(`⚠️ Lỗi hệ thống: ${err.message}\n\nĐang mở Messenger thủ công.`);
-      window.open("https://m.me/kinailroom", "_blank");
+      alert(`⚠️ Không thể mở Messenger: ${err.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -305,7 +294,7 @@ const AiPricing: React.FC = () => {
                               {isSaving ? (
                                   <>
                                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                      Đang kết nối Facebook...
+                                      Đang tạo liên kết...
                                   </>
                               ) : (
                                   <>
