@@ -74,9 +74,9 @@ export const getAiConsultation = async (
   }
 
   try {
-    // Sử dụng 'gemini-2.5-flash' - Model nhanh và tối ưu chi phí nhất hiện nay
+    // Sử dụng 'gemini-1.5-flash' - Model ổn định và quota cao hơn
     const chat = aiClient.chats.create({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       config: {
         systemInstruction: `Bạn là một chuyên gia tư vấn Nail (làm móng) chuyên nghiệp, dễ thương và có gu thẩm mỹ cao tại 'Ki Nail Room'.
         Phong cách chủ đạo của tiệm là: Hàn Quốc và Nhật Bản (nhẹ nhàng, trong trẻo, tinh tế, cute).
@@ -170,9 +170,9 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   `;
 
   try {
-    // Sử dụng 'gemini-2.5-flash' để tối ưu chi phí
+    // Sử dụng 'gemini-1.5-flash' để tối ưu chi phí và tránh lỗi quota
     const result = await aiClient.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       contents: {
         parts: [
             imagePart,
@@ -216,6 +216,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     let msg = error.message || "Lỗi không xác định";
     if (msg.includes("403")) msg = "Lỗi xác thực (403): API Key không hợp lệ.";
     if (msg.includes("400")) msg = "Ảnh không hợp lệ hoặc sai định dạng.";
+    if (msg.includes("429")) msg = "Hệ thống đang quá tải (429). Vui lòng thử lại sau vài giây.";
     throw new Error(msg);
   }
 };
