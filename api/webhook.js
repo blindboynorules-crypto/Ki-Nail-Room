@@ -10,7 +10,8 @@
 const TRAINING_DATA = [
     {
         // 1. Hỏi địa chỉ
-        keywords: ['địa chỉ', 'ở đâu', 'chỗ nào', 'đường nào', 'vị trí', 'map', 'bản đồ', 'đc', 'add', 'tiệm nằm', 'tiệm đâu', 'ghé làm'],
+        // ĐÃ SỬA: Xóa từ khóa 'đc' vì dễ nhầm với 'được' (VD: 2 người đc ko)
+        keywords: ['địa chỉ', 'ở đâu', 'chỗ nào', 'đường nào', 'vị trí', 'map', 'bản đồ', 'add', 'address', 'tiệm nằm'],
         // Dòng chữ địa chỉ chính xác + Link Google Maps
         text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc"
     },
@@ -27,8 +28,7 @@ const TRAINING_DATA = [
         imageUrl: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
     },
     {
-        // 4. Hỏi Giờ làm việc (Đã cập nhật nội dung mới)
-        // LƯU Ý: Đã xóa từ khóa 'lịch làm' để tránh bot bắt nhầm câu 'đặt lịch làm móng'
+        // 4. Hỏi Giờ làm việc
         keywords: ['mấy giờ', 'giờ mở cửa', 'đóng cửa', 'open', 'close', 'mở cửa', 'đến mấy giờ', 'hoạt động'],
         text: "Dạ Ki mở cửa từ 9:30 - nhận khách cuối lúc 19:45 (7:45) ạ"
     }
