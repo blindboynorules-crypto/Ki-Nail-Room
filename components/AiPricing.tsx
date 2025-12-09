@@ -76,7 +76,11 @@ const AiPricing: React.FC = () => {
     setIsSaving(true);
 
     try {
-      if (!window.location.hostname.includes('kinailroom.vercel.app')) {
+      // CẬP NHẬT: Cho phép cả domain vercel.app và domain .com hoạt động chính thức
+      const hostname = window.location.hostname;
+      const isProduction = hostname.includes('kinailroom.vercel.app') || hostname.includes('kinailroom.com');
+
+      if (!isProduction) {
           alert("Bạn đang ở chế độ Preview (Local). Hệ thống sẽ giả lập thành công mà không lưu vào Airtable.");
           window.open("https://m.me/kinailroom", "_blank");
           setIsSaving(false);

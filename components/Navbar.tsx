@@ -57,7 +57,11 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
     setTimeout(() => {
         if (adminPassword === '220314') {
-            if (window.location.hostname.includes('kinailroom.vercel.app')) {
+            // CẬP NHẬT: Cho phép đăng nhập Admin trên cả domain .com
+            const hostname = window.location.hostname;
+            const isProduction = hostname.includes('kinailroom.vercel.app') || hostname.includes('kinailroom.com');
+
+            if (isProduction) {
                 window.location.href = '/api/cleanup-images';
             } else {
                 setIsAdminModalOpen(false);
