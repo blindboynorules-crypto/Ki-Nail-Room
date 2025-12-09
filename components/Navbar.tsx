@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Lock, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -81,7 +80,8 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
   return (
     <>
-    <nav className="fixed w-full z-[100] bg-vanilla-50/80 backdrop-blur-md shadow-sm border-b border-white/20 transition-all duration-300">
+    {/* Thêm top-0 left-0 để ghim sát lề, loại bỏ khoảng trắng */}
+    <nav className="fixed top-0 left-0 w-full z-[100] bg-vanilla-50/80 backdrop-blur-md shadow-sm border-b border-white/20 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
           

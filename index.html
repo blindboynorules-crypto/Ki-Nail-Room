@@ -2,10 +2,11 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- THÊM viewport-fit=cover ĐỂ KHẮC PHỤC LỖI KHOẢNG TRẮNG TRÊN IPHONE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Ki Nail Room - Be Shiny . Be Stylish</title>
     
-    <!-- CẤU HÌNH MÀU THANH TRẠNG THÁI IPHONE (NOEL THEME) -->
+    <!-- CẤU HÌNH MÀU THANH TRẠNG THÁI IPHONE (NOEL THEME - #FFF5F7) -->
     <meta name="theme-color" content="#FFF5F7" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
@@ -14,6 +15,7 @@
     <meta name="author" content="Ki Nail Room" />
     
     <!-- Open Graph / Facebook / Zalo -->
+    <meta property="fb:app_id" content="966242223397117" /> <!-- ID mặc định để fix lỗi Missing Asset -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://kinailroom.com/" />
     <meta property="og:site_name" content="Ki Nail Room" />
@@ -126,6 +128,12 @@
         --v-400: 251 113 133;
         --v-500: 219 39 119;
         --v-900: 112 2 15;
+      }
+
+      /* Fix lỗi nháy trắng trên iOS bằng cách set màu nền cứng cho body/html */
+      html, body {
+        background-color: rgb(255, 245, 247); /* Màu #FFF5F7 */
+        min-height: 100%;
       }
 
       /* Hide scrollbar for Chrome, Safari and Opera */
