@@ -76,20 +76,36 @@ Nếu website bị lỗi AI không trả lời, hoặc không lưu được đơ
 Danh sách các chìa khóa cần có:
 1.  `API_KEY`: Khóa của Google Gemini (để AI chạy).
 2.  `CLOUDINARY_*`: 3 khóa của Cloudinary (để upload ảnh).
-3.  `FB_*`: Khóa của Facebook (để Chatbot chạy).
+3.  `FB_PAGE_ACCESS_TOKEN`: Khóa của Facebook (để Chatbot trả lời).
 4.  `AIRTABLE_*`: Khóa của Airtable (để lưu đơn báo giá).
 
 ---
 
-## 5. MẸO XỬ LÝ SỰ CỐ
+## 5. HƯỚNG DẪN CÀI ĐẶT FACEBOOK BOT (QUAN TRỌNG)
+
+Khi cấu hình trên trang **Facebook Developers**, bạn cần nhập chính xác các thông tin sau:
+
+### Mục 1: Webhook (Cài đặt API Messenger)
+*   **URL gọi lại (Callback URL):** `https://kinailroom.com/api/webhook`
+*   **Mã xác minh (Verify Token):** `kinailroom_verify`
+*   **Quyền cần cấp:** Tích vào `messages` và `messaging_postbacks`.
+
+### Mục 2: Live Mode (Để Bot trả lời khách lạ)
+1.  Vào **Cài đặt thông tin cơ bản**, điền link chính sách: `https://kinailroom.com/privacy`
+2.  Gạt công tắc trên cùng từ **Phát triển** sang **Chính thức (Live)**.
+
+---
+
+## 6. MẸO XỬ LÝ SỰ CỐ
 
 *   **Lỗi ảnh không hiện?** -> Kiểm tra xem link ảnh có để chế độ "Công khai" (Anyone with the link) chưa.
 *   **Lỗi AI báo giá sai?** -> Vào `geminiService.ts` sửa lại phần `prompt` cho kỹ hơn.
 *   **Web chưa cập nhật sau khi push?** -> Chờ khoảng 2 phút, hoặc vào Vercel xem mục "Deployments" có bị đỏ (Error) không.
+*   **Chatbot không trả lời?** -> Kiểm tra xem đã nhập `FB_PAGE_ACCESS_TOKEN` vào Vercel chưa, hoặc Webhook đã Verify chưa.
 
 ---
 
-## 6. QUẢN LÝ TÊN MIỀN (DOMAIN)
+## 7. QUẢN LÝ TÊN MIỀN (DOMAIN)
 
 Bạn đang sử dụng tên miền: **kinailroom.com** (Mua tại Namecheap).
 

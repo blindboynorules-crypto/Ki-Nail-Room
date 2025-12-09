@@ -78,12 +78,12 @@ async function classifyIntentWithGemini(userMessage) {
         });
         
         const intent = result.text.trim().toUpperCase();
-        console.log(`[AI ANALYSIS] Input: "${userMessage}" -> Intent: ${intent}`);
         
-        // Safety check: Đảm bảo AI chỉ trả về các từ khóa cho phép
-        if (["ADDRESS", "PRICE", "PROMOTION"].includes(intent)) {
-            return intent;
-        }
+        // Safety check: Đảm bảo AI chỉ trả về các từ khóa cho phép, kể cả khi nó trả lời dài dòng
+        if (intent.includes("ADDRESS")) return "ADDRESS";
+        if (intent.includes("PRICE")) return "PRICE";
+        if (intent.includes("PROMOTION")) return "PROMOTION";
+        
         return "SILENCE";
 
     } catch (error) {
@@ -102,10 +102,14 @@ export default async function handler(req, res) {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
+    console.log("[WEBHOOK VERIFY REQUEST]", { mode, token, challenge });
+
     if (mode && token) {
       if (mode === 'subscribe' && token === FB_VERIFY_TOKEN) {
+        console.log("WEBHOOK VERIFIED SUCCESS");
         return res.status(200).send(challenge);
       } else {
+        console.error("WEBHOOK VERIFICATION FAILED: Token mismatch");
         return res.status(403).send('Verification failed');
       }
     }
@@ -136,9 +140,11 @@ export default async function handler(req, res) {
             // --- TRƯỜNG HỢP 2: KHÁCH NHẮN TIN CHỮ (TEXT) -> DÙNG AI ĐỂ PHÂN LOẠI ---
             else if (webhook_event.message && webhook_event.message.text) {
                 const userMessage = webhook_event.message.text;
+                console.log(`[USER MESSAGE]: ${userMessage}`);
                 
                 // GỌI AI ĐỂ PHÂN TÍCH Ý ĐỊNH
                 const intent = await classifyIntentWithGemini(userMessage);
+                console.log(`[INTENT]: ${intent}`);
 
                 if (intent !== "SILENCE" && FIXED_ANSWERS[intent]) {
                     // Nếu AI bảo trả lời -> Lấy nội dung cố định gửi đi
