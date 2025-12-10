@@ -28,7 +28,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
           
-          {/* Text Content - SỬ DỤNG FLEX GAP ĐỂ TẠO KHOẢNG CÁCH ĐỀU */}
+          {/* Text Content */}
           <div className="text-center md:text-left order-2 md:order-1 flex flex-col items-center md:items-start gap-8 md:gap-10">
             
             {/* Group 1: Tag & Headline & Desc */}
@@ -47,27 +47,35 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     Đến chơi và làm móng xinh với
                   </span>
                   
-                  {/* Tên thương hiệu: BÌNH THƯỜNG MÀU GỐC, HOVER MỚI LẤP LÁNH */}
-                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none">
-                    {/* Hiệu ứng hạt lấp lánh (Chỉ hiện khi hover/touch) */}
-                    <span className="absolute -top-4 -right-6 text-yellow-400 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-2 group-hover:-translate-x-2 z-20">
-                        <Sparkles className="w-8 h-8 animate-spin-slow filter drop-shadow-md" />
-                    </span>
-                    <span className="absolute -bottom-2 -left-8 text-yellow-500 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 group-hover:-translate-y-2 group-hover:translate-x-2 z-20">
-                        <Sparkles className="w-6 h-6 animate-pulse filter drop-shadow-md" />
-                    </span>
-                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-yellow-300 opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 z-20 scale-0 group-hover:scale-125">
-                        <Sparkles className="w-12 h-12 animate-ping" />
-                    </span>
+                  {/* Tên thương hiệu: HIỆU ỨNG PHÁO HOA NHO NHỎ (MINI FIREWORKS) */}
+                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none py-4">
+                    
+                    {/* Các hạt pháo hoa bung tỏa khi Hover */}
+                    
+                    {/* Góc trên trái */}
+                    <span className="absolute top-2 left-4 w-1.5 h-1.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-x-6 group-hover:-translate-y-6 transition-all duration-500 ease-out"></span>
+                    <span className="absolute top-4 left-8 w-1 h-1 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-x-4 group-hover:-translate-y-8 transition-all duration-700 ease-out delay-75"></span>
+                    
+                    {/* Góc trên phải */}
+                    <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:translate-x-6 group-hover:-translate-y-6 transition-all duration-500 ease-out"></span>
+                    <span className="absolute top-4 right-8 w-1 h-1 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:translate-x-4 group-hover:-translate-y-8 transition-all duration-700 ease-out delay-100"></span>
 
-                    {/* Chữ: Mặc định là Chestnut-700. Khi Hover chuyển sang Gradient Gold */}
-                    <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none drop-shadow-sm uppercase tracking-tight -ml-1 py-2
+                    {/* Hai bên hông */}
+                    <span className="absolute top-1/2 -left-2 w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-x-8 transition-all duration-500 ease-out delay-75"></span>
+                    <span className="absolute top-1/2 -right-2 w-2 h-2 bg-yellow-500 rounded-full opacity-0 group-hover:opacity-100 group-hover:translate-x-8 transition-all duration-500 ease-out delay-75"></span>
+
+                    {/* Góc dưới */}
+                    <span className="absolute bottom-2 left-10 w-1 h-1 bg-chestnut-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-y-4 group-hover:-translate-x-2 transition-all duration-700 ease-out"></span>
+                    <span className="absolute bottom-2 right-10 w-1 h-1 bg-chestnut-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-y-4 group-hover:translate-x-2 transition-all duration-700 ease-out"></span>
+
+                    {/* Lấp lánh trung tâm */}
+                    <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 text-yellow-200/50 opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-300 animate-ping pointer-events-none" />
+
+                    {/* Chữ Chính: Màu Gốc, Chỉ Scale nhẹ khi Hover */}
+                    <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none drop-shadow-sm uppercase tracking-tight -ml-1
                         text-chestnut-700 
-                        transition-all duration-700 ease-in-out
-                        group-hover:text-transparent group-hover:bg-clip-text 
-                        group-hover:bg-gradient-to-r group-hover:from-chestnut-700 group-hover:via-[#F6E05E] group-hover:to-chestnut-700
-                        group-hover:bg-[length:200%_auto] group-hover:bg-left
-                        group-active:bg-right">
+                        transition-transform duration-300 ease-out
+                        group-hover:scale-105 group-active:scale-95">
                       KI NAIL ROOM
                     </span>
                   </div>
@@ -98,7 +106,6 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     Đặt Lịch Ngay
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
-                {/* Shine effect */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent opacity-50 pointer-events-none"></div>
               </a>
               
@@ -112,7 +119,6 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     <Phone className="mr-2 h-4 w-4 group-hover:animate-wiggle" />
                     Gọi Hotline
                 </span>
-                 {/* Shine effect */}
                  <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/40 to-transparent opacity-60 pointer-events-none"></div>
               </a>
             </div>
@@ -137,7 +143,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     }}
                   />
                   
-                  {/* SNOW EFFECT OVERLAY (Hiệu ứng Tuyết) */}
+                  {/* SNOW EFFECT OVERLAY */}
                   <div className="absolute inset-0 z-20 pointer-events-none">
                     {snowflakes.map((flake, idx) => (
                       <div
@@ -159,7 +165,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                   <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-chestnut-900/30 to-transparent pointer-events-none"></div>
                 </div>
 
-                {/* SNOWMAN IMAGE (Góc dưới trái) */}
+                {/* SNOWMAN IMAGE */}
                 <div className="absolute -bottom-4 -left-4 md:-left-2 z-30 animate-bounce-slow hover:scale-110 transition-transform cursor-pointer">
                   <img 
                     src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Snowman.png" 
