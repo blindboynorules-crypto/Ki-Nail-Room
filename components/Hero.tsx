@@ -160,29 +160,31 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 {/* Main Image Container */}
                 <div className="relative rounded-t-full rounded-b-[100px] overflow-hidden shadow-2xl border-[6px] border-white z-10 aspect-[3/4] bg-chestnut-100 transform md:translate-x-4">
                   
-                  {/* --- CINEMATIC EFFECTS LAYERS --- */}
-                  
-                  {/* 1. GRAIN (Nhiễu hạt): Tạo chất phim cổ điển */}
-                  <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.15] mix-blend-overlay"
-                       style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
-                  </div>
-
-                  {/* 2. VIGNETTE (Tối 4 góc): Tạo chiều sâu tập trung vào giữa */}
-                  <div className="absolute inset-0 z-25 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_55%,rgba(77,35,30,0.3)_100%)]"></div>
-
-                  {/* 3. INNER SHADOW: Tạo cảm giác ảnh chìm sâu */}
-                  <div className="absolute inset-0 z-25 pointer-events-none shadow-[inset_0_0_30px_rgba(0,0,0,0.2)]"></div>
-
-                  {/* --- MAIN IMAGE --- */}
+                  {/* --- MAIN IMAGE (LAYER 0 - BOTTOM) --- */}
+                  {/* Đặt ảnh xuống dưới cùng trong DOM để z-index hoạt động đúng khi scale */}
                   <img 
                     src="https://res.cloudinary.com/dgiqdfycy/image/upload/v1765187884/z2443874988342_ee70257e4b87e0fec6616a9d04274cf1_twruo3.jpg" 
                     alt="Ki Nail Room Style" 
-                    className="w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-105 z-0"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       e.currentTarget.src = "https://images.unsplash.com/photo-1632515904036-7c0871239c0f?q=80&w=1000&auto=format&fit=crop";
                     }}
                   />
+
+                  {/* --- CINEMATIC EFFECTS LAYERS (LAYER 1 - TOP) --- */}
+                  {/* Các hiệu ứng này nằm SAU ảnh trong DOM để luôn phủ lên trên */}
+                  
+                  {/* 1. GRAIN (Nhiễu hạt) */}
+                  <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.15] mix-blend-overlay"
+                       style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
+                  </div>
+
+                  {/* 2. VIGNETTE (Tối 4 góc) */}
+                  <div className="absolute inset-0 z-20 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_55%,rgba(77,35,30,0.3)_100%)]"></div>
+
+                  {/* 3. INNER SHADOW */}
+                  <div className="absolute inset-0 z-20 pointer-events-none shadow-[inset_0_0_30px_rgba(0,0,0,0.2)]"></div>
                   
                   {/* SNOW EFFECT OVERLAY */}
                   <div className="absolute inset-0 z-20 pointer-events-none">
@@ -203,7 +205,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                   </div>
 
                   {/* Gradient Overlay Bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-chestnut-900/30 to-transparent pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-chestnut-900/30 to-transparent pointer-events-none z-20"></div>
                 </div>
 
                 {/* SNOWMAN IMAGE */}
