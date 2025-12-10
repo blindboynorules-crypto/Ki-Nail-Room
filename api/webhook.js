@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V78_TEXT_UPDATE
+// VERSION: V80_TEXT_CTA_UPDATE
 // CHẾ ĐỘ: SPLIT MESSAGES - Tránh lỗi giới hạn ký tự của Facebook Button Template
 
 // ============================================================
@@ -10,7 +10,7 @@ import { GoogleGenAI } from "@google/genai";
 // ============================================================
 const RESPONSE_TEMPLATES = {
     PROMOTION: {
-        text: "Dạ Ki gởi mình chương trình khuyến mãi HOT hiện tại nha. Nàng xem qua kẻo lỡ ưu đãi xịn nè!",
+        text: "Dạ Ki gởi mình chương trình khuyến mãi hiện tại nha.",
         image: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
     },
     PRICE: {
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
                     const userMessage = webhook_event.message.text.trim();
                     
                     if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V61 SplitMsg.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V80 TextUpdate.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                         continue;
                     }
 
@@ -250,7 +250,7 @@ async function handleReferral(sender_psid, recordId) {
                  payload: { 
                      template_type: "button", 
                      // Thay đổi nội dung theo yêu cầu
-                     text: "Nàng muốn biết cụ thể thì bấm vào nút bên dưới Ki Nail sẽ tư vấn cụ thể cho mình luôn nha.", 
+                     text: "Để xem thông tin chi tiết, nàng bấm vào nút bên dưới. Ki Nail sẽ tư vấn cụ thể và giải đáp cho mình ạ.", 
                      buttons: [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_HUMAN" }] 
                  } 
              }
