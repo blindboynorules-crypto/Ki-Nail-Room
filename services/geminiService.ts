@@ -130,6 +130,7 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        Hãy cố gắng đếm số lượng ngón có design.
        - French (Kẻ đầu móng): 10k / ngón.
        - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim): 15k / ngón.
+       - **Vẽ Gel Họa Tiết (Bò sữa, Caro, Hình vẽ full móng, Vẽ chi tiết)**: 20k / ngón.
        - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
        - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20k / ngón.
        - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ.
@@ -166,6 +167,12 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       - French (2 ngón): 2 x 10.000 = 20.000
       - Trang trí vẽ + phụ kiện nhỏ (2 ngón): 2 x 20.000 = 40.000
       => TỔNG: 150.000
+
+    * VÍ DỤ 4 (Vẽ Gel Họa Tiết + Phối Màu):
+      - Sơn gel: 80.000
+      - Sơn thêm 2 màu: 20.000 (Tổng cộng 3 màu sơn)
+      - Vẽ gel (6 ngón): 6 x 20.000 = 120.000 (Họa tiết bò sữa, caro hoặc vẽ full móng)
+      => TỔNG: 220.000
 
     Yêu cầu trả về JSON chuẩn:
     {

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Ki Nail Room - Be Shiny . Be Stylish</title>
     
-    <!-- VERSION: V70_PRICING_EXAMPLES -->
+    <!-- VERSION: V71_PATTERN_DRAWING_PRICING -->
     <!-- CẤU HÌNH CANONICAL URL (CÓ WWW) -->
     <link rel="canonical" href="https://www.kinailroom.com/" />
     
@@ -57,9 +57,7 @@
 
       // POLYFILLS MẠNH MẼ: Cấp cứu cho mọi thư viện Node.js
       window.global = window;
-      // SECURITY UPDATE: REMOVED UNSAFE PROCESS.ENV POLYFILL EXPOSING API KEY
-      window.Buffer = window.Buffer || { isBuffer: () => false };
-
+      
       tailwind.config = {
         theme: {
           extend: {
