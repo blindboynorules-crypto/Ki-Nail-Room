@@ -17,21 +17,11 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
     size: `${4 + Math.random() * 6}px`,
   }));
 
-  // Component Pháo hoa đơn giản (Simple Firework Icon)
-  const SimpleFirework = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      {/* 8 tia lớn */}
-      <path d="M12 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M12 18V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M22 12H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M6 12H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M19.07 4.93L16.24 7.76" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M7.76 16.24L4.93 19.07" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M19.07 19.07L16.24 16.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M7.76 7.76L4.93 4.93" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      
-      {/* Tâm tròn nhỏ (Tùy chọn) */}
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" className="opacity-50"/>
+  // Component Kim Cương Lấp Lánh (Diamond Sparkle Icon)
+  // Hình ngôi sao 4 cánh thon dài, sang trọng
+  const DiamondSparkle = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10L12 0Z" />
     </svg>
   );
 
@@ -65,55 +55,58 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     Đến chơi và làm móng xinh với
                   </span>
                   
-                  {/* Tên thương hiệu: HIỆU ỨNG SIMPLE FIREWORK (STARBURST) + SHIMMER TEXT */}
-                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none py-4 px-4">
+                  {/* Tên thương hiệu: HIỆU ỨNG SOFT GLOSSY GEL (INTERACTIVE ONLY) */}
+                  {/* Bình thường: Chữ đỏ lì, không hạt lấp lánh */}
+                  {/* Hover/Touch: Chữ bóng, có ánh sáng chạy, hạt kim cương hiện ra */}
+                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none py-2 px-2 transition-all duration-500">
                     
-                    {/* --- CỤM PHÁO HOA TRANG TRÍ --- */}
-                    
-                    {/* X1: Pháo hoa MỚI - Góc trên trái (Ngoài cùng) - Vàng Gold */}
-                    <div className="absolute -top-8 -left-10 w-12 h-12 text-yellow-500/80 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out transform group-hover:-rotate-12 group-hover:scale-110">
-                       <SimpleFirework className="w-full h-full animate-[spin_8s_linear_infinite]" />
-                    </div>
+                    {/* --- CÁC HẠT KIM CƯƠNG (HIDDEN BY DEFAULT) --- */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out">
+                        {/* D1: Góc trên trái */}
+                        <div className="absolute -top-6 -left-8 w-10 h-10 text-chestnut-200 animate-twinkle">
+                           <DiamondSparkle className="w-full h-full drop-shadow-[0_0_8px_rgba(237,207,202,0.8)]" />
+                        </div>
 
-                    {/* X2: Pháo hoa MỚI - Góc dưới phải (Ngoài cùng) - Hồng Phấn */}
-                    <div className="absolute -bottom-6 -right-8 w-10 h-10 text-chestnut-300 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out delay-100 transform group-hover:rotate-12 group-hover:scale-110">
-                       <SimpleFirework className="w-full h-full animate-[spin_10s_linear_infinite_reverse]" />
-                    </div>
+                        {/* D2: Góc dưới phải */}
+                        <div className="absolute -bottom-4 -right-6 w-8 h-8 text-chestnut-100 animate-twinkle" style={{ animationDelay: '1.5s' }}>
+                           <DiamondSparkle className="w-full h-full drop-shadow-[0_0_5px_rgba(247,235,233,0.8)]" />
+                        </div>
 
-                    {/* Pháo hoa cũ 1: Góc trên trái (Sát chữ) - Vàng */}
-                    <div className="absolute -top-2 -left-2 w-8 h-8 text-yellow-400 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out delay-75 transform group-hover:rotate-45">
-                       <SimpleFirework className="w-full h-full animate-[spin_10s_linear_infinite]" />
-                    </div>
+                        {/* D3: Góc trên phải */}
+                        <div className="absolute -top-4 right-10 w-5 h-5 text-chestnut-300 animate-twinkle" style={{ animationDelay: '0.5s' }}>
+                           <DiamondSparkle className="w-full h-full" />
+                        </div>
 
-                    {/* Pháo hoa cũ 2: Góc dưới phải (Sát chữ) - Hồng */}
-                    <div className="absolute bottom-0 right-0 w-6 h-6 text-chestnut-400 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out delay-150 transform group-hover:-rotate-45">
-                       <SimpleFirework className="w-full h-full animate-[spin_12s_linear_infinite_reverse]" />
-                    </div>
-
-                    {/* Pháo hoa 3: Góc trên phải (Xa hơn) - Cam nhạt */}
-                    <div className="absolute -top-6 right-4 w-5 h-5 text-orange-200/80 opacity-0 group-hover:opacity-100 transition-all duration-1000 delay-200 transform group-hover:rotate-90">
-                       <SimpleFirework className="w-full h-full animate-pulse" />
-                    </div>
-
-                    {/* Pháo hoa 4: Góc dưới trái (Nhỏ) - Vàng chanh */}
-                    <div className="absolute -bottom-2 -left-4 w-5 h-5 text-yellow-200 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-                       <SimpleFirework className="w-full h-full animate-spin-slow" />
+                        {/* D4: Góc dưới trái */}
+                        <div className="absolute bottom-2 -left-4 w-4 h-4 text-chestnut-200 animate-twinkle" style={{ animationDelay: '2.5s' }}>
+                           <DiamondSparkle className="w-full h-full" />
+                        </div>
                     </div>
 
                     {/* --- CHỮ CHÍNH --- */}
-                    {/* Hiệu ứng: Màu gốc Nâu Đỏ -> Hover: Ánh sáng MỀM MẠI (Soft Gold) chạy qua */}
-                    <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none drop-shadow-sm uppercase tracking-tight -ml-1
-                        text-transparent bg-clip-text 
-                        bg-gradient-to-r from-chestnut-700 via-chestnut-700 to-chestnut-700
-                        group-hover:from-chestnut-700 group-hover:via-[#E8DCC4] group-hover:to-chestnut-700
-                        bg-[length:300%_auto]
+                    <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none tracking-tight -ml-1
+                        text-chestnut-800
+                        transition-all duration-700
+                        group-hover:text-transparent 
+                        group-hover:bg-clip-text
+                        group-hover:bg-gradient-to-r group-hover:from-chestnut-700 group-hover:via-chestnut-300 group-hover:to-chestnut-700
+                        group-hover:bg-[length:200%_auto]
                         group-hover:animate-shimmer
-                        transition-all duration-700">
+                        drop-shadow-lg"
+                        style={{
+                            filter: 'drop-shadow(2px 4px 6px rgba(111, 50, 35, 0.25))'
+                        }}
+                    >
+                      KI NAIL ROOM
+                    </span>
+                    
+                    {/* Lớp phủ bóng (Gloss Overlay) - Chỉ hiện khi Hover */}
+                    <span className="absolute inset-0 text-6xl sm:text-7xl lg:text-8xl font-logo leading-none tracking-tight -ml-1 text-white opacity-0 group-hover:opacity-10 pointer-events-none mix-blend-overlay transition-opacity duration-700" aria-hidden="true">
                       KI NAIL ROOM
                     </span>
                   </div>
                   
-                  <span className="block text-lg md:text-2xl text-chestnut-500/90 italic font-medium font-vn mt-2">
+                  <span className="block text-lg md:text-2xl text-chestnut-500/90 italic font-medium font-vn mt-4">
                     theo phong cách Hàn - Nhật nàng nhé 
                     <span className="not-italic ml-2 inline-block animate-bounce-slow cursor-default hover:scale-125 transition-transform align-middle">💅🌸✨</span>
                   </span>

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Ki Nail Room - Be Shiny . Be Stylish</title>
     
-    <!-- VERSION: V88_SOFT_SHIMMER_FIREWORKS -->
+    <!-- VERSION: V93_INTERACTIVE_GLOSSY -->
     <!-- CẤU HÌNH CANONICAL URL (CÓ WWW) -->
     <link rel="canonical" href="https://www.kinailroom.com/" />
     
@@ -102,6 +102,7 @@
               'spin-slow': 'spin 8s linear infinite',
               'snow': 'snow 3s linear infinite',
               'shimmer': 'shimmer 2.5s linear infinite',
+              'twinkle': 'twinkle 4s ease-in-out infinite',
             },
             keyframes: {
               fadeIn: {
@@ -124,6 +125,10 @@
               shimmer: {
                 '0%': { backgroundPosition: '200% center' },
                 '100%': { backgroundPosition: '-200% center' },
+              },
+              twinkle: {
+                '0%, 100%': { opacity: '0.2', transform: 'scale(0.5) rotate(0deg)' },
+                '50%': { opacity: '1', transform: 'scale(1.2) rotate(45deg)' },
               }
             }
           }
