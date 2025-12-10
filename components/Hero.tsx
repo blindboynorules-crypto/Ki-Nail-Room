@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowRight, Phone } from 'lucide-react';
+import { ArrowRight, Phone, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onCtaClick: () => void;
@@ -47,10 +47,30 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     Đến chơi và làm móng xinh với
                   </span>
                   
-                  {/* Tên thương hiệu: Tối ưu line-height và size */}
-                  <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo text-chestnut-700 leading-none drop-shadow-sm uppercase tracking-tight -ml-1 py-2">
-                    KI NAIL ROOM
-                  </span>
+                  {/* Tên thương hiệu: BÌNH THƯỜNG MÀU GỐC, HOVER MỚI LẤP LÁNH */}
+                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none">
+                    {/* Hiệu ứng hạt lấp lánh (Chỉ hiện khi hover/touch) */}
+                    <span className="absolute -top-4 -right-6 text-yellow-400 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-2 group-hover:-translate-x-2 z-20">
+                        <Sparkles className="w-8 h-8 animate-spin-slow filter drop-shadow-md" />
+                    </span>
+                    <span className="absolute -bottom-2 -left-8 text-yellow-500 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 group-hover:-translate-y-2 group-hover:translate-x-2 z-20">
+                        <Sparkles className="w-6 h-6 animate-pulse filter drop-shadow-md" />
+                    </span>
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-yellow-300 opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 z-20 scale-0 group-hover:scale-125">
+                        <Sparkles className="w-12 h-12 animate-ping" />
+                    </span>
+
+                    {/* Chữ: Mặc định là Chestnut-700. Khi Hover chuyển sang Gradient Gold */}
+                    <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none drop-shadow-sm uppercase tracking-tight -ml-1 py-2
+                        text-chestnut-700 
+                        transition-all duration-700 ease-in-out
+                        group-hover:text-transparent group-hover:bg-clip-text 
+                        group-hover:bg-gradient-to-r group-hover:from-chestnut-700 group-hover:via-[#F6E05E] group-hover:to-chestnut-700
+                        group-hover:bg-[length:200%_auto] group-hover:bg-left
+                        group-active:bg-right">
+                      KI NAIL ROOM
+                    </span>
+                  </div>
                   
                   <span className="block text-lg md:text-2xl text-chestnut-500/90 italic font-medium font-vn mt-2">
                     theo phong cách Hàn - Nhật nàng nhé 
