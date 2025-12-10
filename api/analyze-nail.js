@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/analyze-nail.js
-// VERSION: V64_SECURE
+// VERSION: V77_DETERMINISTIC
 // SECURE PROXY: Chỉ chạy trên Server của Vercel
 // Giấu kín API Key không cho Client nhìn thấy
 
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
     const aiClient = new GoogleGenAI({ apiKey });
     
-    console.log("Calling Gemini via Secure Proxy V64...");
+    console.log("Calling Gemini via Secure Proxy V77 (Deterministic)...");
 
     // Call Google Gemini from Server Side
     const result = await aiClient.models.generateContent({
@@ -48,7 +48,10 @@ export default async function handler(req, res) {
       },
       config: {
         responseMimeType: "application/json",
-        temperature: 0, 
+        temperature: 0, // Nhiệt độ 0 để giảm sáng tạo
+        topP: 0.1,      // Giới hạn xác suất
+        topK: 1,        // Chọn từ có xác suất cao nhất
+        seed: 1         // HẠT GIỐNG: Ép AI trả về kết quả cố định cho cùng 1 đầu vào
       }
     });
 
