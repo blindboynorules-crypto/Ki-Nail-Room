@@ -150,7 +150,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
             </div>
           </div>
           
-          {/* Image Side - Composition Layering */}
+          {/* Image Side - Composition Layering with CINEMATIC DEPTH */}
           <div className="relative order-1 md:order-2 flex justify-center md:justify-end py-8 md:py-0">
              <div className="relative w-[85%] md:w-[90%] lg:w-[32rem] group transition-all duration-500">
                 
@@ -159,6 +159,21 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 
                 {/* Main Image Container */}
                 <div className="relative rounded-t-full rounded-b-[100px] overflow-hidden shadow-2xl border-[6px] border-white z-10 aspect-[3/4] bg-chestnut-100 transform md:translate-x-4">
+                  
+                  {/* --- CINEMATIC EFFECTS LAYERS --- */}
+                  
+                  {/* 1. GRAIN (Nhiễu hạt): Tạo chất phim cổ điển */}
+                  <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.15] mix-blend-overlay"
+                       style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
+                  </div>
+
+                  {/* 2. VIGNETTE (Tối 4 góc): Tạo chiều sâu tập trung vào giữa */}
+                  <div className="absolute inset-0 z-25 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_55%,rgba(77,35,30,0.3)_100%)]"></div>
+
+                  {/* 3. INNER SHADOW: Tạo cảm giác ảnh chìm sâu */}
+                  <div className="absolute inset-0 z-25 pointer-events-none shadow-[inset_0_0_30px_rgba(0,0,0,0.2)]"></div>
+
+                  {/* --- MAIN IMAGE --- */}
                   <img 
                     src="https://res.cloudinary.com/dgiqdfycy/image/upload/v1765187884/z2443874988342_ee70257e4b87e0fec6616a9d04274cf1_twruo3.jpg" 
                     alt="Ki Nail Room Style" 
@@ -187,7 +202,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     ))}
                   </div>
 
-                  {/* Gradient Overlay */}
+                  {/* Gradient Overlay Bottom */}
                   <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-chestnut-900/30 to-transparent pointer-events-none"></div>
                 </div>
 
