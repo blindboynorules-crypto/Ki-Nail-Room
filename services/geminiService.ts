@@ -60,12 +60,6 @@ export const getAiConsultation = async (
   history: ChatMessage[],
   newMessage: string
 ): Promise<string> => {
-  // NOTE: Implementing chat via proxy would require a new endpoint or adapting analyze-nail.
-  // For now, to keep it simple and focus on Pricing security which uses image:
-  // We will return a placeholder or implement a simple chat proxy if needed.
-  // BUT: The user asked to secure keys. 
-  // Let's implement a simple prompt structure to reuse the analyze-nail endpoint for text too.
-  
   try {
     const prompt = `
         Bạn là chuyên gia tư vấn Nail tại Ki Nail Room (Phong cách Hàn-Nhật).
@@ -74,16 +68,6 @@ export const getAiConsultation = async (
         
         Trả lời ngắn gọn, cute, dùng emoji. Nếu hỏi giá, nhắc xem menu.
     `;
-
-    // We can reuse the image analysis endpoint by sending a 1x1 transparent pixel or handling text-only in backend.
-    // However, to be robust, let's just create a text-only payload for the existing backend
-    // MODIFYING BACKEND TO ACCEPT OPTIONAL IMAGE IS BETTER, BUT FOR NOW LET'S JUST SEND A DUMMY IMAGE 
-    // OR create a specific chat endpoint. 
-    // Optimization: Let's assume analyze-nail can handle text-only if we modify it slightly?
-    // Actually, let's keep it simple: Use a tiny base64 placeholder to satisfy the backend requirement for now,
-    // OR better, create a proper structure.
-    // For this refactor, I will use a tiny placeholder image to pass the check in 'api/analyze-nail.js'
-    // and rely on the prompt to drive the conversation.
     
     // 1x1 transparent pixel
     const dummyImage = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
@@ -101,14 +85,6 @@ export const getAiConsultation = async (
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Chat Error");
     
-    // Parse JSON response from AI? No, chat returns plain text usually, 
-    // but our backend forces JSON responseMimeType.
-    // So the AI will return a JSON object with the answer.
-    // We need to adjust the prompt to ask for JSON {"answer": "..."}
-    // OR we can just parse the text property if the backend returns it.
-    
-    // Actually, analyze-nail backend configures 'responseMimeType: "application/json"'.
-    // So the AI output will be JSON.
     try {
         const jsonRes = JSON.parse(data.text);
         return jsonRes.answer || jsonRes.text || JSON.stringify(jsonRes);
@@ -134,23 +110,54 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     - Nếu KHÔNG (Ví dụ: Ảnh selfie mặt người, đồ ăn, phong cảnh, xe cộ...): 
       -> Trả về JSON lỗi: {"error": "Xin lỗi bạn, AI của Ki Nail Room chỉ có thể phân tích và báo giá dịch vụ Nail thôi ạ. Tụi mình không hỗ trợ phân tích hình ảnh khác. Bạn vui lòng tải lên ảnh mẫu móng nhé! 💅✨"}
 
-    NHIỆM VỤ 2: BÁO GIÁ CHI TIẾT (NẾU LÀ ẢNH NAIL)
+    NHIỆM VỤ 2: PHÂN TÍCH VÀ BÁO GIÁ CHI TIẾT (CỘNG DỒN)
+    Hãy quan sát kỹ từng chi tiết và CỘNG DỒN giá tiền như một người thợ tính tiền cho khách.
     
-    *** BẢNG GIÁ CHI TIẾT & QUY TẮC TÍNH:
-    1. DỊCH VỤ NỀN & FORM: Cắt da/Sửa móng: 30k; Sơn Gel trơn: 80k; Up móng base: 120k.
-    2. MÀU SẮC: Thêm 1 màu +10k; Thêm 2 màu +20k.
-    3. DESIGN: Mắt mèo 130k/bộ; Tráng gương 70k/bộ; French/Vẽ đơn giản 10-15k/ngón; Vẽ gel/Charm 20k/ngón.
-    4. PHỤ KIỆN: Đá nhỏ 3k/viên; Đá khối 15k-35k.
+    *** BẢNG GIÁ NIÊM YẾT:
+    
+    1. DỊCH VỤ NỀN & FORM (BẮT BUỘC): 
+       - Cắt da/Sửa móng: 30k
+       - Sơn Gel trơn: 80k (Luôn tính mục này nếu có sơn màu)
+       - Up móng base: 120k (Nếu thấy móng dài, form chuẩn giả).
+       => LƯU Ý QUAN TRỌNG: Nếu là móng úp/nối, phải tính CẢ HAI: Up móng base (120k) + Sơn gel (80k).
 
-    LƯU Ý: Chọn MỨC GIÁ THẤP để tham khảo.
-    
+    2. MÀU SẮC (SƠN THÊM):
+       - Sơn 1 màu chủ đạo: Không tính thêm.
+       - Sơn 2 màu (Thêm 1 màu): +10k.
+       - Sơn 3 màu trở lên (Thêm 2 màu): +20k.
+
+    3. DESIGN TRANG TRÍ (TÍNH THEO NGÓN/BỘ):
+       Hãy cố gắng đếm số lượng ngón có design.
+       - French (Kẻ đầu móng): 10k / ngón.
+       - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim): 15k / ngón.
+       - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
+       - Mắt mèo (Các loại Kim cương/Flash/Moonlight/9D/Blush): 130k-150k / bộ (Thường tính trọn bộ).
+       - Tráng gương (Metallic/Aurora/Hologram): 70k-80k / bộ.
+
+    4. PHỤ KIỆN (ĐÁ): 
+       - Đá nhỏ: 3k / viên (Hãy đếm số lượng viên đá trên ảnh).
+       - Đá khối (Đá to): 15k-35k / viên.
+
+    *** VÍ DỤ TÍNH TIỀN MẪU (HÃY HỌC THEO LOGIC NÀY):
+    Khách làm bộ móng dài, có vẽ nơ và đính đá:
+    - Up móng base: 120.000 (Vì móng dài)
+    - Sơn gel: 80.000 (Nền màu)
+    - French (6 ngón): 6 x 10.000 = 60.000
+    - Vẽ đơn giản (5 ngón): 5 x 15.000 = 75.000
+    - Đá nhỏ (14 viên): 14 x 3.000 = 42.000
+    => TỔNG CỘNG: 377.000
+
     Yêu cầu trả về JSON chuẩn:
     {
       "items": [
-        { "item": "Sơn Gel trơn", "cost": 80000, "reason": "Sơn nền" }
+        { "item": "Up móng base", "cost": 120000, "reason": "Móng dài form chuẩn" },
+        { "item": "Sơn gel trơn", "cost": 80000, "reason": "Sơn nền" },
+        { "item": "French đầu móng (x6)", "cost": 60000, "reason": "10k/ngón" },
+        { "item": "Vẽ đơn giản (x5)", "cost": 75000, "reason": "15k/ngón" },
+        { "item": "Đá nhỏ (x14)", "cost": 42000, "reason": "3k/viên" }
       ],
-      "totalEstimate": 80000,
-      "note": "..."
+      "totalEstimate": 377000,
+      "note": "AI đã đếm chi tiết số lượng ngón và đá. Giá thực tế có thể chênh lệch tùy size đá và độ khó thực tế."
     }
   `;
 

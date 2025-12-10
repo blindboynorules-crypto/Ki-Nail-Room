@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Ki Nail Room - Be Shiny . Be Stylish</title>
     
-    <!-- VERSION: V63_SECURE_BACKEND -->
+    <!-- VERSION: V68_DETAILED_PRICING_LOGIC -->
     <!-- CẤU HÌNH CANONICAL URL (CÓ WWW) -->
     <link rel="canonical" href="https://www.kinailroom.com/" />
     
@@ -58,7 +58,6 @@
       // POLYFILLS MẠNH MẼ: Cấp cứu cho mọi thư viện Node.js
       window.global = window;
       // SECURITY UPDATE: REMOVED UNSAFE PROCESS.ENV POLYFILL EXPOSING API KEY
-      window.process = { env: { NODE_ENV: 'production' } };
       window.Buffer = window.Buffer || { isBuffer: () => false };
 
       tailwind.config = {
@@ -164,7 +163,6 @@
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react/jsx-runtime": "https://aistudiocdn.com/react@^19.2.1/jsx-runtime",
     "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.1/client",
     "react-dom": "https://aistudiocdn.com/react-dom@^19.2.1",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
