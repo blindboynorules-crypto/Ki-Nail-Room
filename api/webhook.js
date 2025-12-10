@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V61_TEXT_LIMIT_FIX
+// VERSION: V78_TEXT_UPDATE
 // CHẾ ĐỘ: SPLIT MESSAGES - Tránh lỗi giới hạn ký tự của Facebook Button Template
 
 // ============================================================
@@ -237,7 +237,8 @@ async function handleReferral(sender_psid, recordId) {
 
         const totalFmt = new Intl.NumberFormat('vi-VN').format(total || 0);
         menuText += `\n--------------------\n💰 TỔNG CỘNG: ${totalFmt}đ\n--------------------\n`;
-        menuText += `⚠️ Giá tham khảo từ AI. Giá thực tế có thể thay đổi tùy tình trạng móng.`;
+        // Thay đổi nội dung theo yêu cầu
+        menuText += `Giá này do AI của Ki Nail gửi trước cho mình để tham khảo thôi nhen.`;
 
         // 3. GỬI TEXT DÀI (Dạng tin nhắn thường - Không giới hạn 640 ký tự)
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: menuText });
@@ -248,7 +249,8 @@ async function handleReferral(sender_psid, recordId) {
                  type: "template", 
                  payload: { 
                      template_type: "button", 
-                     text: "Nàng muốn đặt lịch làm bộ này luôn không ạ?", 
+                     // Thay đổi nội dung theo yêu cầu
+                     text: "Nàng muốn biết cụ thể thì bấm vào nút bên dưới Ki Nail sẽ tư vấn cụ thể cho mình luôn nha.", 
                      buttons: [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_HUMAN" }] 
                  } 
              }
