@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V59_AWAIT_FIX
-// CHẾ ĐỘ: AIRTABLE STATEFUL - Fix lỗi Vercel Serverless kill process sớm
+// VERSION: V60_REF_FIX_ULTIMATE
+// CHẾ ĐỘ: AIRTABLE STATEFUL - Fix referral detection & update API v19.0
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU
@@ -103,30 +103,39 @@ export default async function handler(req, res) {
 
     if (body.object === 'page') {
       try {
-        // Iterate over EACH entry (Facebook can batch them)
         for (const entry of body.entry) {
-          // Iterate over EACH messaging event (Important fix for missing referrals)
           if (entry.messaging) {
-            // Use Promise.all to handle multiple messages concurrently if needed, 
-            // but for safety in serverless, we await sequentially.
             for (const webhook_event of entry.messaging) {
                 const sender_psid = webhook_event.sender.id;
 
-                // --- 1. XỬ LÝ REFERRAL (Ưu tiên số 1) ---
+                // --- 1. XỬ LÝ REFERRAL (QUÉT SÂU) ---
                 let refParam = null;
+                
+                // Case 1: Standard referral (m.me link clicked)
                 if (webhook_event.referral) {
                     refParam = webhook_event.referral.ref;
-                } else if (webhook_event.postback && webhook_event.postback.referral) {
+                } 
+                // Case 2: Postback referral (Click "Get Started" with ref)
+                else if (webhook_event.postback && webhook_event.postback.referral) {
                     refParam = webhook_event.postback.referral.ref;
-                } else if (webhook_event.optin && webhook_event.optin.ref) {
+                } 
+                // Case 3: Optin referral
+                else if (webhook_event.optin && webhook_event.optin.ref) {
                     refParam = webhook_event.optin.ref;
+                }
+                // Case 4: Message with referral attachment (Rare but possible)
+                else if (webhook_event.message && webhook_event.message.referral) {
+                    refParam = webhook_event.message.referral.ref;
                 }
 
                 if (refParam) {
-                    console.log(`[Webhook] Handling Referral: ${refParam}`);
-                    // QUAN TRỌNG: Phải dùng AWAIT để Vercel không kill process trước khi gửi xong
-                    await handleReferral(sender_psid, refParam); 
-                    continue; 
+                    console.log(`[Webhook V60] Found Referral: ${refParam}`);
+                    try {
+                        await handleReferral(sender_psid, refParam); 
+                    } catch (err) {
+                        console.error("Handle Referral Error:", err);
+                    }
+                    continue; // Skip text processing if it's a referral
                 } 
 
                 // --- 2. XỬ LÝ TIN NHẮN THƯỜNG ---
@@ -134,7 +143,7 @@ export default async function handler(req, res) {
                     const userMessage = webhook_event.message.text.trim();
                     
                     if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V59 AwaitFix.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V60 Ultimate.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                         continue;
                     }
 
@@ -151,13 +160,11 @@ export default async function handler(req, res) {
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
                         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: template.text });
                         if (template.image) {
-                            // Delay nhẹ để text đi trước ảnh
                             await new Promise(r => setTimeout(r, 300));
                             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, template.image);
                         }
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                     }
-                    // Nếu intent là SILENCE thì KHÔNG LÀM GÌ CẢ (Đúng luật)
                 }
             }
           }
@@ -177,12 +184,13 @@ async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
 
-    // PHẢN HỒI NGAY LẬP TỨC (QUAN TRỌNG)
+    // PHẢN HỒI SIÊU TỐC: Báo cho khách biết đã nhận lệnh
     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
         text: "🎉 Ki đã nhận được yêu cầu báo giá! Nàng đợi xíu Ki tải chi tiết cho nha... 💅✨" 
     });
 
+    // Nếu là Mock ID thì dừng lại
     if (recordId.startsWith('MOCK_')) {
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "⚠️ Đơn hàng thử nghiệm. Vui lòng thử lại trên web chính thức nha!" });
         return;
@@ -193,7 +201,6 @@ async function handleReferral(sender_psid, recordId) {
     const AIRTABLE_TABLE_NAME = 'Quotes';
 
     if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-        // Vẫn báo lỗi nhẹ nhàng để khách biết
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hệ thống đang bảo trì một chút, nàng nhắn tin trực tiếp để nhân viên tư vấn nha!" });
         return;
     }
@@ -257,12 +264,14 @@ async function handleReferral(sender_psid, recordId) {
 }
 
 async function sendSenderAction(token, psid, action) {
-    try { await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, sender_action: action }) }); } catch (e) {}
+    // API v19.0
+    try { await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, sender_action: action }) }); } catch (e) {}
 }
 
 async function sendFacebookMessage(token, psid, messageContent) {
+    // API v19.0
     try { 
-        await fetch(`https://graph.facebook.com/v18.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, message: messageContent }) }); 
+        await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, message: messageContent }) }); 
     } catch (e) { console.error("Fetch Error:", e); }
 }
 
