@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V60_REF_FIX_ULTIMATE
-// CHẾ ĐỘ: AIRTABLE STATEFUL - Fix referral detection & update API v19.0
+// VERSION: V61_TEXT_LIMIT_FIX
+// CHẾ ĐỘ: SPLIT MESSAGES - Tránh lỗi giới hạn ký tự của Facebook Button Template
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU
@@ -108,34 +108,20 @@ export default async function handler(req, res) {
             for (const webhook_event of entry.messaging) {
                 const sender_psid = webhook_event.sender.id;
 
-                // --- 1. XỬ LÝ REFERRAL (QUÉT SÂU) ---
+                // --- 1. XỬ LÝ REFERRAL (QUÉT SÂU - ƯU TIÊN TUYỆT ĐỐI) ---
                 let refParam = null;
                 
-                // Case 1: Standard referral (m.me link clicked)
-                if (webhook_event.referral) {
-                    refParam = webhook_event.referral.ref;
-                } 
-                // Case 2: Postback referral (Click "Get Started" with ref)
-                else if (webhook_event.postback && webhook_event.postback.referral) {
-                    refParam = webhook_event.postback.referral.ref;
-                } 
-                // Case 3: Optin referral
-                else if (webhook_event.optin && webhook_event.optin.ref) {
-                    refParam = webhook_event.optin.ref;
-                }
-                // Case 4: Message with referral attachment (Rare but possible)
-                else if (webhook_event.message && webhook_event.message.referral) {
-                    refParam = webhook_event.message.referral.ref;
-                }
+                // Các trường hợp referral có thể xảy ra
+                if (webhook_event.referral) refParam = webhook_event.referral.ref;
+                else if (webhook_event.postback && webhook_event.postback.referral) refParam = webhook_event.postback.referral.ref;
+                else if (webhook_event.optin && webhook_event.optin.ref) refParam = webhook_event.optin.ref;
+                else if (webhook_event.message && webhook_event.message.referral) refParam = webhook_event.message.referral.ref;
 
+                // NẾU CÓ REF -> XỬ LÝ NGAY LẬP TỨC
                 if (refParam) {
-                    console.log(`[Webhook V60] Found Referral: ${refParam}`);
-                    try {
-                        await handleReferral(sender_psid, refParam); 
-                    } catch (err) {
-                        console.error("Handle Referral Error:", err);
-                    }
-                    continue; // Skip text processing if it's a referral
+                    console.log(`[Webhook V61] Found Referral: ${refParam}`);
+                    await handleReferral(sender_psid, refParam); 
+                    continue; // Dừng, không xử lý text nữa
                 } 
 
                 // --- 2. XỬ LÝ TIN NHẮN THƯỜNG ---
@@ -143,7 +129,7 @@ export default async function handler(req, res) {
                     const userMessage = webhook_event.message.text.trim();
                     
                     if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V60 Ultimate.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V61 SplitMsg.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                         continue;
                     }
 
@@ -190,9 +176,8 @@ async function handleReferral(sender_psid, recordId) {
         text: "🎉 Ki đã nhận được yêu cầu báo giá! Nàng đợi xíu Ki tải chi tiết cho nha... 💅✨" 
     });
 
-    // Nếu là Mock ID thì dừng lại
     if (recordId.startsWith('MOCK_')) {
-        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "⚠️ Đơn hàng thử nghiệm. Vui lòng thử lại trên web chính thức nha!" });
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "⚠️ Đơn hàng thử nghiệm (Mock Mode)." });
         return;
     }
 
@@ -201,11 +186,11 @@ async function handleReferral(sender_psid, recordId) {
     const AIRTABLE_TABLE_NAME = 'Quotes';
 
     if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hệ thống đang bảo trì một chút, nàng nhắn tin trực tiếp để nhân viên tư vấn nha!" });
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Lỗi hệ thống: Chưa cấu hình Database." });
         return;
     }
 
-    const fetchAirtable = async (retries = 3, delay = 1000) => {
+    const fetchAirtable = async (retries = 3, delay = 1500) => {
         try {
             const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`, {
                 headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
@@ -231,17 +216,19 @@ async function handleReferral(sender_psid, recordId) {
         const itemsJson = fields["Items Detail"];
         const total = fields["Total Estimate"];
 
+        // 1. GỬI ẢNH (Nếu có)
         if (imageUrl) {
             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
         }
 
-        let menuText = "🧾 CHI TIẾT BÁO GIÁ AI:\n";
+        // 2. CHUẨN BỊ NỘI DUNG TEXT DÀI
+        let menuText = "🧾 CHI TIẾT BÁO GIÁ AI:\n\n";
         try {
             const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
             if (Array.isArray(items)) {
                 items.forEach(item => {
                     const cost = new Intl.NumberFormat('vi-VN').format(item.cost);
-                    menuText += `- ${item.item}: ${cost}đ\n`;
+                    menuText += `▪️ ${item.item}: ${cost}đ\n`;
                 });
             }
         } catch (e) {
@@ -249,27 +236,35 @@ async function handleReferral(sender_psid, recordId) {
         }
 
         const totalFmt = new Intl.NumberFormat('vi-VN').format(total || 0);
-        menuText += `--------------------\n💰 TỔNG CỘNG: ${totalFmt}đ\n--------------------\n⚠️ Giá tham khảo từ AI. Nàng muốn đặt lịch làm luôn không ạ?`;
+        menuText += `\n--------------------\n💰 TỔNG CỘNG: ${totalFmt}đ\n--------------------\n`;
+        menuText += `⚠️ Giá tham khảo từ AI. Giá thực tế có thể thay đổi tùy tình trạng móng.`;
 
-        // Gửi nội dung text cuối cùng
+        // 3. GỬI TEXT DÀI (Dạng tin nhắn thường - Không giới hạn 640 ký tự)
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: menuText });
+
+        // 4. GỬI NÚT KÊU GỌI (Riêng biệt)
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
-             attachment: { type: "template", payload: { template_type: "button", text: menuText, buttons: [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_HUMAN" }] } }
+             attachment: { 
+                 type: "template", 
+                 payload: { 
+                     template_type: "button", 
+                     text: "Nàng muốn đặt lịch làm bộ này luôn không ạ?", 
+                     buttons: [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_HUMAN" }] 
+                 } 
+             }
         });
 
     } catch (e) {
         console.error("Airtable Error:", e);
-        // Fallback cuối cùng nếu không lấy được dữ liệu
-        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hic, mạng đang hơi lag nên Ki chưa tải được chi tiết. Nàng gửi lại ảnh vào đây giúp Ki nha! ❤️" });
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hic, Ki chưa tìm thấy đơn hàng. Nàng vui lòng gửi lại ảnh vào đây giúp Ki nha! ❤️" });
     }
 }
 
 async function sendSenderAction(token, psid, action) {
-    // API v19.0
     try { await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, sender_action: action }) }); } catch (e) {}
 }
 
 async function sendFacebookMessage(token, psid, messageContent) {
-    // API v19.0
     try { 
         await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, message: messageContent }) }); 
     } catch (e) { console.error("Fetch Error:", e); }
