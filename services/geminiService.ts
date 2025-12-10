@@ -132,6 +132,8 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim): 15k / ngón.
        - **Vẽ Gel Họa Tiết (Bò sữa, Caro, Hình vẽ full móng, Vẽ chi tiết)**: 20k / ngón.
        - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
+       - **Nhũ (Vàng/Bạc/Kim tuyến)**: 10k / ngón.
+       - **Combo Vẽ nổi + Tráng gương (Trên cùng 1 ngón)**: 15k / ngón.
        - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20k / ngón.
        - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ.
        - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic, Ngọc trai/Aurora, Cầu vồng/Hologram): 70k-80k / bộ.
@@ -173,6 +175,14 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       - Sơn thêm 2 màu: 20.000 (Tổng cộng 3 màu sơn)
       - Vẽ gel (6 ngón): 6 x 20.000 = 120.000 (Họa tiết bò sữa, caro hoặc vẽ full móng)
       => TỔNG: 220.000
+
+    * VÍ DỤ 5 (Nhũ + Vẽ nổi Tráng gương):
+      - Up móng base: 120.000
+      - Sơn gel: 80.000
+      - Sơn thêm 1 màu: 10.000
+      - Nhũ vàng (8 ngón): 8 x 10.000 = 80.000
+      - Vẽ nổi + tráng gương (2 ngón): 2 x 15.000 = 30.000
+      => TỔNG: 320.000
 
     Yêu cầu trả về JSON chuẩn:
     {
