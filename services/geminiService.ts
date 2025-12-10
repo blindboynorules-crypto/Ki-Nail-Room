@@ -1,3 +1,4 @@
+
 import { ChatMessage, PricingResult } from "../types";
 
 // NOTE: We no longer import GoogleGenAI here to avoid exposing the SDK and Keys to the client.
@@ -129,14 +130,16 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     3. DESIGN TRANG TRÍ (TÍNH THEO NGÓN/BỘ):
        Hãy cố gắng đếm số lượng ngón có design.
        - French (Kẻ đầu móng): 10k / ngón.
-       - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim): 15k / ngón.
+       - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim, chấm bi/vẽ bi): 15k / ngón.
        - **Vẽ Gel Họa Tiết (Bò sữa, Caro, Hình vẽ full móng, Vẽ chi tiết)**: 20k / ngón.
        - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
        - **Nhũ (Vàng/Bạc/Kim tuyến)**: 10k / ngón.
        - **Combo Vẽ nổi + Tráng gương (Trên cùng 1 ngón)**: 15k / ngón.
        - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20k / ngón.
-       - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ.
-       - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic, Ngọc trai/Aurora, Cầu vồng/Hologram): 70k-80k / bộ.
+       
+       - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ (Đã bao gồm nền).
+       - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic (70k), Ngọc trai/Aurora (80k), Cầu vồng/Hologram (80k)): 70k-80k / bộ.
+       
        => LƯU Ý: Nếu làm Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70k + 70k).
 
     4. PHỤ KIỆN (ĐÁ): 
@@ -183,6 +186,14 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       - Nhũ vàng (8 ngón): 8 x 10.000 = 80.000
       - Vẽ nổi + tráng gương (2 ngón): 2 x 15.000 = 30.000
       => TỔNG: 320.000
+
+    * VÍ DỤ 6 (Mắt mèo + French + Vẽ bi + Mix màu):
+      - Up móng base: 120.000
+      - Mắt mèo (Kèm nền): 130.000
+      - Sơn thêm 1 màu: 10.000
+      - Vẽ đơn giản (2 ngón chấm bi): 2 x 15.000 = 30.000
+      - French (2 ngón): 2 x 10.000 = 20.000
+      => TỔNG: 310.000
 
     Yêu cầu trả về JSON chuẩn:
     {
