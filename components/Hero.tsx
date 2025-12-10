@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowRight, Phone, Sparkles } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 
 interface HeroProps {
   onCtaClick: () => void;
@@ -16,6 +16,24 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
     animationDuration: `${2 + Math.random() * 3}s`,
     size: `${4 + Math.random() * 6}px`,
   }));
+
+  // Component Pháo hoa đơn giản (Simple Firework Icon)
+  const SimpleFirework = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      {/* 8 tia lớn */}
+      <path d="M12 2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M12 18V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M22 12H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M6 12H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M19.07 4.93L16.24 7.76" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M7.76 16.24L4.93 19.07" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M19.07 19.07L16.24 16.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M7.76 7.76L4.93 4.93" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      
+      {/* Tâm tròn nhỏ (Tùy chọn) */}
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" className="opacity-50"/>
+    </svg>
+  );
 
   return (
     <section id="home" className="relative pt-28 pb-16 md:pt-40 md:pb-24 overflow-hidden bg-vanilla-50 min-h-[90vh] flex items-center">
@@ -47,35 +65,50 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     Đến chơi và làm móng xinh với
                   </span>
                   
-                  {/* Tên thương hiệu: HIỆU ỨNG PHÁO HOA NHO NHỎ (MINI FIREWORKS) */}
-                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none py-4">
+                  {/* Tên thương hiệu: HIỆU ỨNG SIMPLE FIREWORK (STARBURST) + SHIMMER TEXT */}
+                  <div className="relative group cursor-pointer w-fit mx-auto md:mx-0 select-none py-4 px-4">
                     
-                    {/* Các hạt pháo hoa bung tỏa khi Hover */}
+                    {/* --- CỤM PHÁO HOA TRANG TRÍ --- */}
                     
-                    {/* Góc trên trái */}
-                    <span className="absolute top-2 left-4 w-1.5 h-1.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-x-6 group-hover:-translate-y-6 transition-all duration-500 ease-out"></span>
-                    <span className="absolute top-4 left-8 w-1 h-1 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-x-4 group-hover:-translate-y-8 transition-all duration-700 ease-out delay-75"></span>
-                    
-                    {/* Góc trên phải */}
-                    <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:translate-x-6 group-hover:-translate-y-6 transition-all duration-500 ease-out"></span>
-                    <span className="absolute top-4 right-8 w-1 h-1 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:translate-x-4 group-hover:-translate-y-8 transition-all duration-700 ease-out delay-100"></span>
+                    {/* X1: Pháo hoa MỚI - Góc trên trái (Ngoài cùng) - Vàng Gold */}
+                    <div className="absolute -top-8 -left-10 w-12 h-12 text-yellow-500/80 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out transform group-hover:-rotate-12 group-hover:scale-110">
+                       <SimpleFirework className="w-full h-full animate-[spin_8s_linear_infinite]" />
+                    </div>
 
-                    {/* Hai bên hông */}
-                    <span className="absolute top-1/2 -left-2 w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-x-8 transition-all duration-500 ease-out delay-75"></span>
-                    <span className="absolute top-1/2 -right-2 w-2 h-2 bg-yellow-500 rounded-full opacity-0 group-hover:opacity-100 group-hover:translate-x-8 transition-all duration-500 ease-out delay-75"></span>
+                    {/* X2: Pháo hoa MỚI - Góc dưới phải (Ngoài cùng) - Hồng Phấn */}
+                    <div className="absolute -bottom-6 -right-8 w-10 h-10 text-chestnut-300 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out delay-100 transform group-hover:rotate-12 group-hover:scale-110">
+                       <SimpleFirework className="w-full h-full animate-[spin_10s_linear_infinite_reverse]" />
+                    </div>
 
-                    {/* Góc dưới */}
-                    <span className="absolute bottom-2 left-10 w-1 h-1 bg-chestnut-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-y-4 group-hover:-translate-x-2 transition-all duration-700 ease-out"></span>
-                    <span className="absolute bottom-2 right-10 w-1 h-1 bg-chestnut-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-y-4 group-hover:translate-x-2 transition-all duration-700 ease-out"></span>
+                    {/* Pháo hoa cũ 1: Góc trên trái (Sát chữ) - Vàng */}
+                    <div className="absolute -top-2 -left-2 w-8 h-8 text-yellow-400 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out delay-75 transform group-hover:rotate-45">
+                       <SimpleFirework className="w-full h-full animate-[spin_10s_linear_infinite]" />
+                    </div>
 
-                    {/* Lấp lánh trung tâm */}
-                    <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 text-yellow-200/50 opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-300 animate-ping pointer-events-none" />
+                    {/* Pháo hoa cũ 2: Góc dưới phải (Sát chữ) - Hồng */}
+                    <div className="absolute bottom-0 right-0 w-6 h-6 text-chestnut-400 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out delay-150 transform group-hover:-rotate-45">
+                       <SimpleFirework className="w-full h-full animate-[spin_12s_linear_infinite_reverse]" />
+                    </div>
 
-                    {/* Chữ Chính: Màu Gốc, Chỉ Scale nhẹ khi Hover */}
+                    {/* Pháo hoa 3: Góc trên phải (Xa hơn) - Cam nhạt */}
+                    <div className="absolute -top-6 right-4 w-5 h-5 text-orange-200/80 opacity-0 group-hover:opacity-100 transition-all duration-1000 delay-200 transform group-hover:rotate-90">
+                       <SimpleFirework className="w-full h-full animate-pulse" />
+                    </div>
+
+                    {/* Pháo hoa 4: Góc dưới trái (Nhỏ) - Vàng chanh */}
+                    <div className="absolute -bottom-2 -left-4 w-5 h-5 text-yellow-200 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100">
+                       <SimpleFirework className="w-full h-full animate-spin-slow" />
+                    </div>
+
+                    {/* --- CHỮ CHÍNH --- */}
+                    {/* Hiệu ứng: Màu gốc Nâu Đỏ -> Hover: Ánh sáng MỀM MẠI (Soft Gold) chạy qua */}
                     <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none drop-shadow-sm uppercase tracking-tight -ml-1
-                        text-chestnut-700 
-                        transition-transform duration-300 ease-out
-                        group-hover:scale-105 group-active:scale-95">
+                        text-transparent bg-clip-text 
+                        bg-gradient-to-r from-chestnut-700 via-chestnut-700 to-chestnut-700
+                        group-hover:from-chestnut-700 group-hover:via-[#E8DCC4] group-hover:to-chestnut-700
+                        bg-[length:300%_auto]
+                        group-hover:animate-shimmer
+                        transition-all duration-700">
                       KI NAIL ROOM
                     </span>
                   </div>
