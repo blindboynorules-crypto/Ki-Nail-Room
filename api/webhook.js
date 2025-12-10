@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V57_PRIORITY_REFERRAL
+// VERSION: V58_EVENT_LOOP_FIX
 // CHẾ ĐỘ: AIRTABLE STATEFUL - Ưu tiên phản hồi Referral ngay lập tức
 
 // ============================================================
@@ -103,47 +103,59 @@ export default async function handler(req, res) {
 
     if (body.object === 'page') {
       try {
+        // Iterate over EACH entry (Facebook can batch them)
         for (const entry of body.entry) {
-          const webhook_event = entry.messaging ? entry.messaging[0] : null;
-          
-          if (webhook_event) {
-            const sender_psid = webhook_event.sender.id;
+          // Iterate over EACH messaging event (Important fix for missing referrals)
+          if (entry.messaging) {
+            for (const webhook_event of entry.messaging) {
+                const sender_psid = webhook_event.sender.id;
 
-            // Xử lý sự kiện Referral (Click link m.me)
-            let refParam = null;
-            if (webhook_event.referral) refParam = webhook_event.referral.ref;
-            else if (webhook_event.postback?.referral) refParam = webhook_event.postback.referral.ref;
-            else if (webhook_event.optin?.ref) refParam = webhook_event.optin.ref;
-
-            if (refParam) {
-                console.log(`[Webhook] Received Referral: ${refParam}`);
-                await handleReferral(sender_psid, refParam);
-            } 
-            // Xử lý tin nhắn thường
-            else if (webhook_event.message && webhook_event.message.text) {
-                const userMessage = webhook_event.message.text.trim();
-                
-                if (userMessage.toLowerCase() === 'ping') {
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V57 Priority.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
-                    return res.status(200).send('EVENT_RECEIVED');
+                // --- 1. XỬ LÝ REFERRAL (Ưu tiên số 1) ---
+                let refParam = null;
+                if (webhook_event.referral) {
+                    refParam = webhook_event.referral.ref;
+                } else if (webhook_event.postback && webhook_event.postback.referral) {
+                    refParam = webhook_event.postback.referral.ref;
+                } else if (webhook_event.optin && webhook_event.optin.ref) {
+                    refParam = webhook_event.optin.ref;
                 }
 
-                let intent = 'SILENCE';
-                try {
-                    intent = await classifyIntentWithGemini(userMessage);
-                } catch (e) {
-                    intent = classifyIntentWithKeywords(userMessage);
-                }
+                if (refParam) {
+                    console.log(`[Webhook] Handling Referral: ${refParam}`);
+                    // Gọi hàm xử lý và chờ (không await để tránh block loop, nhưng logic bên trong phải gửi tin ngay)
+                    handleReferral(sender_psid, refParam); 
+                    continue; // Xử lý xong referral thì bỏ qua phần text bên dưới
+                } 
 
-                const template = RESPONSE_TEMPLATES[intent];
-                if (template) {
-                    await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: template.text });
-                    if (template.image) {
-                        await new Promise(r => setTimeout(r, 500));
-                        await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, template.image);
+                // --- 2. XỬ LÝ TIN NHẮN THƯỜNG ---
+                if (webhook_event.message && webhook_event.message.text) {
+                    const userMessage = webhook_event.message.text.trim();
+                    
+                    if (userMessage.toLowerCase() === 'ping') {
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V58 LoopFix.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        continue;
                     }
-                    await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
+
+                    // Cơ chế AI Hybrid
+                    let intent = 'SILENCE';
+                    try {
+                        intent = await classifyIntentWithGemini(userMessage);
+                    } catch (e) {
+                        intent = classifyIntentWithKeywords(userMessage);
+                    }
+
+                    const template = RESPONSE_TEMPLATES[intent];
+                    if (template) {
+                        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: template.text });
+                        if (template.image) {
+                            // Delay nhẹ để text đi trước ảnh
+                            await new Promise(r => setTimeout(r, 300));
+                            await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, template.image);
+                        }
+                        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
+                    }
+                    // Nếu intent là SILENCE thì KHÔNG LÀM GÌ CẢ (Đúng luật)
                 }
             }
           }
@@ -163,11 +175,10 @@ async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
 
-    // 1. Phản hồi NGAY LẬP TỨC để khách biết Bot đã nhận lệnh (Không được IM LẶNG)
+    // PHẢN HỒI NGAY LẬP TỨC (QUAN TRỌNG)
     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-    // Gửi câu chào xã giao để "giữ chân" khách trong lúc chờ tải dữ liệu
     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-        text: "Dạ Ki đã nhận được ảnh của nàng, đợi xíu Ki lấy báo giá chi tiết ra nha... 💅✨" 
+        text: "🎉 Ki đã nhận được yêu cầu báo giá! Nàng đợi xíu Ki tải chi tiết cho nha... 💅✨" 
     });
 
     if (recordId.startsWith('MOCK_')) {
@@ -180,7 +191,8 @@ async function handleReferral(sender_psid, recordId) {
     const AIRTABLE_TABLE_NAME = 'Quotes';
 
     if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "⚠️ Hệ thống đang bảo trì Database. Nàng nhắn tin trực tiếp để nhân viên hỗ trợ nha!" });
+        // Vẫn báo lỗi nhẹ nhàng để khách biết
+        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hệ thống đang bảo trì một chút, nàng nhắn tin trực tiếp để nhân viên tư vấn nha!" });
         return;
     }
 
@@ -212,8 +224,6 @@ async function handleReferral(sender_psid, recordId) {
 
         if (imageUrl) {
             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
-        } else {
-             await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Ảnh bị lỗi hiển thị, nhưng Ki vẫn có báo giá cho nàng nè:" });
         }
 
         let menuText = "🧾 CHI TIẾT BÁO GIÁ AI:\n";
@@ -226,19 +236,20 @@ async function handleReferral(sender_psid, recordId) {
                 });
             }
         } catch (e) {
-            menuText += "(Đang cập nhật chi tiết)\n";
+            menuText += "(Chi tiết đang cập nhật)\n";
         }
 
         const totalFmt = new Intl.NumberFormat('vi-VN').format(total || 0);
         menuText += `--------------------\n💰 TỔNG CỘNG: ${totalFmt}đ\n--------------------\n⚠️ Giá tham khảo từ AI. Nàng muốn đặt lịch làm luôn không ạ?`;
 
+        // Gửi nội dung text cuối cùng
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
              attachment: { type: "template", payload: { template_type: "button", text: menuText, buttons: [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_HUMAN" }] } }
         });
 
     } catch (e) {
         console.error("Airtable Error:", e);
-        // Fallback: Nếu lỗi thật sự thì báo nhẹ nhàng để khách biết đường gửi lại
+        // Fallback cuối cùng nếu không lấy được dữ liệu
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: "Hic, mạng đang hơi lag nên Ki chưa tải được chi tiết. Nàng gửi lại ảnh vào đây giúp Ki nha! ❤️" });
     }
 }
