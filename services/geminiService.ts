@@ -140,7 +140,9 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ (Đã bao gồm nền).
        - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic (70k), Ngọc trai/Aurora (80k), Cầu vồng/Hologram (80k)): 70k-80k / bộ.
        
-       => LƯU Ý: Nếu làm Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70k + 70k).
+       => LƯU Ý COMBO: 
+       - Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70k + 70k).
+       - French đầu móng + Tráng gương (French Chrome) -> Tính tiền cả hai (French 10k/ngón + Tráng gương 70k/bộ).
 
     4. PHỤ KIỆN (ĐÁ): 
        - Đá nhỏ: 3k / viên.
@@ -194,6 +196,13 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       - Vẽ đơn giản (2 ngón chấm bi): 2 x 15.000 = 30.000
       - French (2 ngón): 2 x 10.000 = 20.000
       => TỔNG: 310.000
+
+    * VÍ DỤ 7 (French Tráng Gương):
+      - Up móng base: 120.000
+      - Sơn gel: 80.000
+      - French (10 ngón): 10 x 10.000 = 100.000
+      - Tráng gương (Bộ): 70.000
+      => TỔNG: 370.000
 
     Yêu cầu trả về JSON chuẩn:
     {
