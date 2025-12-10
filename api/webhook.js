@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V58_EVENT_LOOP_FIX
-// CHẾ ĐỘ: AIRTABLE STATEFUL - Ưu tiên phản hồi Referral ngay lập tức
+// VERSION: V59_AWAIT_FIX
+// CHẾ ĐỘ: AIRTABLE STATEFUL - Fix lỗi Vercel Serverless kill process sớm
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU
@@ -107,6 +107,8 @@ export default async function handler(req, res) {
         for (const entry of body.entry) {
           // Iterate over EACH messaging event (Important fix for missing referrals)
           if (entry.messaging) {
+            // Use Promise.all to handle multiple messages concurrently if needed, 
+            // but for safety in serverless, we await sequentially.
             for (const webhook_event of entry.messaging) {
                 const sender_psid = webhook_event.sender.id;
 
@@ -122,9 +124,9 @@ export default async function handler(req, res) {
 
                 if (refParam) {
                     console.log(`[Webhook] Handling Referral: ${refParam}`);
-                    // Gọi hàm xử lý và chờ (không await để tránh block loop, nhưng logic bên trong phải gửi tin ngay)
-                    handleReferral(sender_psid, refParam); 
-                    continue; // Xử lý xong referral thì bỏ qua phần text bên dưới
+                    // QUAN TRỌNG: Phải dùng AWAIT để Vercel không kill process trước khi gửi xong
+                    await handleReferral(sender_psid, refParam); 
+                    continue; 
                 } 
 
                 // --- 2. XỬ LÝ TIN NHẮN THƯỜNG ---
@@ -132,7 +134,7 @@ export default async function handler(req, res) {
                     const userMessage = webhook_event.message.text.trim();
                     
                     if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V58 LoopFix.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V59 AwaitFix.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                         continue;
                     }
 
