@@ -131,33 +131,49 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        - French (Kẻ đầu móng): 10k / ngón.
        - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim): 15k / ngón.
        - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
-       - Mắt mèo (Các loại Kim cương/Flash/Moonlight/9D/Blush): 130k-150k / bộ (Thường tính trọn bộ).
-       - Tráng gương (Metallic/Aurora/Hologram): 70k-80k / bộ.
+       - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20k / ngón.
+       - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ.
+       - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic, Ngọc trai/Aurora, Cầu vồng/Hologram): 70k-80k / bộ.
+       => LƯU Ý: Nếu làm Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70k + 70k).
 
     4. PHỤ KIỆN (ĐÁ): 
-       - Đá nhỏ: 3k / viên (Hãy đếm số lượng viên đá trên ảnh).
+       - Đá nhỏ: 3k / viên.
+       - Đá phối (Size vừa, charm nhỏ): 10k / viên.
        - Đá khối (Đá to): 15k-35k / viên.
 
-    *** VÍ DỤ TÍNH TIỀN MẪU (HÃY HỌC THEO LOGIC NÀY):
-    Khách làm bộ móng dài, có vẽ nơ và đính đá:
-    - Up móng base: 120.000 (Vì móng dài)
-    - Sơn gel: 80.000 (Nền màu)
-    - French (6 ngón): 6 x 10.000 = 60.000
-    - Vẽ đơn giản (5 ngón): 5 x 15.000 = 75.000
-    - Đá nhỏ (14 viên): 14 x 3.000 = 42.000
-    => TỔNG CỘNG: 377.000
+    *** CÁC VÍ DỤ TÍNH TIỀN MẪU (HÃY HỌC THUỘC LÒNG):
+
+    * VÍ DỤ 1 (Móng dài, Design nhiều):
+      - Up móng base: 120.000
+      - Sơn gel: 80.000
+      - French (6 ngón): 6 x 10.000 = 60.000
+      - Vẽ đơn giản (5 ngón): 5 x 15.000 = 75.000
+      - Đá nhỏ (14 viên): 14 x 3.000 = 42.000
+      => TỔNG: 377.000
+
+    * VÍ DỤ 2 (Ombre + Tráng gương + Đá):
+      - Up móng base: 120.000
+      - Sơn gel: 80.000
+      - Ombre bộ: 70.000
+      - Tráng gương bộ: 70.000
+      - Đá nhỏ (4 viên): 4 x 3.000 = 12.000
+      - Đá phối (4 viên): 4 x 10.000 = 40.000
+      => TỔNG: 392.000
+
+    * VÍ DỤ 3 (Móng ngắn, Mix màu, Vẽ + Phụ kiện):
+      - Sơn gel: 80.000
+      - Sơn thêm 1 màu: 10.000 (Vì có 2 màu nền khác nhau)
+      - French (2 ngón): 2 x 10.000 = 20.000
+      - Trang trí vẽ + phụ kiện nhỏ (2 ngón): 2 x 20.000 = 40.000
+      => TỔNG: 150.000
 
     Yêu cầu trả về JSON chuẩn:
     {
       "items": [
-        { "item": "Up móng base", "cost": 120000, "reason": "Móng dài form chuẩn" },
-        { "item": "Sơn gel trơn", "cost": 80000, "reason": "Sơn nền" },
-        { "item": "French đầu móng (x6)", "cost": 60000, "reason": "10k/ngón" },
-        { "item": "Vẽ đơn giản (x5)", "cost": 75000, "reason": "15k/ngón" },
-        { "item": "Đá nhỏ (x14)", "cost": 42000, "reason": "3k/viên" }
+        { "item": "Tên dịch vụ", "cost": 0, "reason": "Giải thích cách tính" }
       ],
-      "totalEstimate": 377000,
-      "note": "AI đã đếm chi tiết số lượng ngón và đá. Giá thực tế có thể chênh lệch tùy size đá và độ khó thực tế."
+      "totalEstimate": 0,
+      "note": "Lời nhận xét của AI"
     }
   `;
 
