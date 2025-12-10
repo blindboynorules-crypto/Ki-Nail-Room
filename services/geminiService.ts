@@ -130,8 +130,9 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     3. DESIGN TRANG TRÍ (TÍNH THEO NGÓN/BỘ):
        Hãy cố gắng đếm số lượng ngón có design.
        - French (Kẻ đầu móng): 10k / ngón.
-       - Vẽ đơn giản (Nét mảnh, hình nhỏ, nơ, trái tim, chấm bi/vẽ bi): 15k / ngón.
-       - **Vẽ Gel Họa Tiết (Bò sữa, Caro, Hình vẽ full móng, Vẽ chi tiết)**: 20k / ngón.
+       - **Vẽ nét đơn giản (Level 1)**: 10k / ngón.
+       - **Vẽ hình đơn giản (Level 2 - Nơ, trái tim, chấm bi)**: 15k / ngón.
+       - **Vẽ Gel Họa Tiết (Level 3 - Bò sữa, Caro, Vẽ full móng)**: 20k / ngón.
        - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
        - **Nhũ (Vàng/Bạc/Kim tuyến)**: 10k / ngón.
        - **Combo Vẽ nổi + Tráng gương (Trên cùng 1 ngón)**: 15k / ngón.
@@ -203,6 +204,13 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
       - French (10 ngón): 10 x 10.000 = 100.000
       - Tráng gương (Bộ): 70.000
       => TỔNG: 370.000
+
+    * VÍ DỤ 8 (Mix Vẽ nhiều cấp độ):
+      - Sơn gel: 80.000
+      - Sơn thêm 2 màu: 20.000
+      - Vẽ đơn giản (2 ngón): 2 x 15.000 = 30.000
+      - Vẽ nét (8 ngón): 8 x 10.000 = 80.000
+      => TỔNG: 210.000
 
     Yêu cầu trả về JSON chuẩn:
     {
