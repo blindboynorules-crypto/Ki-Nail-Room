@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Sparkles, X, Receipt, Bot, Loader2, AlertCircle, AlertTriangle, MessageCircle, ArrowRight } from 'lucide-react';
 import { analyzeNailImage, isAiAvailable } from '../services/geminiService';
 import { uploadToCloudinary } from '../services/cloudinaryService';
-import { PricingResult } from '../types';
+import { PricingResult, PriceLineItem } from '../types';
 
 const AiPricing: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -96,11 +96,7 @@ const AiPricing: React.FC = () => {
 
       const recordId = data.recordId; // ID từ Airtable
 
-      // 2. Chuyển hướng thông minh (Android Fix)
-      console.log("Redirecting to Messenger with ID:", recordId);
-      
-      // SỬA LỖI ANDROID:
-      // Không sử dụng deep link 'fb-messenger://' nữa vì nó thường làm mất tham số 'ref'
+      // 2. Chuyển hướng thông minh
       // Sử dụng link web chuẩn 'https://m.me/...' cho TẤT CẢ thiết bị.
       // Trình duyệt trên Android sẽ tự động xử lý chuyển tiếp sang App Messenger sau khi ghi nhận 'ref'.
       
@@ -116,6 +112,32 @@ const AiPricing: React.FC = () => {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  };
+
+  // Helper function to group identical items
+  const getGroupedItems = (items: PriceLineItem[]) => {
+    const grouped: { [key: string]: { item: string; cost: number; reason: string; count: number } } = {};
+    
+    items.forEach(item => {
+      const normalizedName = item.item.trim();
+      if (!grouped[normalizedName]) {
+        grouped[normalizedName] = { 
+          item: normalizedName, 
+          cost: item.cost, 
+          reason: item.reason, 
+          count: 1 
+        };
+      } else {
+        grouped[normalizedName].cost += item.cost;
+        grouped[normalizedName].count += 1;
+        // Nếu item sau có reason dài hơn/chi tiết hơn thì lấy, ngược lại giữ nguyên cái đầu
+        if (item.reason.length > grouped[normalizedName].reason.length) {
+            grouped[normalizedName].reason = item.reason;
+        }
+      }
+    });
+
+    return Object.values(grouped);
   };
 
   return (
@@ -257,10 +279,13 @@ const AiPricing: React.FC = () => {
 
                   <div className="flex-grow flex flex-col">
                       <div className="space-y-4 mb-6 flex-grow">
-                         {result.items.map((item, idx) => (
+                         {/* UPDATE: Sử dụng getGroupedItems để hiển thị gọn gàng */}
+                         {getGroupedItems(result.items).map((item, idx) => (
                             <div key={idx} className="flex justify-between items-start font-menu text-gray-700 animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
                                <div className="pr-4">
-                                  <p className="font-semibold text-gray-800">{item.item}</p>
+                                  <p className="font-semibold text-gray-800">
+                                    {item.count > 1 ? `${item.item} (x${item.count})` : item.item}
+                                  </p>
                                   <p className="text-xs text-gray-500 italic mt-0.5">{item.reason}</p>
                                 </div>
                                <span className="font-bold whitespace-nowrap">{formatCurrency(item.cost)}</span>
