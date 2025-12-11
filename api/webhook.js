@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V82_CASE_INSENSITIVE_GROUPING
-// CHẾ ĐỘ: SPLIT MESSAGES - Tránh lỗi giới hạn ký tự của Facebook Button Template
+// VERSION: V83_FIX_GET_STARTED_SILENCE
+// CHẾ ĐỘ: SPLIT MESSAGES & POSTBACK FALLBACK
 
 // ============================================================
 // 1. DỮ LIỆU CÂU TRẢ LỜI MẪU
@@ -119,17 +119,38 @@ export default async function handler(req, res) {
 
                 // NẾU CÓ REF -> XỬ LÝ NGAY LẬP TỨC
                 if (refParam) {
-                    console.log(`[Webhook V61] Found Referral: ${refParam}`);
+                    console.log(`[Webhook V83] Found Referral: ${refParam}`);
                     await handleReferral(sender_psid, refParam); 
-                    continue; // Dừng, không xử lý text nữa
+                    continue; // Dừng, không xử lý gì thêm
                 } 
 
-                // --- 2. XỬ LÝ TIN NHẮN THƯỜNG ---
+                // --- 2. XỬ LÝ POSTBACK (NÚT BẤM / GET STARTED MẤT REF) ---
+                // Đây là phần FIX LỖI "IM LẶNG": Nếu bấm nút mà không có ref ở trên, nó sẽ chạy vào đây.
+                if (webhook_event.postback) {
+                    const payload = webhook_event.postback.payload;
+                    console.log(`[Webhook V83] Postback Received: ${payload}`);
+
+                    if (payload === 'CHAT_HUMAN') {
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
+                            text: "Dạ Ki đây ạ! Nàng nhắn tin ở đây nha, xíu Ki check xong Ki rep liền nè! 🥰" 
+                        });
+                    } else {
+                        // Trường hợp bấm Get Started (Bắt đầu) hoặc nút lạ
+                        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
+                            text: "Chào nàng xinh đẹp! 💕 Ki Nail Room rất vui được gặp nàng.\n\nNàng có thể gửi ảnh móng để Ki báo giá, hoặc hỏi địa chỉ/menu nha! Nếu cần hỗ trợ gấp, nàng cứ nhắn tại đây ạ." 
+                        });
+                        await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
+                    }
+                    continue; // Dừng, không xử lý text nữa
+                }
+
+                // --- 3. XỬ LÝ TIN NHẮN THƯỜNG (TEXT) ---
                 if (webhook_event.message && webhook_event.message.text) {
                     const userMessage = webhook_event.message.text.trim();
                     
                     if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V82 Grouping.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V83 Fix Silence.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                         continue;
                     }
 
