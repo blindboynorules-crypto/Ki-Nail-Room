@@ -61,6 +61,39 @@ const AiConsultant: React.FC = () => {
     }
   };
 
+  const renderMessageText = (text: string) => {
+    // Basic Markdown Link Parser for [Title](Url)
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+      parts.push(
+        <a 
+          key={match.index} 
+          href={match[2]} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-blue-600 font-bold underline hover:text-blue-800 break-words"
+        >
+          {match[1]}
+        </a>
+      );
+      lastIndex = linkRegex.lastIndex;
+    }
+    
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    if (parts.length === 0) return text;
+    return <>{parts}</>;
+  };
+
   if (!isAiAvailable()) {
     return (
       <section id="ai-consult" className="py-20 bg-vanilla-50">
@@ -101,13 +134,13 @@ const AiConsultant: React.FC = () => {
                   </div>
                 )}
                 <div
-                  className={`max-w-[85%] p-3.5 rounded-2xl text-base leading-relaxed shadow-sm ${
+                  className={`max-w-[85%] p-3.5 rounded-2xl text-base leading-relaxed shadow-sm whitespace-pre-wrap ${
                     msg.role === 'user'
                       ? 'bg-chestnut-600 text-white rounded-tr-none'
                       : 'bg-white border border-vanilla-200 text-gray-800 rounded-tl-none'
                   }`}
                 >
-                  {msg.text}
+                  {renderMessageText(msg.text)}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-8 h-8 rounded-full bg-vanilla-200 flex items-center justify-center shrink-0">

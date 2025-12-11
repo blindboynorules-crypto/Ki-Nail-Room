@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useState, useEffect } from 'react';
 import { SERVICE_MENU, SERVICE_SHOWCASE_IMAGES as FALLBACK_IMAGES } from '../constants';
 import { Sparkles, ChevronLeft, ChevronRight, Loader2, Image as ImageIcon } from 'lucide-react';
@@ -179,7 +180,7 @@ const Services: React.FC = () => {
 
                 <div 
                     ref={sliderRef}
-                    className={`flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide px-2 ${isDown ? 'cursor-grabbing' : 'cursor-grab'}`}
+                    className={`flex overflow-x-auto gap-4 pb-2 snap-x snap-mandatory scrollbar-hide px-2 ${isDown ? 'cursor-grabbing' : 'cursor-grab'}`}
                     onMouseDown={handleMouseDown}
                     onMouseLeave={handleMouseLeave}
                     onMouseUp={handleMouseUp}

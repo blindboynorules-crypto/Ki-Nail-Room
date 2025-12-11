@@ -1,9 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/analyze-nail.js
-// VERSION: V77_DETERMINISTIC
-// SECURE PROXY: Chỉ chạy trên Server của Vercel
-// Giấu kín API Key không cho Client nhìn thấy
+// VERSION: V80_GROUNDING_SUPPORT
+// SECURE PROXY: Server-side Gemini API call
 
 export default async function handler(req, res) {
   // CORS configuration
@@ -26,41 +25,64 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { imageBase64, mimeType, prompt } = req.body;
+    const { imageBase64, mimeType, prompt, type } = req.body;
 
-    if (!imageBase64 && !prompt) {
+    // Validation
+    if (!imageBase64 && !prompt && type !== 'chat') {
       return res.status(400).json({ message: "Missing data" });
     }
 
     const aiClient = new GoogleGenAI({ apiKey });
     
-    console.log("Calling Gemini via Secure Proxy V77 (Deterministic)...");
+    // Dynamic Configuration based on Type
+    let model = "gemini-2.5-flash";
+    let contents = { parts: [] };
+    let config = {};
 
-    // Call Google Gemini from Server Side
+    if (type === 'chat') {
+        // --- CHAT MODE (With Grounding) ---
+        // Uses Google Search to find latest info (trends, etc.)
+        contents.parts.push({ text: prompt });
+        config = {
+            tools: [{ googleSearch: {} }], 
+            temperature: 0.7, // Higher temperature for conversational style
+        };
+    } else {
+        // --- PRICING/VISION MODE (Strict JSON) ---
+        // Forces structured JSON output for the pricing UI
+        if (imageBase64) {
+             contents.parts.push({ inlineData: { data: imageBase64, mimeType: mimeType || 'image/jpeg' } });
+        }
+        contents.parts.push({ text: prompt });
+        config = {
+            responseMimeType: "application/json",
+            temperature: 0,
+            topP: 0.1,
+            topK: 1,
+            seed: 1
+        };
+    }
+
+    console.log(`Calling Gemini [${type || 'pricing'} mode]...`);
+
     const result = await aiClient.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: {
-        parts: [
-            // Handle cases with or without image
-            ...(imageBase64 ? [{ inlineData: { data: imageBase64, mimeType: mimeType || 'image/jpeg' } }] : []),
-            { text: prompt }
-        ]
-      },
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0, // Nhiệt độ 0 để giảm sáng tạo
-        topP: 0.1,      // Giới hạn xác suất
-        topK: 1,        // Chọn từ có xác suất cao nhất
-        seed: 1         // HẠT GIỐNG: Ép AI trả về kết quả cố định cho cùng 1 đầu vào
-      }
+      model,
+      contents,
+      config
     });
 
-    return res.status(200).json({ text: result.text });
+    // Extract Text Response
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    
+    // Extract Grounding Metadata (For Chat Mode)
+    // Contains URLs and titles of sources used by Google Search
+    const groundingMetadata = result.candidates?.[0]?.groundingMetadata;
+
+    return res.status(200).json({ text, groundingMetadata });
 
   } catch (error) {
     console.error("AI Proxy Error:", error);
     let msg = error.message || "Unknown AI Error";
-    // Sanitize error message to not leak internal details if necessary
     return res.status(500).json({ message: msg });
   }
 }

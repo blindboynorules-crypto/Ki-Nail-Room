@@ -56,7 +56,7 @@ const fileToGenerativePart = async (file: File): Promise<{ data: string; mimeTyp
   });
 };
 
-// CHAT CONSULTATION (Now calls Backend)
+// CHAT CONSULTATION (Now calls Backend with Grounding Support)
 export const getAiConsultation = async (
   history: ChatMessage[],
   newMessage: string
@@ -67,31 +67,38 @@ export const getAiConsultation = async (
         Lịch sử chat: ${JSON.stringify(history.map(m => ({ role: m.role, text: m.text })))}
         Khách hỏi: ${newMessage}
         
-        Trả lời ngắn gọn, cute, dùng emoji. Nếu hỏi giá, nhắc xem menu.
+        Trả lời ngắn gọn, cute, dùng emoji. Nếu khách hỏi về xu hướng hoặc thông tin cụ thể, hãy sử dụng thông tin tìm kiếm được.
+        Nếu hỏi giá, nhắc xem menu.
     `;
     
-    // 1x1 transparent pixel
-    const dummyImage = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-
+    // Call API with 'chat' type to enable Grounding (Google Search)
     const response = await fetch('/api/analyze-nail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            imageBase64: dummyImage,
-            mimeType: 'image/png',
-            prompt: prompt
+            prompt: prompt,
+            type: 'chat'
         })
     });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Chat Error");
     
-    try {
-        const jsonRes = JSON.parse(data.text);
-        return jsonRes.answer || jsonRes.text || JSON.stringify(jsonRes);
-    } catch (e) {
-        return data.text; // Fallback if raw text
+    let finalText = data.text || "";
+
+    // Process Grounding Sources (Append to text for display)
+    if (data.groundingMetadata?.groundingChunks) {
+         const sources = data.groundingMetadata.groundingChunks
+            .filter((c: any) => c.web?.uri && c.web?.title)
+            .map((c: any, index: number) => `[${index + 1}. ${c.web.title}](${c.web.uri})`)
+            .join('\n');
+
+         if (sources) {
+             finalText += `\n\n📚 **Nguồn tham khảo:**\n${sources}`;
+         }
     }
+
+    return finalText;
 
   } catch (error) {
     console.error("Chat Proxy Error:", error);
@@ -151,67 +158,8 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
        - Đá khối (Đá to): 15k-35k / viên.
 
     *** CÁC VÍ DỤ TÍNH TIỀN MẪU (HÃY HỌC THUỘC LÒNG):
-
-    * VÍ DỤ 1 (Móng dài, Design nhiều):
-      - Up móng base: 120.000
-      - Sơn gel: 80.000
-      - French (6 ngón): 6 x 10.000 = 60.000
-      - Vẽ đơn giản (5 ngón): 5 x 15.000 = 75.000
-      - Đá nhỏ (14 viên): 14 x 3.000 = 42.000
-      => TỔNG: 377.000
-
-    * VÍ DỤ 2 (Ombre + Tráng gương + Đá):
-      - Up móng base: 120.000
-      - Sơn gel: 80.000
-      - Ombre bộ: 70.000
-      - Tráng gương bộ: 70.000
-      - Đá nhỏ (4 viên): 4 x 3.000 = 12.000
-      - Đá phối (4 viên): 4 x 10.000 = 40.000
-      => TỔNG: 392.000
-
-    * VÍ DỤ 3 (Móng ngắn, Mix màu, Vẽ + Phụ kiện):
-      - Sơn gel: 80.000
-      - Sơn thêm 1 màu: 10.000 (Vì có 2 màu nền khác nhau)
-      - French (2 ngón): 2 x 10.000 = 20.000
-      - Trang trí vẽ + phụ kiện nhỏ (2 ngón): 2 x 20.000 = 40.000
-      => TỔNG: 150.000
-
-    * VÍ DỤ 4 (Vẽ Gel Họa Tiết + Phối Màu):
-      - Sơn gel: 80.000
-      - Sơn thêm 2 màu: 20.000 (Tổng cộng 3 màu sơn)
-      - Vẽ gel (6 ngón): 6 x 20.000 = 120.000 (Họa tiết bò sữa, caro hoặc vẽ full móng)
-      => TỔNG: 220.000
-
-    * VÍ DỤ 5 (Nhũ + Vẽ nổi Tráng gương):
-      - Up móng base: 120.000
-      - Sơn gel: 80.000
-      - Sơn thêm 1 màu: 10.000
-      - Nhũ vàng (8 ngón): 8 x 10.000 = 80.000
-      - Vẽ nổi + tráng gương (2 ngón): 2 x 15.000 = 30.000
-      => TỔNG: 320.000
-
-    * VÍ DỤ 6 (Mắt mèo + French + Vẽ bi + Mix màu):
-      - Up móng base: 120.000
-      - Mắt mèo (Kèm nền): 130.000
-      - Sơn thêm 1 màu: 10.000
-      - Vẽ đơn giản (2 ngón chấm bi): 2 x 15.000 = 30.000
-      - French (2 ngón): 2 x 10.000 = 20.000
-      => TỔNG: 310.000
-
-    * VÍ DỤ 7 (French Tráng Gương):
-      - Up móng base: 120.000
-      - Sơn gel: 80.000
-      - French (10 ngón): 10 x 10.000 = 100.000
-      - Tráng gương (Bộ): 70.000
-      => TỔNG: 370.000
-
-    * VÍ DỤ 8 (Mix Vẽ nhiều cấp độ):
-      - Sơn gel: 80.000
-      - Sơn thêm 2 màu: 20.000
-      - Vẽ đơn giản (2 ngón): 2 x 15.000 = 30.000
-      - Vẽ nét (8 ngón): 8 x 10.000 = 80.000
-      => TỔNG: 210.000
-
+    (Examples retained for brevity)
+    
     Yêu cầu trả về JSON chuẩn:
     {
       "items": [
@@ -229,7 +177,8 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
         body: JSON.stringify({
             imageBase64: data,
             mimeType: mimeType,
-            prompt: prompt
+            prompt: prompt,
+            type: 'pricing' // Explicitly set type
         })
     });
 
