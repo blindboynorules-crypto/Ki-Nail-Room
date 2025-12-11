@@ -114,25 +114,29 @@ const AiPricing: React.FC = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  // Helper function to group identical items
+  // Helper function to group identical items (Case-Insensitive Update)
   const getGroupedItems = (items: PriceLineItem[]) => {
     const grouped: { [key: string]: { item: string; cost: number; reason: string; count: number } } = {};
     
     items.forEach(item => {
-      const normalizedName = item.item.trim();
-      if (!grouped[normalizedName]) {
-        grouped[normalizedName] = { 
-          item: normalizedName, 
+      // Chuẩn hóa tên: bỏ khoảng trắng thừa, giữ nguyên tên gốc để hiển thị
+      const originalName = item.item.trim();
+      // Tạo key viết thường để so sánh (Đá nhỏ == đá nhỏ)
+      const key = originalName.toLowerCase(); 
+
+      if (!grouped[key]) {
+        grouped[key] = { 
+          item: originalName, // Lưu tên gốc (ưu tiên tên đầu tiên gặp)
           cost: item.cost, 
           reason: item.reason, 
           count: 1 
         };
       } else {
-        grouped[normalizedName].cost += item.cost;
-        grouped[normalizedName].count += 1;
+        grouped[key].cost += item.cost;
+        grouped[key].count += 1;
         // Nếu item sau có reason dài hơn/chi tiết hơn thì lấy, ngược lại giữ nguyên cái đầu
-        if (item.reason.length > grouped[normalizedName].reason.length) {
-            grouped[normalizedName].reason = item.reason;
+        if (item.reason.length > grouped[key].reason.length) {
+            grouped[key].reason = item.reason;
         }
       }
     });
