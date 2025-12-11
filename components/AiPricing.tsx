@@ -96,9 +96,24 @@ const AiPricing: React.FC = () => {
 
       const recordId = data.recordId; // ID từ Airtable
 
-      // 2. Chuyển hướng sang Messenger với ID đơn hàng
+      // 2. Chuyển hướng thông minh (Android Deep Link Fix)
       console.log("Redirecting to Messenger with ID:", recordId);
-      window.location.href = `https://m.me/kinailroom?ref=${recordId}`;
+      
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      
+      if (isAndroid) {
+          // Deep Link dành riêng cho Android để mở thẳng App
+          // ID Page: 626741327477044 (Lấy từ cấu hình Webhook của bạn)
+          window.location.href = `fb-messenger://user-thread/626741327477044?ref=${recordId}`;
+          
+          // Fallback: Nếu sau 1.5s không mở được App thì mở web
+          setTimeout(() => {
+              window.location.href = `https://m.me/kinailroom?ref=${recordId}`;
+          }, 1500);
+      } else {
+          // iOS và PC dùng link web chuẩn
+          window.location.href = `https://m.me/kinailroom?ref=${recordId}`;
+      }
 
     } catch (err: any) {
       console.error("Save Error:", err);
