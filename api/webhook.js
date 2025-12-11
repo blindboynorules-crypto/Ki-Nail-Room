@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V80_TEXT_CTA_UPDATE
+// VERSION: V81_SMART_GROUPING
 // CHẾ ĐỘ: SPLIT MESSAGES - Tránh lỗi giới hạn ký tự của Facebook Button Template
 
 // ============================================================
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
                     const userMessage = webhook_event.message.text.trim();
                     
                     if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V80 TextUpdate.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V81 Grouping.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
                         continue;
                     }
 
@@ -221,14 +221,36 @@ async function handleReferral(sender_psid, recordId) {
             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
         }
 
-        // 2. CHUẨN BỊ NỘI DUNG TEXT DÀI
+        // 2. CHUẨN BỊ NỘI DUNG TEXT DÀI (CÓ GỘP NHÓM THÔNG MINH)
         let menuText = "🧾 CHI TIẾT BÁO GIÁ AI:\n\n";
         try {
             const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
+            
             if (Array.isArray(items)) {
+                // --- THUẬT TOÁN GỘP NHÓM (GROUPING) ---
+                const groupedItems = {};
+                
                 items.forEach(item => {
-                    const cost = new Intl.NumberFormat('vi-VN').format(item.cost);
-                    menuText += `▪️ ${item.item}: ${cost}đ\n`;
+                    const name = item.item.trim();
+                    if (!groupedItems[name]) {
+                        groupedItems[name] = { cost: 0, count: 0 };
+                    }
+                    groupedItems[name].cost += item.cost;
+                    groupedItems[name].count += 1;
+                });
+
+                // In ra danh sách đã gộp
+                Object.keys(groupedItems).forEach(name => {
+                    const data = groupedItems[name];
+                    const costFmt = new Intl.NumberFormat('vi-VN').format(data.cost);
+                    
+                    if (data.count > 1) {
+                        // Nếu có nhiều món giống nhau (VD: Đá nhỏ x5)
+                        menuText += `▪️ ${name} (x${data.count}): ${costFmt}đ\n`;
+                    } else {
+                        // Nếu chỉ có 1 món
+                        menuText += `▪️ ${name}: ${costFmt}đ\n`;
+                    }
                 });
             }
         } catch (e) {
