@@ -113,8 +113,12 @@ export default async function handler(req, res) {
 
     // 4. DELETE: Xóa
     if (req.method === 'DELETE') {
-      const { id } = req.body; // Hoặc query param tuỳ design, ở đây dùng body cho đồng bộ
-      const recordId = id || req.query.id;
+      // FIX LỖI: Ưu tiên lấy ID từ query string, nếu không có mới tìm trong body (và check body tồn tại trước)
+      const recordId = req.query.id || (req.body && req.body.id);
+
+      if (!recordId) {
+        return res.status(400).json({ success: false, message: 'Thiếu ID bản ghi cần xóa (Record ID missing)' });
+      }
 
       const response = await fetch(`${BASE_URL}/${recordId}`, {
         method: 'DELETE',
