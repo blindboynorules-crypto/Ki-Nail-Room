@@ -48,7 +48,11 @@ async function getBotConfigFromAirtable() {
             if (key) {
                 // Lấy URL ảnh đầu tiên nếu có attachment
                 let imageUrl = null;
-                if (fields.Image && Array.isArray(fields.Image) && fields.Image.length > 0) {
+                // CẬP NHẬT: Đọc từ cột Attachments thay vì Image
+                if (fields.Attachments && Array.isArray(fields.Attachments) && fields.Attachments.length > 0) {
+                    imageUrl = fields.Attachments[0].url;
+                } else if (fields.Image && Array.isArray(fields.Image) && fields.Image.length > 0) {
+                    // Fallback cho cột Image cũ nếu có
                     imageUrl = fields.Image[0].url;
                 } else if (fields.ImageUrl) {
                     imageUrl = fields.ImageUrl; // Fallback nếu nhập link trực tiếp

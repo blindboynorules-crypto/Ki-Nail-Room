@@ -38,9 +38,9 @@ export default async function handler(req, res) {
         id: r.id,
         keyword: r.fields.Keyword || '',
         answer: r.fields.Answer || '',
-        // Xử lý ảnh: Nếu là Attachment (Array) lấy url đầu tiên, nếu là String lấy nguyên văn
-        imageUrl: (Array.isArray(r.fields.Image) && r.fields.Image.length > 0) 
-                  ? r.fields.Image[0].url 
+        // Xử lý ảnh: Đổi 'Image' thành 'Attachments'
+        imageUrl: (Array.isArray(r.fields.Attachments) && r.fields.Attachments.length > 0) 
+                  ? r.fields.Attachments[0].url 
                   : (r.fields.ImageUrl || '')
       }));
 
@@ -56,9 +56,9 @@ export default async function handler(req, res) {
         "Answer": answer
       };
 
-      // Nếu có ảnh, Airtable yêu cầu định dạng mảng object cho cột Attachment
+      // Đổi 'Image' thành 'Attachments'
       if (imageUrl) {
-         fields["Image"] = [{ url: imageUrl }];
+         fields["Attachments"] = [{ url: imageUrl }];
       }
 
       const response = await fetch(BASE_URL, {
@@ -81,13 +81,11 @@ export default async function handler(req, res) {
         "Answer": answer
       };
 
+      // Đổi 'Image' thành 'Attachments'
       if (imageUrl) {
-         fields["Image"] = [{ url: imageUrl }];
+         fields["Attachments"] = [{ url: imageUrl }];
       } else {
-         // Nếu muốn xóa ảnh, gửi mảng rỗng hoặc null (tuỳ cấu hình, an toàn nhất là gửi mảng rỗng nếu user xoá)
-         // Ở đây ta giả định nếu không gửi imageUrl thì giữ nguyên (logic UI) hoặc gửi null để xóa.
-         // Để đơn giản: UI gửi imageUrl = "" để xóa.
-         if (imageUrl === "") fields["Image"] = [];
+         if (imageUrl === "") fields["Attachments"] = [];
       }
 
       const response = await fetch(`${BASE_URL}/${id}`, {
@@ -104,7 +102,6 @@ export default async function handler(req, res) {
     // 4. DELETE: Xóa
     if (req.method === 'DELETE') {
       const { id } = req.body; // Hoặc query param tuỳ design, ở đây dùng body cho đồng bộ
-      // Với DELETE request body, một số client có thể không gửi được, nên check cả query
       const recordId = id || req.query.id;
 
       const response = await fetch(`${BASE_URL}/${recordId}`, {
