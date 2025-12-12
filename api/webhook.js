@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V91_TEENCODE_SUPPORT
-// TÍNH NĂNG: Đọc kịch bản Chat từ Airtable (Dynamic Knowledge Base) + Hỗ trợ Teencode
+// VERSION: V95_SILENT_MODE
+// TÍNH NĂNG: Im lặng tuyệt đối khi khách cần tư vấn mẫu riêng (CONSULTATION)
 
 // ============================================================
 // 1. HÀM LẤY DỮ LIỆU TỪ AIRTABLE (BỘ NÃO)
@@ -38,24 +38,19 @@ async function getBotConfigFromAirtable() {
         
         if (!data.records) return null;
 
-        // Chuyển đổi sang định dạng dễ dùng: { "KEYWORD": { text: "...", image: "..." } }
         const config = {};
         data.records.forEach(record => {
             const fields = record.fields;
-            // Key là từ khóa (VD: PRICE, ADDRESS, PROMOTION) - Viết hoa để khớp
             const key = fields.Keyword ? fields.Keyword.trim().toUpperCase() : null;
             
             if (key) {
-                // Lấy URL ảnh đầu tiên nếu có attachment
                 let imageUrl = null;
-                // CẬP NHẬT: Đọc từ cột Attachments thay vì Image
                 if (fields.Attachments && Array.isArray(fields.Attachments) && fields.Attachments.length > 0) {
                     imageUrl = fields.Attachments[0].url;
                 } else if (fields.Image && Array.isArray(fields.Image) && fields.Image.length > 0) {
-                    // Fallback cho cột Image cũ nếu có
                     imageUrl = fields.Image[0].url;
                 } else if (fields.ImageUrl) {
-                    imageUrl = fields.ImageUrl; // Fallback nếu nhập link trực tiếp
+                    imageUrl = fields.ImageUrl; 
                 }
 
                 config[key] = {
@@ -77,17 +72,27 @@ async function getBotConfigFromAirtable() {
 }
 
 // ============================================================
-// 2. DỮ LIỆU DỰ PHÒNG (FALLBACK KHI AIRTABLE LỖI)
+// 2. DỮ LIỆU DỰ PHÒNG & LOGIC TRẢ LỜI CỤ THỂ
 // ============================================================
 const FALLBACK_TEMPLATES = {
     PROMOTION: {
         text: "Dạ hiện tại Ki đang có ưu đãi giảm 10% cho khách đặt lịch trước nha.",
         image: null
     },
+    // Intent cũ: PRICE (Vẫn giữ để fallback)
     PRICE: {
         text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
         image: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
     },
+    // Intent mới: VIEW_MENU (Tương đương PRICE cũ)
+    VIEW_MENU: {
+        text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng cần tư vấn kỹ hơn thì nhắn Ki nhé!",
+        image: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
+    },
+    // Intent: CONSULTATION (Tư vấn riêng)
+    // Cập nhật: Đã XÓA cấu hình mặc định. 
+    // Nếu AI nhận diện là CONSULTATION và không có trong Airtable -> Bot sẽ IM LẶNG.
+    
     ADDRESS: {
         text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A, Bình Tân ạ.",
         image: null
@@ -95,7 +100,7 @@ const FALLBACK_TEMPLATES = {
 };
 
 // ============================================================
-// 3. XỬ LÝ AI GEMINI (PHÂN LOẠI Ý ĐỊNH)
+// 3. XỬ LÝ AI GEMINI (PHÂN LOẠI Ý ĐỊNH - NÂNG CẤP)
 // ============================================================
 async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
@@ -103,29 +108,32 @@ async function classifyIntentWithGemini(userMessage) {
 
     const ai = new GoogleGenAI({ apiKey });
     
-    // Prompt được nâng cấp để hiểu Tiếng Việt & Teencode
+    // Prompt được nâng cấp để phân biệt VIEW_MENU và CONSULTATION
     const systemInstruction = `
-    ROLE: You are the Receptionist AI for "Ki Nail Room" in Vietnam.
+    ROLE: You are the Receptionist AI for "Ki Nail Room".
     TASK: Classify the user's Vietnamese message into one of the following INTENTS.
-    IMPORTANT: You must understand Vietnamese Gen Z slang, teencode, abbreviations, and typos.
-
-    INTENT CATEGORIES:
-    1. ADDRESS (Hỏi địa chỉ, vị trí)
-       - Keywords: địa chỉ, ở đâu, khúc nào, map, đường, location.
-       - Slang: "shop o dau", "cho xin cai dia chi", "q bình tân hẻ", "cho dia chi ik".
-
-    2. PRICE (Hỏi giá, menu)
-       - Keywords: giá, bao nhiêu, menu, bảng giá, price, cost, tiền.
-       - Slang: "nhiu k", "bộ này bao nhiu", "xin rổ giá", "price list", "bnhiu".
     
-    3. PROMOTION (Hỏi khuyến mãi)
-       - Keywords: khuyến mãi, giảm giá, ưu đãi, sale, discount, voucher, code.
-       - Slang: "km", "ctkm", "co giam gia ko", "cóa km j hok", "co sale khum", "khum shoq", "deal", "ctkm j z".
+    INTENT CATEGORIES:
+    1. ADDRESS
+       - Keywords: địa chỉ, ở đâu, khúc nào, map, đường, location.
 
-    4. SILENCE (Other topics)
-       - Greetings, booking requests, specific nail questions, or small talk not related to above.
+    2. VIEW_MENU (Asking for general price list)
+       - User wants to see the menu/price list generally.
+       - Keywords: "xin bảng giá", "menu", "giá sao shop", "price list", "rổ giá", "bảng giá", "xem giá".
+       - Example: "Cho em xin bảng giá", "Có menu ko ạ".
 
-    OUTPUT: Return ONLY the intent name (ADDRESS, PRICE, PROMOTION, SILENCE). Do not explain.
+    3. CONSULTATION (Asking price for SPECIFIC design/photo/service)
+       - User sends a photo or asks about a SPECIFIC set/design.
+       - Keywords: "bộ này", "mẫu này", "làm như này", "tư vấn", "bao nhiêu tiền bộ này", "móng thật làm bộ này".
+       - Example: "Bộ này bao nhiêu", "Tư vấn giúp em giá bộ này", "Mình làm móng thật nha báo giá giúp".
+
+    4. PROMOTION
+       - Keywords: khuyến mãi, giảm giá, sale, discount, voucher, km, ctkm, kmai, phien mai.
+
+    5. SILENCE
+       - Greetings, booking requests, or small talk.
+
+    OUTPUT: Return ONLY the intent name (ADDRESS, VIEW_MENU, CONSULTATION, PROMOTION, SILENCE).
     `;
 
     try {
@@ -140,14 +148,17 @@ async function classifyIntentWithGemini(userMessage) {
         });
 
         const intent = response.text ? response.text.trim().toUpperCase() : "SILENCE";
+        
         // Clean up output just in case
         if (intent.includes('PROMOTION')) return 'PROMOTION';
-        if (intent.includes('PRICE')) return 'PRICE';
+        if (intent.includes('VIEW_MENU')) return 'VIEW_MENU';
+        if (intent.includes('CONSULTATION')) return 'CONSULTATION';
         if (intent.includes('ADDRESS')) return 'ADDRESS';
+        if (intent.includes('PRICE')) return 'VIEW_MENU'; // Map old PRICE to VIEW_MENU
         
         return "SILENCE";
     } catch (error) {
-        return "SILENCE"; // Nếu lỗi thì trả về SILENCE để hàm keyword xử lý tiếp
+        return "SILENCE";
     }
 }
 
@@ -155,16 +166,29 @@ async function classifyIntentWithGemini(userMessage) {
 // 4. XỬ LÝ TỪ KHÓA (FALLBACK & SAFETY NET)
 // ============================================================
 function classifyIntentWithKeywords(text) {
-    const t = text.toLowerCase();
+    const t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const rawT = text.toLowerCase();
+
+    // 1. PROMOTION
+    if (
+        rawT.includes('km') || rawT.includes('ctkm') || 
+        t.includes('sale') || t.includes('uu dai') || 
+        t.includes('giam gia') || t.includes('khuyen mai') || t.includes('kmai')
+    ) return 'PROMOTION';
     
-    // 1. Nhóm PROMOTION (Ưu tiên cao vì khách hay hỏi tắt)
-    if (t.includes('km') || t.includes('ctkm') || t.includes('sale') || t.includes('uu dai') || t.includes('giam gia') || t.includes('voucher') || t.includes('code')) return 'PROMOTION';
+    // 2. CONSULTATION (Ưu tiên bắt các từ chỉ định cụ thể trước)
+    if (
+        t.includes('bo nay') || t.includes('mau nay') || t.includes('hinh nay') || 
+        t.includes('nhu nay') || t.includes('tu van') || t.includes('lam mong that')
+    ) return 'CONSULTATION';
+
+    // 3. VIEW_MENU (Hỏi giá chung)
+    if (
+        t.includes('gia') || t.includes('menu') || t.includes('tien') || t.includes('bang gia')
+    ) return 'VIEW_MENU';
     
-    // 2. Nhóm PRICE
-    if ((t.includes('gia') || t.includes('menu') || t.includes('tien') || t.includes('nhiu')) && !t.includes('giam')) return 'PRICE';
-    
-    // 3. Nhóm ADDRESS
-    if (t.includes('dia chi') || t.includes('o dau') || t.includes('map') || t.includes('duong') || t.includes('cho nao')) return 'ADDRESS';
+    // 4. ADDRESS
+    if (t.includes('dia chi') || t.includes('o dau') || t.includes('map') || t.includes('duong')) return 'ADDRESS';
     
     return 'SILENCE';
 }
@@ -191,7 +215,6 @@ export default async function handler(req, res) {
 
     if (body.object === 'page') {
       try {
-        // --- PRE-FETCH DATA TỪ AIRTABLE ---
         const airtableConfig = await getBotConfigFromAirtable();
 
         for (const entry of body.entry) {
@@ -199,14 +222,14 @@ export default async function handler(req, res) {
             for (const webhook_event of entry.messaging) {
                 const sender_psid = webhook_event.sender.id;
 
-                // 1. XỬ LÝ REFERRAL (Báo giá từ Web)
+                // 1. XỬ LÝ REFERRAL
                 let refParam = webhook_event.referral?.ref || webhook_event.postback?.referral?.ref || webhook_event.optin?.ref;
                 if (refParam) {
                     await handleReferral(sender_psid, refParam); 
                     continue; 
                 } 
 
-                // 2. XỬ LÝ POSTBACK (Nút bấm)
+                // 2. XỬ LÝ POSTBACK
                 if (webhook_event.postback) {
                     const payload = webhook_event.postback.payload;
                     if (payload === 'CHAT_HUMAN') {
@@ -214,7 +237,6 @@ export default async function handler(req, res) {
                             text: "Dạ Ki đây ạ! Nàng nhắn tin ở đây nha, xíu Ki check xong Ki rep liền nè! 🥰" 
                         });
                     } else {
-                        // Nút Get Started
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
                         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
                             text: "Chào nàng xinh đẹp! 💕 Ki Nail Room rất vui được gặp nàng.\n\nNàng có thể gửi ảnh móng để Ki báo giá, hoặc hỏi địa chỉ/menu nha!" 
@@ -228,45 +250,47 @@ export default async function handler(req, res) {
                 if (webhook_event.message && webhook_event.message.text) {
                     const userMessage = webhook_event.message.text.trim();
                     
-                    // --- BƯỚC 1: Dùng AI Gemini để phân tích ý định ---
+                    // --- BƯỚC 1: Phân loại ý định ---
                     let intent = await classifyIntentWithGemini(userMessage);
 
-                    // --- BƯỚC 2: Safety Net (Nếu AI không hiểu, dùng Keywords thủ công) ---
-                    // Đây là bước quan trọng để bắt các từ như "ctkm", "km" nếu AI lỡ bỏ qua
+                    // --- BƯỚC 2: Fallback bằng Keywords ---
                     if (intent === 'SILENCE') {
                         const fallbackIntent = classifyIntentWithKeywords(userMessage);
                         if (fallbackIntent !== 'SILENCE') {
                             intent = fallbackIntent;
-                            console.log(`[Bot] AI missed it, used Keyword fallback: ${intent}`);
                         }
                     }
 
-                    // --- BƯỚC 3: Lấy câu trả lời từ Airtable hoặc Template ---
+                    // --- BƯỚC 3: Chọn câu trả lời ---
                     let responseData = null;
-                    if (airtableConfig && airtableConfig[intent]) {
-                        responseData = airtableConfig[intent];
+
+                    // ƯU TIÊN 1: Kiểm tra trong Airtable (Cho phép chủ shop override câu trả lời)
+                    // Lưu ý: Mapping PRICE cũ sang VIEW_MENU để tương thích ngược
+                    let lookupKey = intent;
+                    if (lookupKey === 'VIEW_MENU' && !airtableConfig['VIEW_MENU'] && airtableConfig['PRICE']) {
+                        lookupKey = 'PRICE';
+                    }
+
+                    if (airtableConfig && airtableConfig[lookupKey]) {
+                        responseData = airtableConfig[lookupKey];
                     } else {
-                        // Chỉ dùng Fallback Templates nếu không tìm thấy trong Airtable
-                        // Và Intent phải khác SILENCE
+                        // ƯU TIÊN 2: Dùng mẫu có sẵn trong code
                         if (intent !== 'SILENCE') {
                             responseData = FALLBACK_TEMPLATES[intent];
+                            
+                            // Fallback cho VIEW_MENU nếu chưa có trong template
+                            if (!responseData && intent === 'VIEW_MENU') responseData = FALLBACK_TEMPLATES['PRICE'];
                         }
                     }
 
                     if (responseData) {
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-                        // Gửi Text trước
                         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: responseData.text });
-                        // Gửi Ảnh sau (nếu có)
                         if (responseData.image) {
-                            // Delay nhẹ để tin nhắn không bị ngược
                             await new Promise(r => setTimeout(r, 500));
                             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, responseData.image);
                         }
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
-                    } else {
-                        // Nếu là SILENCE (Không hiểu), có thể chọn im lặng hoặc log lại để training sau
-                        // Hiện tại: Im lặng để tránh spam khách nếu họ chat câu lạ
                     }
                 }
             }
