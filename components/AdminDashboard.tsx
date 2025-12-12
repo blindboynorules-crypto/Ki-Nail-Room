@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trash2, ShieldCheck, Database, MessageSquare, Plus, Edit2, Save, X, Image as ImageIcon, Loader2, Search, RefreshCw, Zap } from 'lucide-react';
+import { ArrowLeft, Trash2, ShieldCheck, Database, MessageSquare, Plus, Edit2, Save, X, Image as ImageIcon, Loader2, Search, RefreshCw, Zap, AlertTriangle } from 'lucide-react';
 import { uploadToCloudinary } from '../services/cloudinaryService';
 
 interface AdminDashboardProps {
@@ -43,19 +43,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         if (data.success) {
             setRules(data.records);
         } else {
-            alert('Lỗi tải dữ liệu: ' + data.message);
+            console.error("Fetch Error:", data.message);
+            // Không alert lỗi ở đây để tránh spam popup khi mới vào, chỉ log
         }
     } catch (error) {
         console.error(error);
-        alert('Không kết nối được server');
     } finally {
         setLoading(false);
     }
   };
 
-  // Nạp dữ liệu mẫu (Seed Data)
+  // Nạp dữ liệu mẫu (Seed Data) - PHIÊN BẢN NÂNG CẤP BẮT LỖI
   const handleSeedData = async () => {
-      if (!window.confirm('Hệ thống sẽ nạp 3 kịch bản mẫu (Giá, Địa chỉ, Khuyến mãi) để bạn chỉnh sửa. Bạn có đồng ý không?')) return;
+      if (!window.confirm('Hệ thống sẽ nạp 3 kịch bản mẫu (Giá, Địa chỉ, Khuyến mãi) vào bảng BotConfig trên Airtable. Bạn có đồng ý không?')) return;
       
       setLoading(true);
       const defaults = [
@@ -65,18 +65,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       ];
 
       try {
-          // Promise.all để chạy song song cho nhanh
-          await Promise.all(defaults.map(item => 
-              fetch('/api/bot-manager', {
+          // Chạy tuần tự để bắt lỗi chính xác từng cái
+          for (const item of defaults) {
+              const res = await fetch('/api/bot-manager', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(item)
-              })
-          ));
-          alert('Đã nạp dữ liệu mẫu thành công! Bây giờ bạn có thể chỉnh sửa chúng.');
+              });
+              
+              const data = await res.json();
+              
+              if (!res.ok || !data.success) {
+                  throw new Error(data.message || `Lỗi khi tạo mục ${item.keyword}`);
+              }
+          }
+
+          alert('✅ Đã nạp dữ liệu mẫu thành công! Dữ liệu đã xuất hiện trong danh sách.');
           fetchRules(); // Reload lại list
-      } catch (e) {
-          alert('Có lỗi khi nạp dữ liệu.');
+      } catch (e: any) {
+          console.error(e);
+          alert(`❌ Nạp dữ liệu thất bại!\n\nNguyên nhân: ${e.message}\n\nHãy kiểm tra lại:\n1. Bạn đã nhập AIRTABLE_API_TOKEN trên Vercel chưa?\n2. Tên bảng 'BotConfig' và cột 'Attachments' trên Airtable đã đúng chưa?`);
       } finally {
           setLoading(false);
       }
@@ -142,10 +150,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
               setIsModalOpen(false);
               fetchRules(); // Reload list
           } else {
-              alert(data.message);
+              alert(`Lỗi lưu: ${data.message}`);
           }
       } catch (e) {
-          alert('Lỗi lưu dữ liệu');
+          alert('Lỗi kết nối Server');
       } finally {
           setUploading(false);
       }
@@ -302,6 +310,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                         >
                                             <Zap className="w-4 h-4 fill-current" /> Nạp Dữ Liệu Mẫu
                                         </button>
+                                        <p className="text-xs text-red-400 mt-4 italic flex items-center justify-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" /> Yêu cầu đã cấu hình Airtable API
+                                        </p>
                                     </div>
                                 </>
                              ) : (

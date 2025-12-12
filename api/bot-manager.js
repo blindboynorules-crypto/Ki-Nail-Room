@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const TABLE_NAME = 'BotConfig';
 
   if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
-    return res.status(500).json({ success: false, message: 'Chưa cấu hình Airtable API Token hoặc Base ID.' });
+    return res.status(500).json({ success: false, message: 'Chưa cấu hình Airtable API Token hoặc Base ID trên Vercel.' });
   }
 
   const BASE_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}`;
@@ -28,10 +28,16 @@ export default async function handler(req, res) {
   try {
     // 1. GET: Lấy danh sách
     if (req.method === 'GET') {
-      const response = await fetch(`${BASE_URL}?maxRecords=100&view=Grid%20view&sort%5B0%5D%5Bfield%5D=Keyword`, { headers: HEADERS });
+      // Bỏ view để tránh lỗi nếu user đổi tên view
+      const response = await fetch(`${BASE_URL}?maxRecords=100&sort%5B0%5D%5Bfield%5D=Keyword`, { headers: HEADERS });
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error?.message || 'Lỗi tải dữ liệu');
+      if (!response.ok) {
+          const errMsg = data.error?.message || 'Lỗi tải dữ liệu';
+          if (response.status === 404) throw new Error("Không tìm thấy bảng 'BotConfig'. Vui lòng kiểm tra lại tên bảng trên Airtable.");
+          if (response.status === 401) throw new Error("Sai API Token. Vui lòng kiểm tra lại settings Vercel.");
+          throw new Error(errMsg);
+      }
 
       // Format dữ liệu gọn gàng để trả về Client
       const records = data.records.map(r => ({
@@ -68,7 +74,13 @@ export default async function handler(req, res) {
       });
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error?.message || 'Lỗi tạo mới');
+      if (!response.ok) {
+          console.error("Airtable POST Error:", data);
+          if (data.error?.type === 'INVALID_VALUE_FOR_COLUMN') {
+               throw new Error(`Cột '${data.error.message.split("'")[1]}' bị sai định dạng.`);
+          }
+          throw new Error(data.error?.message || 'Lỗi tạo mới. Kiểm tra lại tên cột.');
+      }
       return res.status(200).json({ success: true, id: data.id });
     }
 
