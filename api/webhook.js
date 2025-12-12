@@ -2,29 +2,96 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V83_FIX_GET_STARTED_SILENCE
-// CHẾ ĐỘ: SPLIT MESSAGES & POSTBACK FALLBACK
+// VERSION: V90_AIRTABLE_BRAIN
+// TÍNH NĂNG: Đọc kịch bản Chat từ Airtable (Dynamic Knowledge Base)
 
 // ============================================================
-// 1. DỮ LIỆU CÂU TRẢ LỜI MẪU
+// 1. HÀM LẤY DỮ LIỆU TỪ AIRTABLE (BỘ NÃO)
 // ============================================================
-const RESPONSE_TEMPLATES = {
+// Cache đơn giản để tránh gọi Airtable quá nhiều (Lưu trong 1 phút)
+let _botConfigCache = null;
+let _lastFetchTime = 0;
+
+async function getBotConfigFromAirtable() {
+    const NOW = Date.now();
+    // Nếu có cache và chưa quá 60 giây thì dùng lại
+    if (_botConfigCache && (NOW - _lastFetchTime < 60000)) {
+        return _botConfigCache;
+    }
+
+    const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_TABLE_NAME = 'BotConfig'; // Tên bảng cấu hình
+
+    if (!AIRTABLE_API_TOKEN || !AIRTABLE_BASE_ID) {
+        console.warn("Chưa cấu hình Airtable cho Bot.");
+        return null;
+    }
+
+    try {
+        // Lấy dữ liệu từ bảng BotConfig
+        const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?maxRecords=50&view=Grid%20view`, {
+            headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
+        });
+        
+        const data = await response.json();
+        
+        if (!data.records) return null;
+
+        // Chuyển đổi sang định dạng dễ dùng: { "KEYWORD": { text: "...", image: "..." } }
+        const config = {};
+        data.records.forEach(record => {
+            const fields = record.fields;
+            // Key là từ khóa (VD: PRICE, ADDRESS, PROMOTION) - Viết hoa để khớp
+            const key = fields.Keyword ? fields.Keyword.trim().toUpperCase() : null;
+            
+            if (key) {
+                // Lấy URL ảnh đầu tiên nếu có attachment
+                let imageUrl = null;
+                if (fields.Image && Array.isArray(fields.Image) && fields.Image.length > 0) {
+                    imageUrl = fields.Image[0].url;
+                } else if (fields.ImageUrl) {
+                    imageUrl = fields.ImageUrl; // Fallback nếu nhập link trực tiếp
+                }
+
+                config[key] = {
+                    text: fields.Answer || "Dạ Ki đang cập nhật thông tin này ạ.",
+                    image: imageUrl
+                };
+            }
+        });
+
+        _botConfigCache = config;
+        _lastFetchTime = NOW;
+        console.log("[Airtable] Fetched Bot Config:", Object.keys(config));
+        return config;
+
+    } catch (e) {
+        console.error("[Airtable] Fetch Config Error:", e);
+        return null;
+    }
+}
+
+// ============================================================
+// 2. DỮ LIỆU DỰ PHÒNG (FALLBACK KHI AIRTABLE LỖI)
+// ============================================================
+const FALLBACK_TEMPLATES = {
     PROMOTION: {
-        text: "Dạ Ki gởi mình chương trình khuyến mãi hiện tại nha.",
-        image: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207799/Noel2025_rxuc1y.jpg"
+        text: "Dạ hiện tại Ki đang có ưu đãi giảm 10% cho khách đặt lịch trước nha.",
+        image: null
     },
     PRICE: {
         text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!",
         image: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg"
     },
     ADDRESS: {
-        text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A ( cũ ), Bình Tân ạ.\n\nNàng bấm vào link này để xem bản đồ chỉ đường cho tiện nha:\nhttps://maps.app.goo.gl/3z3iii6wd37JeJVp7?g_st=ipc",
+        text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A, Bình Tân ạ.",
         image: null
     }
 };
 
 // ============================================================
-// 2. XỬ LÝ AI GEMINI (PHÂN LOẠI)
+// 3. XỬ LÝ AI GEMINI (PHÂN LOẠI Ý ĐỊNH)
 // ============================================================
 async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
@@ -32,20 +99,16 @@ async function classifyIntentWithGemini(userMessage) {
 
     const ai = new GoogleGenAI({ apiKey });
     
+    // Prompt này hướng dẫn AI phân loại câu hỏi của khách
     const systemInstruction = `
     You are the Intent Classifier for Ki Nail Room's chatbot.
-    Your ONLY job is to categorize the user's message into one of these 4 categories.
+    Categorize user message into:
+    1. ADDRESS: Location, map, where is shop.
+    2. PRICE: Menu, price list, cost.
+    3. PROMOTION: Discount, sale, offers.
+    4. SILENCE: Anything else (Booking, specific questions, small talk).
     
-    CATEGORIES:
-    1. ADDRESS: User asks for location, map, address. (Keywords: địa chỉ, ở đâu, map, đường nào, tọa độ, add...)
-    2. PRICE: User asks for the general menu, price list. (Keywords: bảng giá, menu, giá sao, bao nhiêu tiền, mắc không...)
-    3. PROMOTION: User asks for discounts, sales, current offers. 
-       - Keywords: khuyến mãi, giảm giá, ưu đãi, km, ctkm...
-       - IMPORTANT: If user asks about FUTURE promotions (sắp tới), STILL CLASSIFY AS PROMOTION (Send current promo).
-    4. SILENCE: User asks for ANYTHING ELSE (Booking, Specific Price 'giá bộ này', Chat, Complaints, Hello, Bye).
-
-    RULES:
-    - Output ONLY the category name: ADDRESS, PRICE, PROMOTION, or SILENCE.
+    Output ONLY the category name.
     `;
 
     try {
@@ -68,18 +131,18 @@ async function classifyIntentWithGemini(userMessage) {
 }
 
 // ============================================================
-// 3. XỬ LÝ TỪ KHÓA (FALLBACK)
+// 4. XỬ LÝ TỪ KHÓA (FALLBACK)
 // ============================================================
 function classifyIntentWithKeywords(text) {
     const t = text.toLowerCase();
-    if (t.includes('khuyen mai') || t.includes('giam gia') || t.includes('uu dai') || t.includes('km') || t.includes('ctkm')) return 'PROMOTION';
-    if ((t.includes('gia') || t.includes('menu') || t.includes('tien') || t.includes('phi')) && !t.includes('giam')) return 'PRICE';
-    if (t.includes('dia chi') || t.includes('o dau') || t.includes('map') || t.includes('ban do') || t.includes('duong') || t.includes('add')) return 'ADDRESS';
+    if (t.includes('khuyen mai') || t.includes('giam gia') || t.includes('uu dai') || t.includes('km')) return 'PROMOTION';
+    if ((t.includes('gia') || t.includes('menu') || t.includes('tien')) && !t.includes('giam')) return 'PRICE';
+    if (t.includes('dia chi') || t.includes('o dau') || t.includes('map') || t.includes('duong')) return 'ADDRESS';
     return 'SILENCE';
 }
 
 // ============================================================
-// 4. MAIN HANDLER
+// 5. MAIN HANDLER
 // ============================================================
 export default async function handler(req, res) {
   const FB_VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || 'kinailroom_verify';
@@ -89,13 +152,10 @@ export default async function handler(req, res) {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
-    if (mode && token) {
-      if (mode === 'subscribe' && token === FB_VERIFY_TOKEN) {
+    if (mode && token === FB_VERIFY_TOKEN) {
         return res.status(200).send(challenge);
-      } else {
-        return res.status(403).send('Verification failed');
-      }
     }
+    return res.status(403).send('Verification failed');
   }
 
   if (req.method === 'POST') {
@@ -103,58 +163,44 @@ export default async function handler(req, res) {
 
     if (body.object === 'page') {
       try {
+        // --- PRE-FETCH DATA TỪ AIRTABLE ---
+        const airtableConfig = await getBotConfigFromAirtable();
+
         for (const entry of body.entry) {
           if (entry.messaging) {
             for (const webhook_event of entry.messaging) {
                 const sender_psid = webhook_event.sender.id;
 
-                // --- 1. XỬ LÝ REFERRAL (QUÉT SÂU - ƯU TIÊN TUYỆT ĐỐI) ---
-                let refParam = null;
-                
-                // Các trường hợp referral có thể xảy ra
-                if (webhook_event.referral) refParam = webhook_event.referral.ref;
-                else if (webhook_event.postback && webhook_event.postback.referral) refParam = webhook_event.postback.referral.ref;
-                else if (webhook_event.optin && webhook_event.optin.ref) refParam = webhook_event.optin.ref;
-                else if (webhook_event.message && webhook_event.message.referral) refParam = webhook_event.message.referral.ref;
-
-                // NẾU CÓ REF -> XỬ LÝ NGAY LẬP TỨC
+                // 1. XỬ LÝ REFERRAL (Báo giá từ Web)
+                let refParam = webhook_event.referral?.ref || webhook_event.postback?.referral?.ref || webhook_event.optin?.ref;
                 if (refParam) {
-                    console.log(`[Webhook V83] Found Referral: ${refParam}`);
                     await handleReferral(sender_psid, refParam); 
-                    continue; // Dừng, không xử lý gì thêm
+                    continue; 
                 } 
 
-                // --- 2. XỬ LÝ POSTBACK (NÚT BẤM / GET STARTED MẤT REF) ---
-                // Đây là phần FIX LỖI "IM LẶNG": Nếu bấm nút mà không có ref ở trên, nó sẽ chạy vào đây.
+                // 2. XỬ LÝ POSTBACK (Nút bấm)
                 if (webhook_event.postback) {
                     const payload = webhook_event.postback.payload;
-                    console.log(`[Webhook V83] Postback Received: ${payload}`);
-
                     if (payload === 'CHAT_HUMAN') {
                         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
                             text: "Dạ Ki đây ạ! Nàng nhắn tin ở đây nha, xíu Ki check xong Ki rep liền nè! 🥰" 
                         });
                     } else {
-                        // Trường hợp bấm Get Started (Bắt đầu) hoặc nút lạ
+                        // Nút Get Started
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
                         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
-                            text: "Chào nàng xinh đẹp! 💕 Ki Nail Room rất vui được gặp nàng.\n\nNàng có thể gửi ảnh móng để Ki báo giá, hoặc hỏi địa chỉ/menu nha! Nếu cần hỗ trợ gấp, nàng cứ nhắn tại đây ạ." 
+                            text: "Chào nàng xinh đẹp! 💕 Ki Nail Room rất vui được gặp nàng.\n\nNàng có thể gửi ảnh móng để Ki báo giá, hoặc hỏi địa chỉ/menu nha!" 
                         });
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                     }
-                    continue; // Dừng, không xử lý text nữa
+                    continue; 
                 }
 
-                // --- 3. XỬ LÝ TIN NHẮN THƯỜNG (TEXT) ---
+                // 3. XỬ LÝ TIN NHẮN (TEXT)
                 if (webhook_event.message && webhook_event.message.text) {
                     const userMessage = webhook_event.message.text.trim();
                     
-                    if (userMessage.toLowerCase() === 'ping') {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: `PONG! V83 Fix Silence.\nToken: ${FB_PAGE_ACCESS_TOKEN ? 'OK' : 'MISSING'}` });
-                        continue;
-                    }
-
-                    // Cơ chế AI Hybrid
+                    // Cơ chế AI Hybrid phân loại ý định
                     let intent = 'SILENCE';
                     try {
                         intent = await classifyIntentWithGemini(userMessage);
@@ -162,13 +208,23 @@ export default async function handler(req, res) {
                         intent = classifyIntentWithKeywords(userMessage);
                     }
 
-                    const template = RESPONSE_TEMPLATES[intent];
-                    if (template) {
+                    // Lấy câu trả lời: Ưu tiên Airtable -> Sau đó đến Fallback cứng
+                    let responseData = null;
+                    if (airtableConfig && airtableConfig[intent]) {
+                        responseData = airtableConfig[intent];
+                    } else {
+                        responseData = FALLBACK_TEMPLATES[intent];
+                    }
+
+                    if (responseData) {
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: template.text });
-                        if (template.image) {
-                            await new Promise(r => setTimeout(r, 300));
-                            await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, template.image);
+                        // Gửi Text trước
+                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: responseData.text });
+                        // Gửi Ảnh sau (nếu có)
+                        if (responseData.image) {
+                            // Delay nhẹ để tin nhắn không bị ngược
+                            await new Promise(r => setTimeout(r, 500));
+                            await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, responseData.image);
                         }
                         await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_off');
                     }
@@ -185,13 +241,11 @@ export default async function handler(req, res) {
   }
 }
 
-// --- AIRTABLE HELPERS & PRIORITY HANDLING ---
-
+// --- AIRTABLE HELPERS ---
 async function handleReferral(sender_psid, recordId) {
     const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
     if (!FB_PAGE_ACCESS_TOKEN) return;
 
-    // PHẢN HỒI SIÊU TỐC: Báo cho khách biết đã nhận lệnh
     await sendSenderAction(FB_PAGE_ACCESS_TOKEN, sender_psid, 'typing_on');
     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { 
         text: "🎉 Ki đã nhận được yêu cầu báo giá! Nàng đợi xíu Ki tải chi tiết cho nha... 💅✨" 
@@ -211,72 +265,39 @@ async function handleReferral(sender_psid, recordId) {
         return;
     }
 
-    const fetchAirtable = async (retries = 3, delay = 1500) => {
-        try {
-            const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`, {
-                headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
-            });
-            if (!response.ok) {
-                if (retries > 0) {
-                    await new Promise(r => setTimeout(r, delay));
-                    return fetchAirtable(retries - 1, delay * 2);
-                }
-                throw new Error('Airtable Fetch Failed');
-            }
-            return await response.json();
-        } catch (error) {
-            throw error;
-        }
-    };
-
     try {
-        const record = await fetchAirtable();
+        const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`, {
+            headers: { 'Authorization': `Bearer ${AIRTABLE_API_TOKEN}` }
+        });
+        const record = await response.json();
         const fields = record.fields;
         
         const imageUrl = fields["Image URL"];
         const itemsJson = fields["Items Detail"];
         const total = fields["Total Estimate"];
 
-        // 1. GỬI ẢNH (Nếu có)
         if (imageUrl) {
             await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, sender_psid, imageUrl);
         }
 
-        // 2. CHUẨN BỊ NỘI DUNG TEXT DÀI (CÓ GỘP NHÓM THÔNG MINH - CASE INSENSITIVE)
         let menuText = "🧾 CHI TIẾT BÁO GIÁ AI:\n\n";
         try {
             const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
-            
             if (Array.isArray(items)) {
-                // --- THUẬT TOÁN GỘP NHÓM (GROUPING - CASE INSENSITIVE) ---
                 const groupedItems = {};
-                
                 items.forEach(item => {
-                    const originalName = item.item.trim();
-                    const key = originalName.toLowerCase(); // Chìa khóa chuẩn hóa
-
+                    const key = item.item.trim().toLowerCase();
                     if (!groupedItems[key]) {
-                        groupedItems[key] = { 
-                            name: originalName, // Giữ tên gốc để hiển thị
-                            cost: 0, 
-                            count: 0 
-                        };
+                        groupedItems[key] = { name: item.item.trim(), cost: 0, count: 0 };
                     }
                     groupedItems[key].cost += item.cost;
                     groupedItems[key].count += 1;
                 });
-
-                // In ra danh sách đã gộp
                 Object.values(groupedItems).forEach(data => {
                     const costFmt = new Intl.NumberFormat('vi-VN').format(data.cost);
-                    
-                    if (data.count > 1) {
-                        // Nếu có nhiều món giống nhau (VD: Đá nhỏ x5)
-                        menuText += `▪️ ${data.name} (x${data.count}): ${costFmt}đ\n`;
-                    } else {
-                        // Nếu chỉ có 1 món
-                        menuText += `▪️ ${data.name}: ${costFmt}đ\n`;
-                    }
+                    menuText += data.count > 1 
+                        ? `▪️ ${data.name} (x${data.count}): ${costFmt}đ\n`
+                        : `▪️ ${data.name}: ${costFmt}đ\n`;
                 });
             }
         } catch (e) {
@@ -285,19 +306,14 @@ async function handleReferral(sender_psid, recordId) {
 
         const totalFmt = new Intl.NumberFormat('vi-VN').format(total || 0);
         menuText += `\n--------------------\n💰 TỔNG CỘNG: ${totalFmt}đ\n--------------------\n`;
-        // Thay đổi nội dung theo yêu cầu
         menuText += `Giá này do AI của Ki Nail gửi trước cho mình để tham khảo thôi nhen.`;
 
-        // 3. GỬI TEXT DÀI (Dạng tin nhắn thường - Không giới hạn 640 ký tự)
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, { text: menuText });
-
-        // 4. GỬI NÚT KÊU GỌI (Riêng biệt)
         await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, sender_psid, {
              attachment: { 
                  type: "template", 
                  payload: { 
                      template_type: "button", 
-                     // Thay đổi nội dung theo yêu cầu
                      text: "Để xem thông tin chi tiết, nàng bấm vào nút bên dưới. Ki Nail sẽ tư vấn cụ thể và giải đáp cho mình ạ.", 
                      buttons: [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_HUMAN" }] 
                  } 
@@ -315,9 +331,7 @@ async function sendSenderAction(token, psid, action) {
 }
 
 async function sendFacebookMessage(token, psid, messageContent) {
-    try { 
-        await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, message: messageContent }) }); 
-    } catch (e) { console.error("Fetch Error:", e); }
+    try { await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: { id: psid }, message: messageContent }) }); } catch (e) {}
 }
 
 async function sendFacebookImage(token, psid, imageUrl) {

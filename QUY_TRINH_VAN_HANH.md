@@ -11,6 +11,7 @@ Mô hình website của bạn hoạt động như sau:
 1.  **Code (AI Studio):** Nơi bạn viết mã, chỉnh sửa giao diện.
 2.  **Lưu trữ (GitHub):** Nơi cất giữ mã nguồn an toàn.
 3.  **Vận hành (Vercel):** Nơi đưa website lên mạng cho khách xem.
+4.  **Dữ liệu (Airtable):** Nơi bạn lưu đơn hàng và dạy Chatbot trả lời.
 
 **Quy tắc bất di bất dịch:**
 > Mỗi khi bạn chỉnh sửa xong ở AI Studio -> Bạn phải **Commit & Push** lên GitHub -> Vercel sẽ **Tự động** phát hiện và cập nhật website mới sau khoảng 1-2 phút.
@@ -37,9 +38,14 @@ Dưới đây là danh sách các file bạn cần tìm khi muốn thay đổi t
 *   **Hành động:** Sửa lại các quy tắc báo giá (ví dụ: tăng giá đính đá từ 3k lên 5k).
 
 ### 💬 D. Muốn sửa câu trả lời tự động của Chatbot (Facebook)
-*   **Vào file:** `api/webhook.js`
-*   **Tìm đoạn:** `const TRAINING_DATA`
-*   **Hành động:** Thêm từ khóa mới hoặc sửa câu trả lời mẫu (địa chỉ, số tài khoản, pass wifi...).
+*   **Công cụ:** Sử dụng **Airtable** (Bảng `BotConfig`).
+*   **Hành động:** 
+    1. Mở bảng `BotConfig` trên Airtable.
+    2. Thêm dòng mới:
+       - **Keyword:** Từ khóa khách hay hỏi (Ví dụ: `TK_NGAN_HANG`, `WIFI`, `KHUYEN_MAI`).
+       - **Answer:** Câu trả lời của Bot.
+       - **Image:** Ảnh kèm theo (nếu có).
+*   **Lưu ý:** Bot sẽ tự động cập nhật kiến thức mới sau khoảng 1 phút (không cần sửa code).
 
 ### 📞 E. Muốn sửa thông tin liên hệ (SĐT, Link Fanpage)
 *   **Vào file:** `components/Footer.tsx` hoặc `components/Navbar.tsx`.
@@ -77,7 +83,7 @@ Danh sách các chìa khóa cần có:
 1.  `API_KEY`: Khóa của Google Gemini (để AI chạy).
 2.  `CLOUDINARY_*`: 3 khóa của Cloudinary (để upload ảnh).
 3.  `FB_PAGE_ACCESS_TOKEN`: Khóa của Facebook (để Chatbot trả lời).
-4.  `AIRTABLE_*`: Khóa của Airtable (để lưu đơn báo giá).
+4.  `AIRTABLE_*`: Khóa của Airtable (để lưu đơn báo giá & dạy Bot).
 
 ---
 
