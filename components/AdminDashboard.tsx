@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trash2, ShieldCheck, Database, MessageSquare, Plus, Edit2, Save, X, Image as ImageIcon, Loader2, Search, RefreshCw, Zap, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Trash2, ShieldCheck, Database, MessageSquare, Plus, Edit2, Save, X, Image as ImageIcon, Loader2, Search, RefreshCw, Zap, AlertTriangle, AlertCircle } from 'lucide-react';
 import { uploadToCloudinary } from '../services/cloudinaryService';
 
 interface AdminDashboardProps {
@@ -21,6 +21,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [rules, setRules] = useState<BotRule[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   
   // States cho Form (Thêm/Sửa)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,7 +45,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
             setRules(data.records);
         } else {
             console.error("Fetch Error:", data.message);
-            // Không alert lỗi ở đây để tránh spam popup khi mới vào, chỉ log
         }
     } catch (error) {
         console.error(error);
@@ -53,7 +53,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     }
   };
 
-  // Nạp dữ liệu mẫu (Seed Data) - PHIÊN BẢN NÂNG CẤP BẮT LỖI
+  // Nạp dữ liệu mẫu
   const handleSeedData = async () => {
       if (!window.confirm('Hệ thống sẽ nạp 3 kịch bản mẫu (Giá, Địa chỉ, Khuyến mãi) vào bảng BotConfig trên Airtable. Bạn có đồng ý không?')) return;
       
@@ -65,7 +65,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       ];
 
       try {
-          // Chạy tuần tự để bắt lỗi chính xác từng cái
           for (const item of defaults) {
               const res = await fetch('/api/bot-manager', {
                   method: 'POST',
@@ -74,19 +73,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
               });
               
               const data = await res.json();
-              
               if (!res.ok || !data.success) {
                   throw new Error(data.message || `Lỗi khi tạo mục ${item.keyword}`);
               }
           }
-
-          alert('✅ Đã nạp dữ liệu mẫu thành công! Dữ liệu đã xuất hiện trong danh sách.');
-          fetchRules(); // Reload lại list
+          alert('✅ Đã nạp dữ liệu mẫu thành công!');
+          fetchRules();
       } catch (e: any) {
           console.error(e);
-          alert(`❌ Nạp dữ liệu thất bại!\n\nNguyên nhân: ${e.message}\n\nHãy kiểm tra lại:\n1. Bạn đã nhập AIRTABLE_API_TOKEN trên Vercel chưa?\n2. Tên bảng 'BotConfig' và cột 'Attachments' trên Airtable đã đúng chưa?`);
+          alert(`❌ Nạp dữ liệu thất bại: ${e.message}\n\nVui lòng kiểm tra lại cấu hình Airtable.`);
       } finally {
           setLoading(false);
+      }
+  };
+
+  // Xóa toàn bộ dữ liệu (Dọn dẹp bảng)
+  const handleDeleteAll = async () => {
+      if (rules.length === 0) return;
+      if (!window.confirm(`CẢNH BÁO: Bạn có chắc muốn xóa TOÀN BỘ ${rules.length} kịch bản hiện tại không? Hành động này không thể hoàn tác!`)) return;
+
+      setIsDeletingAll(true);
+      try {
+          // Xóa từng cái một (Airtable API đơn giản)
+          for (const rule of rules) {
+               await fetch(`/api/bot-manager?id=${rule.id}`, { method: 'DELETE' });
+          }
+          alert('Đã xóa sạch dữ liệu.');
+          setRules([]);
+      } catch (e) {
+          alert('Có lỗi khi xóa dữ liệu.');
+      } finally {
+          setIsDeletingAll(false);
+          fetchRules();
       }
   };
 
@@ -132,7 +150,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       e.preventDefault();
       if (!formData.keyword || !formData.answer) return alert('Vui lòng nhập từ khóa và câu trả lời');
 
-      setUploading(true); // Tái sử dụng state loading cho lúc save
+      setUploading(true);
       
       try {
           const method = editingRule ? 'PATCH' : 'POST';
@@ -148,7 +166,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           const data = await res.json();
           if (data.success) {
               setIsModalOpen(false);
-              fetchRules(); // Reload list
+              fetchRules();
           } else {
               alert(`Lỗi lưu: ${data.message}`);
           }
@@ -159,12 +177,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       }
   };
 
-  // Handle Image Upload
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           setUploading(true);
           try {
-              // Đã đổi tên folder thành 'TrainingBot' theo yêu cầu
               const url = await uploadToCloudinary(e.target.files[0], 'TrainingBot');
               if (url) {
                   setFormData(prev => ({ ...prev, imageUrl: url }));
@@ -175,7 +191,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
               alert('Lỗi upload ảnh');
           } finally {
               setUploading(false);
-              // Reset input để chọn lại cùng 1 file được
               if (fileInputRef.current) fileInputRef.current.value = '';
           }
       }
@@ -208,7 +223,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                 </div>
 
                 <div className="flex-grow p-8 bg-vanilla-50/50 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Bot Manager Card */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group cursor-pointer" onClick={() => setView('bot-manager')}>
                         <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <MessageSquare className="w-8 h-8 text-purple-600" />
@@ -222,7 +236,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                         </button>
                     </div>
 
-                    {/* Cleanup Card */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
                         <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <Trash2 className="w-8 h-8 text-blue-600" />
@@ -239,12 +252,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
              </div>
         )}
 
-        {/* --- VIEW 2: BOT STUDIO (INTERFACE) --- */}
+        {/* --- VIEW 2: BOT STUDIO --- */}
         {view === 'bot-manager' && (
             <div className="max-w-5xl mx-auto h-[85vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-chestnut-100 overflow-hidden animate-fade-in">
-                {/* Studio Header */}
-                <div className="bg-white border-b border-gray-200 p-4 flex justify-between items-center shrink-0">
-                    <div className="flex items-center gap-4">
+                {/* Header */}
+                <div className="bg-white border-b border-gray-200 p-4 flex flex-col md:flex-row justify-between items-center shrink-0 gap-3">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
                         <button onClick={() => setView('menu')} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
                             <ArrowLeft className="w-6 h-6" />
                         </button>
@@ -253,115 +266,147 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                 <MessageSquare className="w-6 h-6 text-purple-600" /> 
                                 Bot Studio
                              </h2>
-                             <p className="text-xs text-gray-400 font-menu">Quản lý "bộ não" của Ki Nail Room</p>
+                             <p className="text-xs text-gray-400 font-menu">
+                                 {rules.length} kịch bản đang hoạt động
+                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                         <div className="relative hidden md:block">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input 
-                                type="text" 
-                                placeholder="Tìm từ khóa..." 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                         </div>
+                    
+                    <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                         {rules.length > 0 && (
+                             <button 
+                                onClick={handleDeleteAll}
+                                disabled={isDeletingAll}
+                                className="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs font-bold hover:bg-red-100 border border-red-100 flex items-center gap-1 transition-colors"
+                             >
+                                 {isDeletingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                 Xóa Hết
+                             </button>
+                         )}
+
                          <button 
                             onClick={fetchRules} 
                             disabled={loading}
                             className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
-                            title="Làm mới"
                          >
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                          </button>
                          <button 
                             onClick={openCreateModal}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold shadow-md shadow-purple-200 transition-all active:scale-95 flex items-center gap-2 text-sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold shadow-md shadow-purple-200 transition-all active:scale-95 flex items-center gap-2 text-sm whitespace-nowrap"
                          >
-                            <Plus className="w-4 h-4" /> <span className="hidden md:inline">Thêm Mới</span>
+                            <Plus className="w-4 h-4" /> Thêm Mới
                          </button>
                     </div>
                 </div>
 
-                {/* Content - Rules Grid */}
-                <div className="flex-grow overflow-y-auto p-6 bg-vanilla-50/50">
+                {/* Search Bar (Mobile only needs margin) */}
+                <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 md:hidden">
+                    <input 
+                        type="text" 
+                        placeholder="Tìm từ khóa..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                </div>
+
+                {/* Content */}
+                <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-vanilla-50/50">
                     {loading && rules.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-400">
                             <Loader2 className="w-10 h-10 animate-spin mb-2" />
                             <p>Đang tải dữ liệu từ Airtable...</p>
                         </div>
-                    ) : filteredRules.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                             {/* EMPTY STATE VỚI NÚT SEED DATA */}
-                             {rules.length === 0 && !loading ? (
-                                <>
-                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-                                        <Database className="w-10 h-10 text-gray-400" />
-                                    </div>
-                                    <div className="text-center max-w-sm">
-                                        <h3 className="text-lg font-bold text-gray-800 mb-1">Chưa có dữ liệu tùy chỉnh</h3>
-                                        <p className="text-sm text-gray-500 mb-6">
-                                            Bot đang chạy bằng dữ liệu mặc định (hardcode). Hãy nạp dữ liệu này vào hệ thống để bắt đầu chỉnh sửa.
-                                        </p>
-                                        <button 
-                                            onClick={handleSeedData}
-                                            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-lg shadow-purple-200 flex items-center gap-2 mx-auto transition-transform active:scale-95"
-                                        >
-                                            <Zap className="w-4 h-4 fill-current" /> Nạp Dữ Liệu Mẫu
-                                        </button>
-                                        <p className="text-xs text-red-400 mt-4 italic flex items-center justify-center gap-1">
-                                            <AlertTriangle className="w-3 h-3" /> Yêu cầu đã cấu hình Airtable API
-                                        </p>
-                                    </div>
-                                </>
-                             ) : (
-                                <>
-                                    <Search className="w-12 h-12 mb-3 opacity-30" />
-                                    <p>Không tìm thấy kết quả nào cho "{searchTerm}"</p>
-                                </>
-                             )}
-                        </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {filteredRules.map((rule) => (
-                                <div key={rule.id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all group flex flex-col">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide">
-                                            {rule.keyword}
-                                        </span>
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => openEditModal(rule)} className="p-1.5 hover:bg-gray-100 rounded-lg text-blue-600" title="Sửa">
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button onClick={() => handleDelete(rule.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600" title="Xóa">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                        <>
+                            {/* NÚT NẠP DỮ LIỆU LUÔN HIỂN THỊ NẾU DANH SÁCH < 3 HOẶC TRỐNG */}
+                            {(rules.length === 0 || rules.length < 3) && (
+                                <div className="mb-6 p-4 bg-purple-50 rounded-2xl border border-purple-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-purple-100 p-2 rounded-full">
+                                            <Zap className="w-6 h-6 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-purple-900 text-sm">Khởi động nhanh</h4>
+                                            <p className="text-xs text-purple-600">Nạp dữ liệu mẫu (Giá, Địa chỉ...) để Bot chạy ngay.</p>
                                         </div>
                                     </div>
-                                    
-                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-grow font-menu">
-                                        {rule.answer}
-                                    </p>
-
-                                    {rule.imageUrl && (
-                                        <div className="mt-auto pt-3 border-t border-gray-50">
-                                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                <ImageIcon className="w-3 h-3" />
-                                                <span className="truncate max-w-[150px]">Có ảnh đính kèm</span>
-                                                <a href={rule.imageUrl} target="_blank" rel="noreferrer" className="ml-auto text-purple-600 hover:underline">Xem</a>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <button 
+                                        onClick={handleSeedData}
+                                        disabled={loading}
+                                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md shadow-purple-200 w-full md:w-auto"
+                                    >
+                                        Nạp Dữ Liệu Mẫu
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+
+                            {filteredRules.length === 0 && rules.length > 0 ? (
+                                <div className="text-center py-10 text-gray-400">
+                                    <Search className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                    <p>Không tìm thấy kết quả nào.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {filteredRules.map((rule) => {
+                                        // KIỂM TRA DỮ LIỆU LỖI (Rỗng)
+                                        const isBroken = !rule.keyword || !rule.answer || rule.keyword === '' || rule.answer === '';
+
+                                        return (
+                                            <div key={rule.id} className={`bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition-all group flex flex-col ${isBroken ? 'border-red-300 ring-1 ring-red-100 bg-red-50/30' : 'border-gray-100'}`}>
+                                                <div className="flex justify-between items-start mb-3">
+                                                    {rule.keyword ? (
+                                                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                                            {rule.keyword}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-bold uppercase flex items-center gap-1">
+                                                            <AlertTriangle className="w-3 h-3" /> Lỗi: Trống
+                                                        </span>
+                                                    )}
+                                                    
+                                                    <div className="flex gap-1">
+                                                        <button onClick={() => openEditModal(rule)} className="p-1.5 hover:bg-gray-100 rounded-lg text-blue-600" title="Sửa">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(rule.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600" title="Xóa">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                {rule.answer ? (
+                                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-grow font-menu">
+                                                        {rule.answer}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-red-400 text-sm italic mb-4 flex-grow flex items-center gap-1">
+                                                        <AlertCircle className="w-3 h-3" /> Dữ liệu câu trả lời bị trống.
+                                                    </p>
+                                                )}
+
+                                                {rule.imageUrl && (
+                                                    <div className="mt-auto pt-3 border-t border-gray-50">
+                                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                            <ImageIcon className="w-3 h-3" />
+                                                            <span className="truncate max-w-[150px]">Có ảnh đính kèm</span>
+                                                            <a href={rule.imageUrl} target="_blank" rel="noreferrer" className="ml-auto text-purple-600 hover:underline">Xem</a>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
         )}
 
-        {/* --- MODAL FORM (Create/Edit) --- */}
+        {/* --- MODAL FORM --- */}
         {isModalOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
                 <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-float">
