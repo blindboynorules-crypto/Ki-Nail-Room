@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trash2, ShieldCheck, Database, MessageSquare, Plus, Edit2, Save, X, Image as ImageIcon, Loader2, Search, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Trash2, ShieldCheck, Database, MessageSquare, Plus, Edit2, Save, X, Image as ImageIcon, Loader2, Search, RefreshCw, Zap } from 'lucide-react';
 import { uploadToCloudinary } from '../services/cloudinaryService';
 
 interface AdminDashboardProps {
@@ -51,6 +51,35 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     } finally {
         setLoading(false);
     }
+  };
+
+  // Nạp dữ liệu mẫu (Seed Data)
+  const handleSeedData = async () => {
+      if (!window.confirm('Hệ thống sẽ nạp 3 kịch bản mẫu (Giá, Địa chỉ, Khuyến mãi) để bạn chỉnh sửa. Bạn có đồng ý không?')) return;
+      
+      setLoading(true);
+      const defaults = [
+          { keyword: 'PRICE', answer: 'Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!', imageUrl: 'https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg' },
+          { keyword: 'ADDRESS', answer: 'Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A, Bình Tân ạ.', imageUrl: '' },
+          { keyword: 'PROMOTION', answer: 'Dạ hiện tại Ki đang có ưu đãi giảm 10% cho khách đặt lịch trước nha.', imageUrl: '' }
+      ];
+
+      try {
+          // Promise.all để chạy song song cho nhanh
+          await Promise.all(defaults.map(item => 
+              fetch('/api/bot-manager', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(item)
+              })
+          ));
+          alert('Đã nạp dữ liệu mẫu thành công! Bây giờ bạn có thể chỉnh sửa chúng.');
+          fetchRules(); // Reload lại list
+      } catch (e) {
+          alert('Có lỗi khi nạp dữ liệu.');
+      } finally {
+          setLoading(false);
+      }
   };
 
   // Mở Bot Manager
@@ -255,9 +284,32 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                             <p>Đang tải dữ liệu từ Airtable...</p>
                         </div>
                     ) : filteredRules.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                            <Database className="w-12 h-12 mb-3 opacity-50" />
-                            <p>Chưa có dữ liệu nào. Hãy thêm mới!</p>
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
+                             {/* EMPTY STATE VỚI NÚT SEED DATA */}
+                             {rules.length === 0 && !loading ? (
+                                <>
+                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <Database className="w-10 h-10 text-gray-400" />
+                                    </div>
+                                    <div className="text-center max-w-sm">
+                                        <h3 className="text-lg font-bold text-gray-800 mb-1">Chưa có dữ liệu tùy chỉnh</h3>
+                                        <p className="text-sm text-gray-500 mb-6">
+                                            Bot đang chạy bằng dữ liệu mặc định (hardcode). Hãy nạp dữ liệu này vào hệ thống để bắt đầu chỉnh sửa.
+                                        </p>
+                                        <button 
+                                            onClick={handleSeedData}
+                                            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-lg shadow-purple-200 flex items-center gap-2 mx-auto transition-transform active:scale-95"
+                                        >
+                                            <Zap className="w-4 h-4 fill-current" /> Nạp Dữ Liệu Mẫu
+                                        </button>
+                                    </div>
+                                </>
+                             ) : (
+                                <>
+                                    <Search className="w-12 h-12 mb-3 opacity-30" />
+                                    <p>Không tìm thấy kết quả nào cho "{searchTerm}"</p>
+                                </>
+                             )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
