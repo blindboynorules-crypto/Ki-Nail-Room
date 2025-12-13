@@ -121,44 +121,44 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     NHIỆM VỤ 2: PHÂN TÍCH VÀ BÁO GIÁ CHI TIẾT (CỘNG DỒN)
     Hãy quan sát kỹ từng chi tiết và CỘNG DỒN giá tiền như một người thợ tính tiền cho khách.
     
-    *** BẢNG GIÁ NIÊM YẾT:
+    *** BẢNG GIÁ NIÊM YẾT (ĐƠN VỊ: VNĐ - VIẾT ĐẦY ĐỦ SỐ 0):
     
     1. DỊCH VỤ NỀN & FORM (BẮT BUỘC): 
-       - Cắt da/Sửa móng: 30k
-       - Sơn Gel trơn: 80k (Luôn tính mục này nếu có sơn màu)
-       - Up móng base: 120k (Nếu thấy móng dài, form chuẩn giả).
-       => LƯU Ý QUAN TRỌNG: Nếu là móng úp/nối, phải tính CẢ HAI: Up móng base (120k) + Sơn gel (80k).
+       - Cắt da/Sửa móng: 30.000
+       - Sơn Gel trơn: 80.000 (Luôn tính mục này nếu có sơn màu)
+       - Up móng base: 120.000 (Một trăm hai mươi nghìn - Dành cho móng dài, form chuẩn giả).
+       => LƯU Ý QUAN TRỌNG: Nếu là móng úp/nối, phải tính CẢ HAI: Up móng base (120.000) + Sơn gel (80.000).
 
     2. MÀU SẮC (SƠN THÊM):
        - Sơn 1 màu chủ đạo: Không tính thêm.
-       - Sơn 2 màu (Thêm 1 màu): +10k.
-       - Sơn 3 màu trở lên (Thêm 2 màu): +20k.
+       - Sơn 2 màu (Thêm 1 màu): +10.000
+       - Sơn 3 màu trở lên (Thêm 2 màu): +20.000
 
     3. DESIGN TRANG TRÍ (TÍNH THEO NGÓN/BỘ):
        Hãy cố gắng đếm số lượng ngón có design.
-       - French (Kẻ đầu móng): 10k / ngón.
-       - **Vẽ nét đơn giản (Level 1)**: 10k / ngón.
-       - **Vẽ hình đơn giản (Level 2 - Nơ, trái tim, chấm bi)**: 15k / ngón.
-       - **Vẽ Gel Họa Tiết (Level 3 - Bò sữa, Caro, Vẽ full móng)**: 20k / ngón.
-       - Vẽ gel nổi / Charm / Sticker: 20k / ngón.
-       - **Nhũ (Vàng/Bạc/Kim tuyến)**: 10k / ngón.
-       - **Combo Vẽ nổi + Tráng gương (Trên cùng 1 ngón)**: 15k / ngón.
-       - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20k / ngón.
+       - French (Kẻ đầu móng): 10.000 / ngón.
+       - **Vẽ nét đơn giản (Level 1)**: 10.000 / ngón.
+       - **Vẽ hình đơn giản (Level 2 - Nơ, trái tim, chấm bi)**: 15.000 / ngón.
+       - **Vẽ Gel Họa Tiết (Level 3 - Bò sữa, Caro, Vẽ full móng)**: 20.000 / ngón.
+       - Vẽ gel nổi / Charm / Sticker: 20.000 / ngón.
+       - **Nhũ (Vàng/Bạc/Kim tuyến)**: 10.000 / ngón.
+       - **Combo Vẽ nổi + Tráng gương (Trên cùng 1 ngón)**: 15.000 / ngón.
+       - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20.000 / ngón.
        
-       - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130k-150k / bộ (Đã bao gồm nền).
-       - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic (70k), Ngọc trai/Aurora (80k), Cầu vồng/Hologram (80k)): 70k-80k / bộ.
+       - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130.000 - 150.000 / bộ (Đã bao gồm nền).
+       - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic (70.000), Ngọc trai/Aurora (80.000), Cầu vồng/Hologram (80.000)): 70.000 - 80.000 / bộ.
        
        => LƯU Ý COMBO: 
-       - Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70k + 70k).
-       - French đầu móng + Tráng gương (French Chrome) -> Tính tiền cả hai (French 10k/ngón + Tráng gương 70k/bộ).
+       - Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70.000 + 70.000).
+       - French đầu móng + Tráng gương (French Chrome) -> Tính tiền cả hai (French 10.000/ngón + Tráng gương 70.000/bộ).
 
     4. PHỤ KIỆN (ĐÁ): 
-       - Đá nhỏ: 3k / viên.
-       - Đá phối (Size vừa, charm nhỏ): 10k / viên.
-       - Đá khối (Đá to): 15k-35k / viên.
+       - Đá nhỏ: 3.000 / viên.
+       - Đá phối (Size vừa, charm nhỏ): 10.000 / viên.
+       - Đá khối (Đá to): 15.000 - 35.000 / viên.
 
     *** CÁC VÍ DỤ TÍNH TIỀN MẪU (HÃY HỌC THUỘC LÒNG):
-    (Examples retained for brevity)
+    (Examples retained for brevity - removed to save space but logic is updated)
     
     Yêu cầu trả về JSON chuẩn:
     {

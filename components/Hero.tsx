@@ -157,8 +157,12 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                 {/* Decorative border ring */}
                 <div className="absolute inset-0 border-[1.5px] border-chestnut-300 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
                 
-                {/* Main Image Container */}
-                <div className="relative rounded-t-full rounded-b-[100px] overflow-hidden shadow-2xl border-[6px] border-white z-10 aspect-[3/4] bg-chestnut-100 transform md:translate-x-4">
+                {/* Main Image Container - FIX OVERFLOW BUG */}
+                {/* THÊM: isolate và WebkitMaskImage để fix lỗi tràn viền trên Safari */}
+                <div 
+                  className="relative rounded-t-full rounded-b-[100px] overflow-hidden shadow-2xl border-[6px] border-white z-10 aspect-[3/4] bg-chestnut-100 transform md:translate-x-4 isolate"
+                  style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
+                >
                   
                   {/* --- MAIN IMAGE (LAYER 0 - BOTTOM) --- */}
                   {/* Đặt ảnh xuống dưới cùng trong DOM để z-index hoạt động đúng khi scale */}
