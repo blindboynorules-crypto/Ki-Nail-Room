@@ -2,8 +2,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V95_SILENT_MODE
+// VERSION: V96_FIX_INTENT_CO_DAU
 // TÍNH NĂNG: Im lặng tuyệt đối khi khách cần tư vấn mẫu riêng (CONSULTATION)
+// FIX: Sửa lỗi nhận diện nhầm "đi ạ" thành ADDRESS
 
 // ============================================================
 // 1. HÀM LẤY DỮ LIỆU TỪ AIRTABLE (BỘ NÃO)
@@ -109,6 +110,7 @@ async function classifyIntentWithGemini(userMessage) {
     const ai = new GoogleGenAI({ apiKey });
     
     // Prompt được nâng cấp để phân biệt VIEW_MENU và CONSULTATION
+    // FIX: Thêm ràng buộc để tránh nhầm "đi ạ" thành Address
     const systemInstruction = `
     ROLE: You are the Receptionist AI for "Ki Nail Room".
     TASK: Classify the user's Vietnamese message into one of the following INTENTS.
@@ -116,16 +118,17 @@ async function classifyIntentWithGemini(userMessage) {
     INTENT CATEGORIES:
     1. ADDRESS
        - Keywords: địa chỉ, ở đâu, khúc nào, map, đường, location.
+       - NEGATIVE RULE: "đi ạ", "đi shop", "nha", "nhé" at the end of a sentence are polite particles, NOT address requests. "Cho mình xin..." is NOT address.
 
     2. VIEW_MENU (Asking for general price list)
        - User wants to see the menu/price list generally.
        - Keywords: "xin bảng giá", "menu", "giá sao shop", "price list", "rổ giá", "bảng giá", "xem giá".
        - Example: "Cho em xin bảng giá", "Có menu ko ạ".
 
-    3. CONSULTATION (Asking price for SPECIFIC design/photo/service)
-       - User sends a photo or asks about a SPECIFIC set/design.
-       - Keywords: "bộ này", "mẫu này", "làm như này", "tư vấn", "bao nhiêu tiền bộ này", "móng thật làm bộ này".
-       - Example: "Bộ này bao nhiêu", "Tư vấn giúp em giá bộ này", "Mình làm móng thật nha báo giá giúp".
+    3. CONSULTATION (Asking for SPECIFIC design, photo, service or price)
+       - User sends a photo, asks about a SPECIFIC set/design, or asks to SEE designs.
+       - Keywords: "bộ này", "mẫu này", "làm như này", "tư vấn", "bao nhiêu tiền bộ này", "móng cô dâu", "wedding", "xin mẫu", "gửi mẫu", "có mẫu không".
+       - Example: "Cho mình xin móng cô dâu", "Tư vấn giúp em giá bộ này", "Mình làm móng thật nha báo giá giúp".
 
     4. PROMOTION
        - Keywords: khuyến mãi, giảm giá, sale, discount, voucher, km, ctkm, kmai, phien mai.
@@ -177,9 +180,11 @@ function classifyIntentWithKeywords(text) {
     ) return 'PROMOTION';
     
     // 2. CONSULTATION (Ưu tiên bắt các từ chỉ định cụ thể trước)
+    // CẬP NHẬT: Thêm 'co dau', 'xin mau', 'wedding' để bắt dính móng cô dâu
     if (
         t.includes('bo nay') || t.includes('mau nay') || t.includes('hinh nay') || 
-        t.includes('nhu nay') || t.includes('tu van') || t.includes('lam mong that')
+        t.includes('nhu nay') || t.includes('tu van') || t.includes('lam mong that') ||
+        t.includes('co dau') || t.includes('wedding') || t.includes('xin mau')
     ) return 'CONSULTATION';
 
     // 3. VIEW_MENU (Hỏi giá chung)
@@ -188,7 +193,9 @@ function classifyIntentWithKeywords(text) {
     ) return 'VIEW_MENU';
     
     // 4. ADDRESS
-    if (t.includes('dia chi') || t.includes('o dau') || t.includes('map') || t.includes('duong')) return 'ADDRESS';
+    // Cẩn thận với từ 'duong' (đường) nếu nó nằm trong ngữ cảnh khác.
+    if (t.includes('dia chi') || t.includes('o dau') || t.includes('map') || (t.includes('duong') && t.includes('nao'))) return 'ADDRESS';
+    if (t.includes('dia chi') || t.includes('location')) return 'ADDRESS';
     
     return 'SILENCE';
 }
