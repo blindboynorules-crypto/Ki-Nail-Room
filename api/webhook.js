@@ -2,11 +2,11 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V110_STRICT_RECOGNITION
-// TÍNH NĂNG: Phân biệt câu hỏi Tổng và câu hỏi Chi tiết. Im lặng đúng lúc.
+// VERSION: V111_ULTRA_STRICT
+// TÍNH NĂNG: Phân loại ý định nghiêm ngặt. Chỉ phản hồi thông tin tổng quát.
 
 // ============================================================
-// 1. TRUY VẤN KIẾN THỨC TỪ AIRTABLE (LẤY CẢ ẢNH)
+// 1. TRUY VẤN KIẾN THỨC TỪ AIRTABLE
 // ============================================================
 let _botRulesCache = null;
 let _lastFetchTime = 0;
@@ -62,15 +62,15 @@ async function getQuoteFromAirtable(recordId) {
         const total = new Intl.NumberFormat('vi-VN').format(f["Total Estimate"] || 0);
 
         return {
-            intro: `🎊 Ki đã nhận được yêu cầu báo giá! Nàng đợi xíu Ki tải chi tiết cho nha... 💅✨`,
-            breakdown: `📋 CHI TIẾT BÁO GIÁ AI:\n\n${itemsText}\n\n--------------------\n💰 TỔNG CỘNG: ${total}đ\n--------------------\nGiá này do AI của Ki Nail gửi trước cho mình để tham khảo thôi nhen.`,
+            intro: `🎊 Đã nhận được yêu cầu báo giá! Hệ thống đang tải chi tiết, vui lòng đợi trong giây lát... 💅✨`,
+            breakdown: `📋 CHI TIẾT BÁO GIÁ AI:\n\n${itemsText}\n\n--------------------\n💰 TỔNG CỘNG: ${total}đ\n--------------------\nLưu ý: Đây là báo giá tham khảo từ AI.`,
             image: f["Image URL"] || null
         };
     } catch (e) { return null; }
 }
 
 // ============================================================
-// 2. BỘ NÃO PHÂN LOẠI THÔNG MINH (V110)
+// 2. BỘ NÃO PHÂN LOẠI THÔNG MINH (V111)
 // ============================================================
 async function classifyIntent(userMessage, keywords) {
     const apiKey = process.env.API_KEY;
@@ -83,27 +83,29 @@ async function classifyIntent(userMessage, keywords) {
             contents: userMessage,
             config: {
                 systemInstruction: `
-                    Bạn là trợ lý lọc tin nhắn cho Ki Nail Room.
-                    Nhiệm vụ: Chỉ trả lời các câu hỏi CHUNG CHUNG. Tuyệt đối im lặng với các câu hỏi CHI TIẾT.
+                    Nhiệm vụ: Phân loại ý định tin nhắn khách hàng cho tiệm Nail.
+                    Quy tắc nghiêm ngặt: Chỉ phản hồi các câu hỏi TỔNG QUÁT. Tuyệt đối im lặng với câu hỏi CHI TIẾT.
 
-                    DANH SÁCH TỪ KHÓA: [${keywords.join(", ")}]
+                    DANH SÁCH Ý ĐỊNH:
+                    1. PRICE: Khách hỏi bảng giá tổng hoặc menu chung. 
+                       - Ví dụ: "cho xin menu", "bảng giá sao ạ", "xin giá", "giá cả thế nào".
+                       - NGOẠI LỆ: Nếu câu hỏi chứa tên dịch vụ cụ thể (VD: "giá móng úp", "nối móng nhiêu", "sơn gel nhiêu") -> TRẢ VỀ __SILENCE__.
+                    2. ADDRESS: Khách hỏi vị trí/địa chỉ tiệm. 
+                       - Ví dụ: "tiệm ở đâu", "địa chỉ", "xin vị trí".
+                    3. PROMOTION: Khách hỏi về khuyến mãi/giảm giá hiện có.
+                       - Ví dụ: "có sale không", "có khuyến mãi gì không", "đang có ưu đãi gì".
 
-                    QUY TẮC PHÂN LOẠI:
-                    1. PRICE (Bảng giá tổng): Chỉ khi khách hỏi "menu", "bảng giá", "giá cả bên mình sao", "xin giá".
-                       -> Nếu hỏi giá của MỘT DỊCH VỤ CỤ THỂ (VD: "giá móng úp hông", "nối móng nhiêu", "sơn gel nhiêu") -> TRẢ VỀ __SILENCE__.
-                    2. ADDRESS (Địa chỉ): Khách hỏi "tiệm ở đâu", "địa chỉ", "xin map", "vị trí".
-                    3. PROMOTION (Khuyến mãi): Khách hỏi "đợt này có sale hông", "có khuyến mãi gì không", "có ưu đãi hok".
+                    XỬ LÝ NGÔN NGỮ:
+                    - Các từ "hông", "hok", "vậy", "dạ", "ko", "k" là trợ từ, không phải nội dung chính.
+                    - Phải phân biệt rõ "Bảng giá tổng" và "Giá của 1 dịch vụ".
 
-                    LƯU Ý NGÔN NGỮ GEN Z:
-                    - "hông", "hok", "ko", "k", "hem" -> Chỉ là trợ từ kết thúc câu hỏi, không phải từ khóa chính.
-                    
-                    QUY TẮC IM LẶNG TUYỆT ĐỐI (__SILENCE__):
-                    - Hỏi giá dịch vụ cụ thể: "móng úp nhiêu", "vẽ móng nhiêu", "phá móng nhiêu"...
-                    - Hỏi về kỹ thuật/thời gian/độ bền: "mẫu này bền hông", "làm lâu hông".
-                    - Gửi ảnh rồi hỏi tư vấn.
-                    - Chào hỏi, khen ngợi.
+                    TRẢ VỀ __SILENCE__ (IM LẶNG) KHI:
+                    - Hỏi giá dịch vụ cụ thể: móng úp, nối móng, đắp gel, vẽ móng, phá móng...
+                    - Hỏi về kỹ thuật: có bền không, có đau không, làm mất bao lâu.
+                    - Gửi ảnh mẫu và hỏi tư vấn/báo giá.
+                    - Tin nhắn chào hỏi, khen ngợi hoặc tán gẫu.
 
-                    KẾT QUẢ: Duy nhất 1 từ (PRICE, ADDRESS, PROMOTION hoặc __SILENCE__).
+                    KẾT QUẢ: Chỉ trả về 1 từ duy nhất (PRICE, ADDRESS, PROMOTION hoặc __SILENCE__).
                 `,
                 temperature: 0
             }
@@ -144,7 +146,7 @@ export default async function handler(req, res) {
                     if (quote.image) await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, psid, quote.image);
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: quote.breakdown });
                     await sendFacebookButton(FB_PAGE_ACCESS_TOKEN, psid, 
-                        "Để xem thông tin chi tiết, nàng bấm vào nút bên dưới. Ki Nail sẽ tư vấn cụ thể và giải đáp cho mình ạ.",
+                        "Để được tư vấn cụ thể và chốt lịch, vui lòng nhấn nút bên dưới để gặp nhân viên ạ.",
                         [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_WITH_STAFF" }]
                     );
                     continue; 
@@ -156,7 +158,7 @@ export default async function handler(req, res) {
                 const text = event.message.text.trim();
                 
                 if (text.toLowerCase() === 'ping kinail') {
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Ki Nail Room [V110] - Logic Siết Chặt Đã Sẵn Sàng! 💅🛡️" });
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Ki Nail Room Webhook V111 - Logic Ultra Strict Ready! 🛡️" });
                     continue;
                 }
 
