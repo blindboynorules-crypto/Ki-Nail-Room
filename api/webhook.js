@@ -2,9 +2,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V99_FIX_TIENG_VS_TIEN
+// VERSION: V100_GEMINI_3_FLASH_UPGRADE
 // TÍNH NĂNG: Im lặng tuyệt đối khi khách cần tư vấn mẫu riêng hoặc hỏi thời gian
-// FIX: Sửa lỗi nhận diện nhầm "tiếng" (hours) thành "tiền" (price)
+// UPGRADE: Chuyển sang Gemini 3 Flash để phân loại ý định thông minh hơn
 
 // ============================================================
 // 1. HÀM LẤY DỮ LIỆU TỪ AIRTABLE (BỘ NÃO)
@@ -86,7 +86,7 @@ const FALLBACK_TEMPLATES = {
 };
 
 // ============================================================
-// 3. XỬ LÝ AI GEMINI (PHÂN LOẠI Ý ĐỊNH)
+// 3. XỬ LÝ AI GEMINI (PHÂN LOẠI Ý ĐỊNH - UPGRADE GEMINI 3)
 // ============================================================
 async function classifyIntentWithGemini(userMessage) {
     const apiKey = process.env.API_KEY;
@@ -103,20 +103,20 @@ async function classifyIntentWithGemini(userMessage) {
     2. VIEW_MENU: Asking for general price list/menu.
     3. CONSULTATION: Asking for specific designs, showing photos, or asking price for a specific set.
     4. PROMOTION: Asking for discounts/sales.
-    5. DURATION: Asking how long a service takes (e.g., "mấy tiếng", "bao lâu", "mấy giờ xong").
-    6. SILENCE: Greetings, booking, or duration questions.
+    5. DURATION: Asking how long a service takes (e.g., "mấy tiếng", "bao lâu").
+    6. SILENCE: Greetings, booking, small talk or questions about duration.
 
-    CRITICAL RULE:
-    - If the user asks "How long" (bao lâu, mấy tiếng), classify as SILENCE or DURATION.
-    - "Bao nhiêu tiếng" is NOT asking for price.
-    - If unsure, return SILENCE.
+    RULES FOR GEMINI 3:
+    - "Cho mình xin mẫu cô dâu đi ạ" -> CONSULTATION (NOT ADDRESS).
+    - "Làm trong bao lâu", "2 tiếng cho tay chân" -> DURATION/SILENCE (NOT VIEW_MENU/PRICE).
+    - If unsure, always return SILENCE to let human staff handle it.
 
     OUTPUT: Return ONLY the intent name (ADDRESS, VIEW_MENU, CONSULTATION, PROMOTION, SILENCE).
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             contents: userMessage,
             config: {
                 systemInstruction: systemInstruction,
@@ -131,7 +131,7 @@ async function classifyIntentWithGemini(userMessage) {
         if (intent.includes('VIEW_MENU')) return 'VIEW_MENU';
         if (intent.includes('CONSULTATION')) return 'CONSULTATION';
         if (intent.includes('ADDRESS')) return 'ADDRESS';
-        if (intent.includes('DURATION')) return 'SILENCE'; // Im lặng khi hỏi thời gian
+        if (intent.includes('DURATION')) return 'SILENCE'; 
         
         return "SILENCE";
     } catch (error) {
@@ -146,21 +146,12 @@ function classifyIntentWithKeywords(text) {
     const t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const rawT = text.toLowerCase();
 
-    // 1. DURATION (Bắt trước để không nhầm sang tiền)
     if (t.includes('bao lau') || t.includes('may tieng') || t.includes('lam lau ko') || t.includes('may gio xong')) return 'SILENCE';
-
-    // 2. PROMOTION
     if (rawT.includes('km') || rawT.includes('ctkm') || t.includes('sale') || t.includes('uu dai') || t.includes('giam gia')) return 'PROMOTION';
-    
-    // 3. CONSULTATION
     if (t.includes('bo nay') || t.includes('mau nay') || t.includes('co dau') || t.includes('xin mau')) return 'CONSULTATION';
 
-    // 4. VIEW_MENU (Sửa lỗi bắt nhầm "tiếng" thành "tiền")
-    // Sử dụng Regex để đảm bảo "tien" là một từ độc lập, không phải là một phần của "tieng"
     const hasPriceKeyword = /\b(gia|menu|bang gia)\b/.test(t) || /\b(tien)\b/.test(t);
     if (hasPriceKeyword) return 'VIEW_MENU';
-    
-    // 5. ADDRESS
     if (t.includes('dia chi') || t.includes('o dau') || t.includes('map')) return 'ADDRESS';
     
     return 'SILENCE';
@@ -195,19 +186,13 @@ export default async function handler(req, res) {
 
                 if (webhook_event.message && webhook_event.message.text) {
                     const userMessage = webhook_event.message.text.trim();
-                    
-                    // --- BƯỚC 1: AI phân loại ---
                     let intent = await classifyIntentWithGemini(userMessage);
 
-                    // --- BƯỚC 2: Keyword fallback ---
                     if (intent === 'SILENCE') {
                         const fallbackIntent = classifyIntentWithKeywords(userMessage);
-                        if (fallbackIntent !== 'SILENCE') {
-                            intent = fallbackIntent;
-                        }
+                        if (fallbackIntent !== 'SILENCE') intent = fallbackIntent;
                     }
 
-                    // --- BƯỚC 3: Phản hồi ---
                     let responseData = null;
                     if (airtableConfig && airtableConfig[intent]) {
                         responseData = airtableConfig[intent];

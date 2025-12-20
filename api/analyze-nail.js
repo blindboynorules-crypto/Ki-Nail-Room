@@ -1,8 +1,9 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 // api/analyze-nail.js
-// VERSION: V80_GROUNDING_SUPPORT
-// SECURE PROXY: Server-side Gemini API call
+// VERSION: V82_GEMINI_3_THINKING_UPGRADE
+// SECURE PROXY: Server-side Gemini API call with Thinking capabilities
 
 export default async function handler(req, res) {
   // CORS configuration
@@ -34,22 +35,20 @@ export default async function handler(req, res) {
 
     const aiClient = new GoogleGenAI({ apiKey });
     
-    // Dynamic Configuration based on Type
-    let model = "gemini-2.5-flash";
+    // Upgrade to Gemini 3 Flash Preview
+    let model = "gemini-3-flash-preview";
     let contents = { parts: [] };
     let config = {};
 
     if (type === 'chat') {
         // --- CHAT MODE (With Grounding) ---
-        // Uses Google Search to find latest info (trends, etc.)
         contents.parts.push({ text: prompt });
         config = {
             tools: [{ googleSearch: {} }], 
-            temperature: 0.7, // Higher temperature for conversational style
+            temperature: 0.7,
         };
     } else {
-        // --- PRICING/VISION MODE (Strict JSON) ---
-        // Forces structured JSON output for the pricing UI
+        // --- PRICING/VISION MODE (Strict JSON + Thinking) ---
         if (imageBase64) {
              contents.parts.push({ inlineData: { data: imageBase64, mimeType: mimeType || 'image/jpeg' } });
         }
@@ -59,11 +58,13 @@ export default async function handler(req, res) {
             temperature: 0,
             topP: 0.1,
             topK: 1,
-            seed: 1
+            seed: 1,
+            // Kích hoạt Thinking Budget để AI tính toán logic hơn (đếm ngón, cộng tiền)
+            thinkingConfig: { thinkingBudget: 2000 } 
         };
     }
 
-    console.log(`Calling Gemini [${type || 'pricing'} mode]...`);
+    console.log(`Calling Gemini [${model} - ${type || 'pricing'} mode with Thinking]...`);
 
     const result = await aiClient.models.generateContent({
       model,
@@ -71,11 +72,7 @@ export default async function handler(req, res) {
       config
     });
 
-    // Extract Text Response
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    
-    // Extract Grounding Metadata (For Chat Mode)
-    // Contains URLs and titles of sources used by Google Search
+    const text = result.text || "";
     const groundingMetadata = result.candidates?.[0]?.groundingMetadata;
 
     return res.status(200).json({ text, groundingMetadata });
