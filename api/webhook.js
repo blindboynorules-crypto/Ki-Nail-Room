@@ -2,49 +2,43 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V102_FIX_QUOTE_RETRIEVAL
-// TÍNH NĂNG: Sửa lỗi không nhận mã đơn hàng (ref) từ Website & Admin PING
+// VERSION: V105_STRICT_GEMINI_BRAIN
+// TÍNH NĂNG: Chỉ trả lời Địa chỉ/Giá/KM + Báo giá AI từ Web. Còn lại IM LẶNG.
 
 // ============================================================
-// 1. HÀM LẤY CẤU HÌNH BOT (MENU, ĐỊA CHỈ...) TỪ AIRTABLE
+// 1. TRUY VẤN KIẾN THỨC TỪ AIRTABLE
 // ============================================================
 let _botConfigCache = null;
 let _lastFetchTime = 0;
 
-async function getBotConfigFromAirtable() {
+async function getSalonKnowledge() {
     const NOW = Date.now();
-    if (_botConfigCache && (NOW - _lastFetchTime < 60000)) return _botConfigCache;
+    if (_botConfigCache && (NOW - _lastFetchTime < 120000)) return _botConfigCache;
 
     const token = process.env.AIRTABLE_API_TOKEN;
     const baseId = process.env.AIRTABLE_BASE_ID;
-    if (!token || !baseId) return null;
+    if (!token || !baseId) return "";
 
     try {
         const res = await fetch(`https://api.airtable.com/v0/${baseId}/BotConfig?maxRecords=50`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
-        if (!data.records) return null;
+        if (!data.records) return "";
 
-        const config = {};
+        let knowledgeBase = "DƯỚI ĐÂY LÀ KIẾN THỨC BẠN ĐÃ ĐƯỢC DẠY:\n";
         data.records.forEach(r => {
-            const k = r.fields.Keyword ? r.fields.Keyword.trim().toUpperCase() : null;
-            if (k) {
-                config[k] = {
-                    text: r.fields.Answer || "Dạ Ki đang cập nhật ạ.",
-                    image: r.fields.Attachments?.[0]?.url || r.fields.Image?.[0]?.url || null
-                };
-            }
+            const k = r.fields.Keyword || "INFO";
+            const a = r.fields.Answer || "";
+            knowledgeBase += `- ${k}: ${a}\n`;
         });
-        _botConfigCache = config;
+        
+        _botConfigCache = knowledgeBase;
         _lastFetchTime = NOW;
-        return config;
-    } catch (e) { return null; }
+        return knowledgeBase;
+    } catch (e) { return ""; }
 }
 
-// ============================================================
-// 2. HÀM LẤY CHI TIẾT BÁO GIÁ (QUOTES) TỪ AIRTABLE
-// ============================================================
 async function getQuoteFromAirtable(recordId) {
     const token = process.env.AIRTABLE_API_TOKEN;
     const baseId = process.env.AIRTABLE_BASE_ID;
@@ -54,62 +48,61 @@ async function getQuoteFromAirtable(recordId) {
         const res = await fetch(`https://api.airtable.com/v0/${baseId}/Quotes/${recordId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return null;
         const data = await res.json();
+        if (!data.fields) return null;
         const f = data.fields;
-
-        // Định dạng lại nội dung báo giá
+        
         let itemsText = "";
         try {
             const items = JSON.parse(f["Items Detail"] || "[]");
             itemsText = items.map(i => `• ${i.item}: ${new Intl.NumberFormat('vi-VN').format(i.cost)}đ`).join('\n');
-        } catch (e) { itemsText = "Chi tiết đang được xử lý..."; }
+        } catch (e) { itemsText = "Chi tiết báo giá..."; }
 
         const total = new Intl.NumberFormat('vi-VN').format(f["Total Estimate"] || 0);
 
         return {
-            text: `✨ **BÁO GIÁ TẠM TÍNH TỪ AI** ✨\n\n${itemsText}\n\n💰 **TỔNG CỘNG: ${total}đ**\n\n📝 *Ghi chú: ${f["Note"] || "Mẫu này xinh xắn lắm nàng ơi!"}*\n\nNàng ưng mẫu này thì nhắn Ki đặt lịch nhen! 🥰💅`,
+            text: `✨ **BÁO GIÁ AI TỪ WEBSITE** ✨\n\n${itemsText}\n\n💰 **TỔNG CỘNG: ${total}đ**\n\n📝 *Ghi chú: ${f["Note"] || "Mẫu này xinh xắn lắm nàng ơi!"}*\n\nNàng ưng mẫu này thì nhắn Ki đặt lịch nhen! 🥰💅`,
             image: f["Image URL"] || null
         };
     } catch (e) { return null; }
 }
 
 // ============================================================
-// 3. DỮ LIỆU DỰ PHÒNG & ADMIN COMMANDS
+// 2. BỘ NÃO GEMINI 3 FLASH (CÓ CƠ CHẾ IM LẶNG)
 // ============================================================
-const FALLBACK_TEMPLATES = {
-    PROMOTION: { text: "Dạ hiện tại Ki đang có ưu đãi giảm 10% cho khách đặt lịch trước nha.", image: null },
-    VIEW_MENU: { text: "Dạ Ki gởi mình bảng giá dịch vụ tham khảo nha. Nàng ưng mẫu nào nhắn Ki tư vấn thêm nhen!", image: "https://res.cloudinary.com/dgiqdfycy/image/upload/v1765207535/BangGiaDichVu_pbzfkw.jpg" },
-    ADDRESS: { text: "Dạ Ki ở 231 Đường số 8, Bình Hưng Hoà A, Bình Tân ạ.", image: null },
-    ADMIN_PING: { text: "PONG! 🤖\n\nHệ thống Ki Nail Room đã được nâng cấp thành công:\n✅ Model: Gemini 3 Flash\n✅ Thinking: Đã kích hoạt\n✅ Quote Retrieval: Đã sửa lỗi (FIXED)\n✅ Status: Sẵn sàng phục vụ khách! 🥰💅", image: null }
-};
-
-// ============================================================
-// 4. XỬ LÝ AI GEMINI (PHÂN LOẠI Ý ĐỊNH)
-// ============================================================
-async function classifyIntent(userMessage) {
-    const t = userMessage.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (t.includes('ping kinail')) return 'ADMIN_PING';
-
+async function askGemini(userMessage, knowledge) {
     const apiKey = process.env.API_KEY;
-    if (!apiKey) return "SILENCE"; 
+    if (!apiKey) return null;
 
     const ai = new GoogleGenAI({ apiKey });
     try {
-        const result = await ai.models.generateContent({
+        const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: userMessage,
-            config: { 
-                systemInstruction: 'Role: Receptionist. Intents: ADDRESS, VIEW_MENU, PROMOTION, SILENCE. Rules: Only return intent name.',
-                temperature: 0.1, maxOutputTokens: 10 
+            config: {
+                systemInstruction: `
+                    Bạn là lễ tân Ki Nail Room.
+                    QUY TẮC PHẢN HỒI:
+                    1. Chỉ được trả lời nếu câu hỏi của khách thuộc về: ĐỊA CHỈ, GIÁ TIỀN, MENU, KHUYẾN MÃI.
+                    2. Nếu khách hỏi về 4 chủ đề trên: Dùng kiến thức được dạy, trả lời lễ phép, cute có icon.
+                    3. Nếu khách hỏi bất kỳ điều gì khác (hỏi thăm, chào hỏi đơn thuần, tư vấn mẫu phức tạp, hỏi linh tinh...): BẮT BUỘC TRẢ LỜI DUY NHẤT CỤM TỪ: __SILENCE__
+                    4. Tuyệt đối không tự ý hứa hẹn hay nói sai kiến thức đã dạy.
+
+                    KIẾN THỨC ĐƯỢC DẠY:
+                    ${knowledge}
+                `,
+                temperature: 0.1, // Giảm temperature để AI bớt "sáng tạo", tuân thủ quy tắc hơn
+                thinkingConfig: { thinkingBudget: 1000 }
             }
         });
-        return result.text ? result.text.trim().toUpperCase() : "SILENCE";
-    } catch (error) { return "SILENCE"; }
+        const reply = response.text.trim();
+        if (reply.includes("__SILENCE__")) return null; // Trả về null để Bot im lặng
+        return reply;
+    } catch (error) { return null; }
 }
 
 // ============================================================
-// 5. MAIN HANDLER
+// 3. MAIN HANDLER
 // ============================================================
 export default async function handler(req, res) {
   const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
@@ -127,9 +120,9 @@ export default async function handler(req, res) {
         if (!entry.messaging) continue;
         for (const event of entry.messaging) {
             const psid = event.sender.id;
-            let recordId = null;
 
-            // --- A. XỬ LÝ MÃ REF (TỪ WEBSITE) ---
+            // --- A. ƯU TIÊN 1: GỬI BÁO GIÁ TỪ WEBSITE (LUÔN GỬI) ---
+            let recordId = null;
             if (event.referral && event.referral.ref) recordId = event.referral.ref;
             if (event.postback && event.postback.referral && event.postback.referral.ref) recordId = event.postback.referral.ref;
 
@@ -142,18 +135,24 @@ export default async function handler(req, res) {
                 }
             }
 
-            // --- B. XỬ LÝ TIN NHẮN CHAT THÔNG THƯỜNG ---
+            // --- B. ƯU TIÊN 2: TIN NHẮN CHAT (CHỈ TRẢ LỜI NẾU KHỚP KIẾN THỨC) ---
             if (event.message && event.message.text) {
                 const text = event.message.text.trim();
-                const intent = await classifyIntent(text);
                 
-                if (intent !== 'SILENCE') {
-                    const config = await getBotConfigFromAirtable();
-                    const resp = (config && config[intent]) ? config[intent] : FALLBACK_TEMPLATES[intent];
-                    if (resp) {
-                        await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: resp.text });
-                        if (resp.image) await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, psid, resp.image);
-                    }
+                // Mã kiểm tra hệ thống dành cho Admin
+                if (text.toLowerCase() === 'ping kinail') {
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Hệ thống Ki Nail Room [V105] đã sẵn sàng.\n\n🤖 Chế độ: Gemini Strict Mode\n✅ Báo giá Web: OK\n✅ Trả lời Địa chỉ/Giá: OK\n🤫 Mọi câu hỏi khác: IM LẶNG" });
+                    continue;
+                }
+
+                const knowledge = await getSalonKnowledge();
+                const aiReply = await askGemini(text, knowledge);
+                
+                // CHỈ GỬI TIN NHẮN NẾU GEMINI KHÔNG TRẢ VỀ __SILENCE__
+                if (aiReply) {
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: aiReply });
+                } else {
+                    console.log(`[Bot] Đang im lặng với tin nhắn: "${text}" - Chờ Admin xử lý.`);
                 }
             }
         }
@@ -164,11 +163,13 @@ export default async function handler(req, res) {
 }
 
 async function sendFacebookMessage(token, psid, message) {
-    await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipient: { id: psid }, message })
-    });
+    try {
+        await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient: { id: psid }, message })
+        });
+    } catch (e) {}
 }
 
 async function sendFacebookImage(token, psid, url) {
