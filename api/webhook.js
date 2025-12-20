@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V105_STRICT_GEMINI_BRAIN
-// TÍNH NĂNG: Chỉ trả lời Địa chỉ/Giá/KM + Báo giá AI từ Web. Còn lại IM LẶNG.
+// VERSION: V106_RESTORE_ORIGINAL_QUOTE_FORMAT
+// TÍNH NĂNG: Trả lại đúng giao diện báo giá cũ + Giữ bộ não Gemini 3 chỉ trả lời Địa chỉ/Giá/KM.
 
 // ============================================================
 // 1. TRUY VẤN KIẾN THỨC TỪ AIRTABLE
@@ -55,20 +55,25 @@ async function getQuoteFromAirtable(recordId) {
         let itemsText = "";
         try {
             const items = JSON.parse(f["Items Detail"] || "[]");
-            itemsText = items.map(i => `• ${i.item}: ${new Intl.NumberFormat('vi-VN').format(i.cost)}đ`).join('\n');
-        } catch (e) { itemsText = "Chi tiết báo giá..."; }
+            // Định dạng ◽ và dấu : như trong hình
+            itemsText = items.map(i => `◽ ${i.item}: ${new Intl.NumberFormat('vi-VN').format(i.cost)}đ`).join('\n');
+        } catch (e) { itemsText = "Chi tiết đang được xử lý..."; }
 
         const total = new Intl.NumberFormat('vi-VN').format(f["Total Estimate"] || 0);
 
+        // FORM BÁO GIÁ CHUẨN THEO HÌNH ẢNH
+        const breakdownText = `📋 CHI TIẾT BÁO GIÁ AI:\n\n${itemsText}\n\n--------------------\n💰 TỔNG CỘNG: ${total}đ\n--------------------\nGiá này do AI của Ki Nail gửi trước cho mình để tham khảo thôi nhen.`;
+
         return {
-            text: `✨ **BÁO GIÁ AI TỪ WEBSITE** ✨\n\n${itemsText}\n\n💰 **TỔNG CỘNG: ${total}đ**\n\n📝 *Ghi chú: ${f["Note"] || "Mẫu này xinh xắn lắm nàng ơi!"}*\n\nNàng ưng mẫu này thì nhắn Ki đặt lịch nhen! 🥰💅`,
+            intro: `🎊 Ki đã nhận được yêu cầu báo giá! Nàng đợi xíu Ki tải chi tiết cho nha... 💅✨`,
+            breakdown: breakdownText,
             image: f["Image URL"] || null
         };
     } catch (e) { return null; }
 }
 
 // ============================================================
-// 2. BỘ NÃO GEMINI 3 FLASH (CÓ CƠ CHẾ IM LẶNG)
+// 2. BỘ NÃO GEMINI 3 FLASH (HỎI ĐỊA CHỈ/GIÁ THÌ NÓI - CÒN LẠI IM LẶNG)
 // ============================================================
 async function askGemini(userMessage, knowledge) {
     const apiKey = process.env.API_KEY;
@@ -82,21 +87,20 @@ async function askGemini(userMessage, knowledge) {
             config: {
                 systemInstruction: `
                     Bạn là lễ tân Ki Nail Room.
-                    QUY TẮC PHẢN HỒI:
-                    1. Chỉ được trả lời nếu câu hỏi của khách thuộc về: ĐỊA CHỈ, GIÁ TIỀN, MENU, KHUYẾN MÃI.
-                    2. Nếu khách hỏi về 4 chủ đề trên: Dùng kiến thức được dạy, trả lời lễ phép, cute có icon.
-                    3. Nếu khách hỏi bất kỳ điều gì khác (hỏi thăm, chào hỏi đơn thuần, tư vấn mẫu phức tạp, hỏi linh tinh...): BẮT BUỘC TRẢ LỜI DUY NHẤT CỤM TỪ: __SILENCE__
-                    4. Tuyệt đối không tự ý hứa hẹn hay nói sai kiến thức đã dạy.
+                    QUY TẮC:
+                    1. Chỉ trả lời nếu khách hỏi về: ĐỊA CHỈ, GIÁ TIỀN/MENU, KHUYẾN MÃI.
+                    2. Nếu khách hỏi đúng 3 chủ đề trên: Trả lời cực kỳ lễ phép, cute có icon.
+                    3. Nếu khách hỏi bất kỳ điều gì khác: TRẢ LỜI DUY NHẤT CỤM TỪ: __SILENCE__
 
-                    KIẾN THỨC ĐƯỢC DẠY:
+                    KIẾN THỨC:
                     ${knowledge}
                 `,
-                temperature: 0.1, // Giảm temperature để AI bớt "sáng tạo", tuân thủ quy tắc hơn
+                temperature: 0.1,
                 thinkingConfig: { thinkingBudget: 1000 }
             }
         });
         const reply = response.text.trim();
-        if (reply.includes("__SILENCE__")) return null; // Trả về null để Bot im lặng
+        if (reply.includes("__SILENCE__")) return null;
         return reply;
     } catch (error) { return null; }
 }
@@ -121,7 +125,7 @@ export default async function handler(req, res) {
         for (const event of entry.messaging) {
             const psid = event.sender.id;
 
-            // --- A. ƯU TIÊN 1: GỬI BÁO GIÁ TỪ WEBSITE (LUÔN GỬI) ---
+            // --- A. ƯU TIÊN 1: BÁO GIÁ AI (GỬI THEO FORM HÌNH ẢNH) ---
             let recordId = null;
             if (event.referral && event.referral.ref) recordId = event.referral.ref;
             if (event.postback && event.postback.referral && event.postback.referral.ref) recordId = event.postback.referral.ref;
@@ -129,30 +133,35 @@ export default async function handler(req, res) {
             if (recordId) {
                 const quote = await getQuoteFromAirtable(recordId);
                 if (quote) {
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: quote.text });
+                    // 1. Gửi câu chào intro
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: quote.intro });
+                    // 2. Gửi ảnh mẫu
                     if (quote.image) await sendFacebookImage(FB_PAGE_ACCESS_TOKEN, psid, quote.image);
+                    // 3. Gửi bảng kê chi tiết
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: quote.breakdown });
+                    // 4. Gửi nút Chat với nhân viên
+                    await sendFacebookButton(FB_PAGE_ACCESS_TOKEN, psid, 
+                        "Để xem thông tin chi tiết, nàng bấm vào nút bên dưới. Ki Nail sẽ tư vấn cụ thể và giải đáp cho mình ạ.",
+                        [{ type: "postback", title: "Chat Với Nhân Viên", payload: "CHAT_WITH_STAFF" }]
+                    );
                     continue; 
                 }
             }
 
-            // --- B. ƯU TIÊN 2: TIN NHẮN CHAT (CHỈ TRẢ LỜI NẾU KHỚP KIẾN THỨC) ---
+            // --- B. ƯU TIÊN 2: TIN NHẮN CHAT TỰ NHIÊN (CHỈ NÓI NẾU HỎI GIÁ/ĐỊA CHỈ) ---
             if (event.message && event.message.text) {
                 const text = event.message.text.trim();
                 
-                // Mã kiểm tra hệ thống dành cho Admin
                 if (text.toLowerCase() === 'ping kinail') {
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Hệ thống Ki Nail Room [V105] đã sẵn sàng.\n\n🤖 Chế độ: Gemini Strict Mode\n✅ Báo giá Web: OK\n✅ Trả lời Địa chỉ/Giá: OK\n🤫 Mọi câu hỏi khác: IM LẶNG" });
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Hệ thống Ki Nail Room [V106] khôi phục giao diện báo giá thành công! 💅✨" });
                     continue;
                 }
 
                 const knowledge = await getSalonKnowledge();
                 const aiReply = await askGemini(text, knowledge);
                 
-                // CHỈ GỬI TIN NHẮN NẾU GEMINI KHÔNG TRẢ VỀ __SILENCE__
                 if (aiReply) {
                     await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: aiReply });
-                } else {
-                    console.log(`[Bot] Đang im lặng với tin nhắn: "${text}" - Chờ Admin xử lý.`);
                 }
             }
         }
@@ -162,6 +171,7 @@ export default async function handler(req, res) {
   }
 }
 
+// --- HELPERS GỬI TIN NHẮN FACEBOOK ---
 async function sendFacebookMessage(token, psid, message) {
     try {
         await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${token}`, {
@@ -174,4 +184,17 @@ async function sendFacebookMessage(token, psid, message) {
 
 async function sendFacebookImage(token, psid, url) {
     await sendFacebookMessage(token, psid, { attachment: { type: "image", payload: { url, is_reusable: true } } });
+}
+
+async function sendFacebookButton(token, psid, text, buttons) {
+    await sendFacebookMessage(token, psid, {
+        attachment: {
+            type: "template",
+            payload: {
+                template_type: "button",
+                text: text,
+                buttons: buttons
+            }
+        }
+    });
 }
