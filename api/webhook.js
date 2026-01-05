@@ -2,8 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // api/webhook.js
-// VERSION: V111_ULTRA_STRICT
-// TÍNH NĂNG: Phân loại ý định nghiêm ngặt. Chỉ phản hồi thông tin tổng quát.
+// VERSION: V112_NO_PROMOTION
+// TÍNH NĂNG: Phân loại ý định nghiêm ngặt. ĐÃ TẮT TÍNH NĂNG TRẢ LỜI KHUYẾN MÃI.
 
 // ============================================================
 // 1. TRUY VẤN KIẾN THỨC TỪ AIRTABLE
@@ -70,7 +70,7 @@ async function getQuoteFromAirtable(recordId) {
 }
 
 // ============================================================
-// 2. BỘ NÃO PHÂN LOẠI THÔNG MINH (V111)
+// 2. BỘ NÃO PHÂN LOẠI THÔNG MINH (V112)
 // ============================================================
 async function classifyIntent(userMessage, keywords) {
     const apiKey = process.env.API_KEY;
@@ -84,7 +84,7 @@ async function classifyIntent(userMessage, keywords) {
             config: {
                 systemInstruction: `
                     Nhiệm vụ: Phân loại ý định tin nhắn khách hàng cho tiệm Nail.
-                    Quy tắc nghiêm ngặt: Chỉ phản hồi các câu hỏi TỔNG QUÁT. Tuyệt đối im lặng với câu hỏi CHI TIẾT.
+                    Quy tắc nghiêm ngặt: Chỉ phản hồi các câu hỏi TỔNG QUÁT về GIÁ và ĐỊA CHỈ.
 
                     DANH SÁCH Ý ĐỊNH:
                     1. PRICE: Khách hỏi bảng giá tổng hoặc menu chung. 
@@ -92,20 +92,18 @@ async function classifyIntent(userMessage, keywords) {
                        - NGOẠI LỆ: Nếu câu hỏi chứa tên dịch vụ cụ thể (VD: "giá móng úp", "nối móng nhiêu", "sơn gel nhiêu") -> TRẢ VỀ __SILENCE__.
                     2. ADDRESS: Khách hỏi vị trí/địa chỉ tiệm. 
                        - Ví dụ: "tiệm ở đâu", "địa chỉ", "xin vị trí".
-                    3. PROMOTION: Khách hỏi về khuyến mãi/giảm giá hiện có.
-                       - Ví dụ: "có sale không", "có khuyến mãi gì không", "đang có ưu đãi gì".
 
                     XỬ LÝ NGÔN NGỮ:
                     - Các từ "hông", "hok", "vậy", "dạ", "ko", "k" là trợ từ, không phải nội dung chính.
-                    - Phải phân biệt rõ "Bảng giá tổng" và "Giá của 1 dịch vụ".
 
                     TRẢ VỀ __SILENCE__ (IM LẶNG) KHI:
-                    - Hỏi giá dịch vụ cụ thể: móng úp, nối móng, đắp gel, vẽ móng, phá móng...
-                    - Hỏi về kỹ thuật: có bền không, có đau không, làm mất bao lâu.
-                    - Gửi ảnh mẫu và hỏi tư vấn/báo giá.
-                    - Tin nhắn chào hỏi, khen ngợi hoặc tán gẫu.
+                    - KHUYẾN MÃI: Hỏi về giảm giá, sale, ưu đãi, promotion (Hiện tại tiệm đã hết chương trình -> Im lặng).
+                    - CHI TIẾT: Hỏi giá dịch vụ cụ thể (móng úp, nối móng, đắp gel, vẽ móng...).
+                    - KỸ THUẬT: Hỏi về độ bền, có đau không, thời gian làm.
+                    - TƯ VẤN ẢNH: Gửi ảnh mẫu và hỏi giá.
+                    - KHÁC: Chào hỏi, khen ngợi, tán gẫu.
 
-                    KẾT QUẢ: Chỉ trả về 1 từ duy nhất (PRICE, ADDRESS, PROMOTION hoặc __SILENCE__).
+                    KẾT QUẢ: Chỉ trả về 1 từ duy nhất (PRICE, ADDRESS hoặc __SILENCE__).
                 `,
                 temperature: 0
             }
@@ -158,7 +156,7 @@ export default async function handler(req, res) {
                 const text = event.message.text.trim();
                 
                 if (text.toLowerCase() === 'ping kinail') {
-                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Ki Nail Room Webhook V111 - Logic Ultra Strict Ready! 🛡️" });
+                    await sendFacebookMessage(FB_PAGE_ACCESS_TOKEN, psid, { text: "Ki Nail Room Webhook V112 - No Promotion Mode Active! 🛡️" });
                     continue;
                 }
 
