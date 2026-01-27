@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { ArrowRight, Phone } from 'lucide-react';
+import { ArrowRight, Phone, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onCtaClick: () => void;
+  onAiPricingClick: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
+const Hero: React.FC<HeroProps> = ({ onCtaClick, onAiPricingClick }) => {
   const MESSENGER_LINK = "https://m.me/kinailroom";
   const [isImageError, setIsImageError] = useState(false);
 
@@ -128,34 +129,55 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
             </div>
 
             {/* Group 2: Buttons - Action Area */}
-            <div className="flex flex-row items-center gap-4 w-full max-w-md md:max-w-none pt-2">
-              <a 
-                href={MESSENGER_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative flex-1 md:flex-none md:w-48 flex items-center justify-center px-6 py-4 rounded-full font-bold font-vn text-sm md:text-base whitespace-nowrap overflow-hidden transition-all duration-300 shadow-xl active:scale-95
-                           bg-chestnut-600/90 backdrop-blur-md border border-white/20 shadow-chestnut-500/30 ring-1 ring-white/20 ring-inset text-white
-                           hover:bg-chestnut-500/90 hover:-translate-y-1 hover:shadow-chestnut-500/50"
-              >
-                <span className="relative z-10 flex items-center">
-                    Đặt Lịch Tết
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
-                <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent opacity-50 pointer-events-none"></div>
-              </a>
-              
-              <a 
-                href="tel:0919979763"
-                className="relative flex-1 md:flex-none md:w-48 flex items-center justify-center px-6 py-4 rounded-full font-bold font-vn text-sm md:text-base whitespace-nowrap overflow-hidden transition-all duration-300 shadow-lg active:scale-95
-                           bg-white/60 backdrop-blur-md border border-white/60 shadow-gray-200/50 ring-1 ring-white/40 ring-inset text-chestnut-700
-                           hover:bg-white/90 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <span className="relative z-10 flex items-center">
-                    <Phone className="mr-2 h-4 w-4 group-hover:animate-wiggle" />
-                    Gọi Hotline
-                </span>
-                 <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/40 to-transparent opacity-60 pointer-events-none"></div>
-              </a>
+            {/* CẬP NHẬT: Layout Flex Column để chứa thêm nút Báo Giá AI bên dưới */}
+            <div className="flex flex-col gap-3 w-full max-w-md md:max-w-[25rem] pt-2">
+                {/* Hàng 1: Hai nút cũ */}
+                <div className="flex flex-row items-center gap-4 w-full">
+                  <a 
+                    href={MESSENGER_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative flex-1 flex items-center justify-center px-4 py-3.5 rounded-full font-bold font-vn text-sm md:text-base whitespace-nowrap overflow-hidden transition-all duration-300 shadow-xl active:scale-95
+                              bg-chestnut-600/90 backdrop-blur-md border border-white/20 shadow-chestnut-500/30 ring-1 ring-white/20 ring-inset text-white
+                              hover:bg-chestnut-500/90 hover:-translate-y-1 hover:shadow-chestnut-500/50"
+                  >
+                    <span className="relative z-10 flex items-center">
+                        Đặt Lịch Tết
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </span>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent opacity-50 pointer-events-none"></div>
+                  </a>
+                  
+                  <a 
+                    href="tel:0919979763"
+                    className="relative flex-1 flex items-center justify-center px-4 py-3.5 rounded-full font-bold font-vn text-sm md:text-base whitespace-nowrap overflow-hidden transition-all duration-300 shadow-lg active:scale-95
+                              bg-white/60 backdrop-blur-md border border-white/60 shadow-gray-200/50 ring-1 ring-white/40 ring-inset text-chestnut-700
+                              hover:bg-white/90 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <span className="relative z-10 flex items-center">
+                        <Phone className="mr-2 h-4 w-4 group-hover:animate-wiggle" />
+                        Gọi Hotline
+                    </span>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/40 to-transparent opacity-60 pointer-events-none"></div>
+                  </a>
+                </div>
+
+                {/* Hàng 2: Nút Báo Giá AI Mới */}
+                <button 
+                  onClick={onAiPricingClick}
+                  className="w-full relative flex items-center justify-center px-6 py-3.5 rounded-full font-bold font-vn text-sm md:text-base transition-all duration-300 shadow-lg active:scale-95 group overflow-hidden
+                             bg-gradient-to-r from-vanilla-300 to-vanilla-100 text-chestnut-800 
+                             border border-white/50 ring-1 ring-white/40 ring-inset
+                             hover:shadow-vanilla-300/50 hover:-translate-y-1"
+                >
+                    {/* Hiệu ứng quét sáng (Shine) */}
+                    <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700"></div>
+                    
+                    <span className="relative z-10 flex items-center tracking-wide">
+                        <Sparkles className="w-5 h-5 mr-2 text-chestnut-600 animate-pulse" />
+                        BÁO GIÁ AI
+                    </span>
+                </button>
             </div>
           </div>
           

@@ -106,7 +106,10 @@ const App: React.FC = () => {
       <main className="flex-grow">
         {currentView === 'home' ? (
           <>
-            <Hero onCtaClick={() => handleNavigation('contact')} />
+            <Hero 
+                onCtaClick={() => handleNavigation('contact')} 
+                onAiPricingClick={() => handleNavigation('ai-pricing')}
+            />
             <Services />
             <Training />
             <Gallery />
