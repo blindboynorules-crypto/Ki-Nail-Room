@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, Phone } from 'lucide-react';
 
 interface HeroProps {
@@ -8,14 +8,17 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
   const MESSENGER_LINK = "https://m.me/kinailroom";
+  const [isImageError, setIsImageError] = useState(false);
 
   // HIỆU ỨNG HOA ĐÀO RƠI (Blossoms) thay cho Tuyết
-  const blossoms = Array.from({ length: 20 }).map((_, i) => ({
+  // Tăng số lượng hoa rơi nếu ảnh cây mai bị lỗi để bù đắp khoảng trống
+  const blossomCount = isImageError ? 30 : 20;
+  const blossoms = Array.from({ length: blossomCount }).map((_, i) => ({
     left: `${Math.random() * 100}%`,
     animationDelay: `${Math.random() * 3}s`,
     animationDuration: `${3 + Math.random() * 4}s`,
     size: `${10 + Math.random() * 10}px`,
-    color: Math.random() > 0.5 ? '#fecaca' : '#fef08a' // Hồng (Đào) hoặc Vàng (Mai)
+    color: Math.random() > 0.5 ? '#FECACA' : '#FDE047' // Hồng (Đào) hoặc Vàng (Mai)
   }));
 
   // Component Kim Cương Lấp Lánh (Vẫn giữ để tạo độ sang trọng)
@@ -63,7 +66,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
             <div className="flex flex-col items-center md:items-start gap-6">
                 {/* Tagline Tết */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-chestnut-200/50 shadow-sm hover:shadow-md transition-shadow cursor-default ring-1 ring-white/50">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-chestnut-500 animate-pulse"></span>
                   <span className="text-[11px] md:text-xs font-bold tracking-[0.2em] text-chestnut-600 uppercase font-sans">
                     Chào Xuân 2026 — Rạng Rỡ Đón Tết
                   </span>
@@ -80,24 +83,27 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                     
                     {/* --- CÁC HẠT KIM CƯƠNG (HIDDEN BY DEFAULT) --- */}
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out">
-                        <div className="absolute -top-6 -left-8 w-10 h-10 text-yellow-500 animate-twinkle">
-                           <DiamondSparkle className="w-full h-full drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
+                        <div className="absolute -top-6 -left-8 w-10 h-10 text-vanilla-400 animate-twinkle">
+                           <DiamondSparkle className="w-full h-full drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
                         </div>
-                        <div className="absolute -bottom-4 -right-6 w-8 h-8 text-yellow-400 animate-twinkle" style={{ animationDelay: '1.5s' }}>
-                           <DiamondSparkle className="w-full h-full drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]" />
+                        <div className="absolute -bottom-4 -right-6 w-8 h-8 text-vanilla-300 animate-twinkle" style={{ animationDelay: '1.5s' }}>
+                           <DiamondSparkle className="w-full h-full drop-shadow-[0_0_5px_rgba(253,230,138,0.8)]" />
                         </div>
-                        <div className="absolute -top-4 right-10 w-5 h-5 text-red-400 animate-twinkle" style={{ animationDelay: '0.5s' }}>
+                        <div className="absolute -top-4 right-10 w-5 h-5 text-chestnut-400 animate-twinkle" style={{ animationDelay: '0.5s' }}>
                            <DiamondSparkle className="w-full h-full" />
                         </div>
                     </div>
 
                     {/* --- CHỮ CHÍNH --- */}
+                    {/* CẬP NHẬT: SỬ DỤNG ĐÚNG MÀU PALETTE TẾT TRONG GRADIENT */}
+                    {/* Chestnut-500 (Đỏ) -> Vanilla-400 (Vàng) -> Chestnut-500 (Đỏ) */}
                     <span className="block text-6xl sm:text-7xl lg:text-8xl font-logo leading-none tracking-tight -ml-1
                         text-chestnut-800
                         transition-all duration-700
                         group-hover:text-transparent 
                         group-hover:bg-clip-text
-                        group-hover:bg-gradient-to-r group-hover:from-red-700 group-hover:via-yellow-400 group-hover:to-red-700
+                        group-hover:bg-gradient-to-r 
+                        group-hover:from-chestnut-600 group-hover:via-vanilla-400 group-hover:to-chestnut-600
                         group-hover:bg-[length:200%_auto]
                         group-hover:animate-shimmer
                         drop-shadow-lg"
@@ -158,7 +164,7 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
              <div className="relative w-[85%] md:w-[90%] lg:w-[32rem] group transition-all duration-500">
                 
                 {/* Decorative border ring (Gold Color for Tet) */}
-                <div className="absolute inset-0 border-[1.5px] border-yellow-500/40 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
+                <div className="absolute inset-0 border-[1.5px] border-vanilla-400/50 rounded-t-full rounded-b-[100px] rotate-3 scale-105 opacity-60 transition-transform group-hover:rotate-6"></div>
                 
                 {/* Main Image Container */}
                 <div 
@@ -182,25 +188,25 @@ const Hero: React.FC<HeroProps> = ({ onCtaClick }) => {
                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
                   </div>
                   
-                  {/* Tet Vignette (Red tint) */}
+                  {/* Tet Vignette (Red tint using palette) */}
                   <div className="absolute inset-0 z-20 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_55%,rgba(185,28,28,0.2)_100%)]"></div>
 
-                  <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-red-900/30 to-transparent pointer-events-none z-20"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-chestnut-900/30 to-transparent pointer-events-none z-20"></div>
                 </div>
 
-                {/* TET DECORATION: Cành Đào/Mai (Thay cho người tuyết) */}
-                <div className="absolute -bottom-10 -left-6 z-30 animate-float hover:scale-110 transition-transform cursor-pointer pointer-events-none md:pointer-events-auto">
-                  <img 
-                    src="https://res.cloudinary.com/dgiqdfycy/image/upload/v1707010000/tet-branch-decor-demo_xyz.png" 
-                    // Fallback to a generic flower if link breaks (using Emoji logic for stability or specific SVG if provided, here using a placeholder logic that works visually)
-                    // Since I cannot upload a real file, I will use a high quality external SVG/PNG or standard emoji as placeholder if src fails, 
-                    // but here I use a transparent flower branch image URL.
-                    // REPLACING WITH A RELIABLE EXTERNAL SOURCE FOR DEMO:
-                    srcSet="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Apricot_blossom_branch.png/640px-Apricot_blossom_branch.png"
-                    alt="Cành Mai Ngày Tết" 
-                    className="w-32 h-32 md:w-48 md:h-48 drop-shadow-xl transition-all object-contain"
-                  />
-                </div>
+                {/* TET DECORATION: Cành Mai Vàng */}
+                {/* Thay đổi nguồn ảnh sang link Vecteezy static (dạng PNG) ổn định hơn */}
+                {!isImageError && (
+                  <div className="absolute -bottom-16 -left-10 z-30 animate-float hover:scale-110 transition-transform cursor-pointer pointer-events-none md:pointer-events-auto filter drop-shadow-2xl">
+                    <img 
+                      src="https://static.vecteezy.com/system/resources/previews/009/344/897/original/apricot-blossom-branch-watercolor-free-png.png"
+                      alt="Cành Mai Ngày Tết" 
+                      className="w-48 h-48 md:w-72 md:h-72 object-contain opacity-95"
+                      loading="eager"
+                      onError={() => setIsImageError(true)}
+                    />
+                  </div>
+                )}
              </div>
           </div>
 
