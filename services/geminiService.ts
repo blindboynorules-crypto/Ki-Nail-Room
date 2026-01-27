@@ -112,6 +112,8 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
   
   const prompt = `
     Bạn là AI chuyên gia thẩm định giá của Ki Nail Room (Phong cách Hàn-Nhật).
+    
+    CẬP NHẬT: ĐÂY LÀ BẢNG GIÁ TẾT 2026. HÃY SỬ DỤNG SỐ LIỆU NÀY ĐỂ TÍNH TOÁN.
 
     NHIỆM VỤ 1: KIỂM DUYỆT NỘI DUNG
     Hãy nhìn vào bức ảnh và xác định: Đây có phải là ảnh liên quan đến Móng tay, Móng chân, Bàn tay, Bàn chân hoặc Mẫu Nail Art không?
@@ -121,52 +123,43 @@ export const analyzeNailImage = async (imageFile: File): Promise<PricingResult> 
     NHIỆM VỤ 2: PHÂN TÍCH VÀ BÁO GIÁ CHI TIẾT (CỘNG DỒN)
     Hãy quan sát kỹ từng chi tiết và CỘNG DỒN giá tiền như một người thợ tính tiền cho khách.
     
-    *** BẢNG GIÁ NIÊM YẾT (ĐƠN VỊ: VNĐ - VIẾT ĐẦY ĐỦ SỐ 0):
+    *** BẢNG GIÁ NIÊM YẾT TẾT 2026 (ĐƠN VỊ: VNĐ - VIẾT ĐẦY ĐỦ SỐ 0):
     
-    1. DỊCH VỤ NỀN & FORM (BẮT BUỘC): 
-       - Cắt da/Sửa móng: 30.000
-       - Sơn Gel trơn: 80.000 (Luôn tính mục này nếu có sơn màu)
-       - Up móng base: 120.000 (Một trăm hai mươi nghìn - Dành cho móng dài, form chuẩn giả).
-       => LƯU Ý QUAN TRỌNG: Nếu là móng úp/nối, phải tính CẢ HAI: Up móng base (120.000) + Sơn gel (80.000).
+    1. DỊCH VỤ NỀN & FORM (BẮT BUỘC CHỌN 1 TRONG CÁC LOẠI): 
+       - Sửa móng, cắt da: 40.000
+       - Sơn Gel (Trơn): 100.000 (Mặc định nếu là móng thường).
+       - Gắn móng up keo: 95.000
+       - Gắn móng up base: 150.000 (Dành cho móng úp cao cấp).
+       - Đắp Gel: 240.000
+       - Sơn hiệu ứng (Mắt mèo/Tráng gương nền thạch): 180.000
+       
+       => QUY TẮC CỘNG: 
+       - Nếu làm móng úp/nối: Tính tiền "Gắn móng..." + tiền "Sơn Gel" (100k) nếu có sơn màu lên móng úp.
+       - Nếu chỉ sơn gel trên móng thật: Tính "Cắt da" (40k) + "Sơn Gel" (100k).
 
-    2. MÀU SẮC (SƠN THÊM):
-       - Sơn 1 màu chủ đạo: Không tính thêm.
-       - Sơn 2 màu (Thêm 1 màu): +10.000
-       - Sơn 3 màu trở lên (Thêm 2 màu): +20.000
-
-    3. DESIGN TRANG TRÍ (TÍNH THEO NGÓN/BỘ):
+    2. DESIGN TRANG TRÍ (TÍNH THEO NGÓN):
        Hãy cố gắng đếm số lượng ngón có design.
-       - French (Kẻ đầu móng): 10.000 / ngón.
-       - **Vẽ nét đơn giản (Level 1)**: 10.000 / ngón.
-       - **Vẽ hình đơn giản (Level 2 - Nơ, trái tim, chấm bi)**: 15.000 / ngón.
-       - **Vẽ Gel Họa Tiết (Level 3 - Bò sữa, Caro, Vẽ full móng)**: 20.000 / ngón.
-       - Vẽ gel nổi / Charm / Sticker: 20.000 / ngón.
-       - **Nhũ (Vàng/Bạc/Kim tuyến)**: 10.000 / ngón.
-       - **Combo Vẽ nổi + Tráng gương (Trên cùng 1 ngón)**: 15.000 / ngón.
-       - **Combo Vẽ + Phụ kiện nhỏ trên cùng 1 ngón**: 20.000 / ngón.
-       
-       - Mắt mèo (Nhận diện rõ loại: Kim cương, Flash, Ánh trăng/Moonlight, 9D, Má hồng/Blush): 130.000 - 150.000 / bộ (Đã bao gồm nền).
-       - Tráng gương (Nhận diện rõ loại: Kim loại/Metallic (70.000), Ngọc trai/Aurora (80.000), Cầu vồng/Hologram (80.000)): 70.000 - 80.000 / bộ.
-       
-       => LƯU Ý COMBO: 
-       - Mắt mèo/Ombre + Tráng gương chồng lên nhau -> Tính tiền cả hai (Ví dụ: 70.000 + 70.000).
-       - French đầu móng + Tráng gương (French Chrome) -> Tính tiền cả hai (French 10.000/ngón + Tráng gương 70.000/bộ).
+       - Vẽ Gel / Vẽ nét: 10.000 - 35.000 / ngón (Tùy độ khó).
+       - Vẽ Nổi (Gel nổi, giọt nước): 15.000 - 40.000 / ngón.
+       - Mắt mèo / Sticker: 10.000 / ngón.
+       - Ombre / French / Tráng gương: 10.000 / ngón.
+       - Loang / Hoa khô / Xà cừ: 15.000 - 30.000 / ngón.
 
-    4. PHỤ KIỆN (ĐÁ): 
-       - Đá nhỏ: 3.000 / viên.
-       - Đá phối (Size vừa, charm nhỏ): 10.000 / viên.
-       - Đá khối (Đá to): 15.000 - 35.000 / viên.
+    3. PHỤ KIỆN (ĐÁ / CHARM): 
+       - Đá nhỏ / Phụ kiện nhỏ: 5.000 - 20.000 / ngón.
+       - Đá lớn / Phụ kiện lớn (Nơ to, Charm to): 25.000 - 40.000 / ngón.
 
-    *** CÁC VÍ DỤ TÍNH TIỀN MẪU (HÃY HỌC THUỘC LÒNG):
-    (Examples retained for brevity - removed to save space but logic is updated)
-    
+    4. PHÍ THÁO (NẾU CẦN - CHỈ TÍNH KHI KHÁCH YÊU CẦU HOẶC NHẮC NHỞ):
+       - Phá sơn gel: 30.000
+       - Tháo móng giả: 40.000
+
     Yêu cầu trả về JSON chuẩn:
     {
       "items": [
-        { "item": "Tên dịch vụ", "cost": 0, "reason": "Giải thích cách tính" }
+        { "item": "Tên dịch vụ", "cost": 0, "reason": "Giải thích cách tính (VD: 2 ngón x 10k)" }
       ],
       "totalEstimate": 0,
-      "note": "Lời nhận xét của AI"
+      "note": "Lời nhận xét của AI về mẫu nail này (Khen đẹp, tư vấn độ bền...)"
     }
   `;
 

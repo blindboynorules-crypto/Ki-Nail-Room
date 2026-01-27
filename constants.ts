@@ -1,50 +1,50 @@
+
 import { ServiceCategory, Testimonial } from './types';
 
 export const SERVICE_MENU: ServiceCategory[] = [
   {
     id: 'care_removal',
-    title: 'Chăm Sóc & Phá Móng',
+    title: 'Cắt Sơn & Chăm Sóc',
     items: [
-      { id: 'c1', name: 'Cắt da, sửa móng tay', price: '30.000₫', duration: '' },
-      { id: 'c2', name: 'Cắt da, lấy khóe chân', price: '40.000₫', duration: '' },
-      { id: 'c4', name: 'Dán nailbox', price: '30.000₫', duration: '' },
-      { id: 'c5', name: 'Phá sơn gel', price: '20.000₫', duration: '' },
-      { id: 'c6', name: 'Phá móng up, gel cứng', price: '30 - 50.000₫', duration: '' },
+      { id: 'c1', name: 'Sửa móng, cắt da', price: '40.000₫', duration: '' },
+      { id: 'c2', name: 'Phá sơn gel', price: '30.000₫', duration: '' },
+      { id: 'c3', name: 'Tháo móng giả', price: '40.000₫', duration: '' },
+      { id: 'c4', name: 'Sơn gel', price: '100.000₫', duration: '' },
+      { id: 'c5', name: 'Sơn mắt mèo', price: '160.000₫', duration: '' },
+      { id: 'c6', name: 'Sơn hiệu ứng (mắt mèo/tráng gương nền thạch)', price: '180.000₫', duration: '' },
     ]
   },
   {
     id: 'polish_extension',
-    title: 'Sơn & Nối Móng',
+    title: 'Nối Móng & Gel',
     items: [
-      { id: 'p1', name: 'Sơn gel / Sơn thạch', price: '80.000₫', duration: '' },
-      { id: 'p2', name: 'Sơn cứng móng', price: '25 - 30.000₫', duration: '' },
-      { id: 'p3', name: 'Phủ gel / bột dày móng', price: '50.000₫', duration: '' },
-      { id: 'p4', name: 'Up móng keo', price: '80.000₫', duration: '' },
-      { id: 'p5', name: 'Up móng base', price: '120.000₫', duration: '' },
-      { id: 'p6', name: 'Nối móng đắp gel', price: '200.000₫', duration: '' },
-      { id: 'p7', name: 'Nối móng phủ bột', price: '200.000₫', duration: '' },
-      { id: 'p8', name: 'Fill móng up', price: '50.000₫', duration: '' },
-      { id: 'p9', name: 'Fill gel/ bột', price: '100.000₫', duration: '' },
+      { id: 'p1', name: 'Gắn móng up keo', price: '95.000₫', duration: '' },
+      { id: 'p2', name: 'Gắn móng up base', price: '150.000₫', duration: '' },
+      { id: 'p3', name: 'Sơn cứng móng', price: '30 - 45.000₫', duration: '' },
+      { id: 'p4', name: 'Phủ gel móng thật', price: '60.000₫', duration: '' },
+      { id: 'p5', name: 'Fill móng up', price: '80.000₫', duration: '' },
+      { id: 'p6', name: 'Fill gel', price: '130.000₫', duration: '' },
+      { id: 'p7', name: 'Đắp gel', price: '240.000₫', duration: '' },
     ]
   },
   {
     id: 'design',
-    title: 'Design & Phụ Kiện',
+    title: 'Trang Trí & Design',
     items: [
-      { id: 'd1', name: 'Vẽ gel', price: '5 - 30.000₫', duration: '' },
-      { id: 'd2', name: 'Vẽ gel nổi', price: '10 - 30.000₫', duration: '' },
-      { id: 'd3', name: 'Mắt mèo, sticker', price: '5 - 10.000₫', duration: '' },
-      { id: 'd4', name: 'Ombre, french, tráng gương', price: '5 - 15.000₫', duration: '' },
-      { id: 'd5', name: 'Marble, hoa khô, xà cừ', price: '10 - 30.000₫', duration: '' },
-      { id: 'd6', name: 'Đá nhỏ, phụ kiện nhỏ', price: '2 - 15.000₫', duration: '' },
-      { id: 'd7', name: 'Đá lớn, phụ kiện lớn', price: '15 - 35.000₫', duration: '' },
+      { id: 'd1', name: 'Vẽ gel', price: '10 - 35.000₫/ngón', duration: '' },
+      { id: 'd2', name: 'Vẽ nổi', price: '15 - 40.000₫/ngón', duration: '' },
+      { id: 'd3', name: 'Mắt mèo, sticker', price: '10.000₫/ngón', duration: '' },
+      { id: 'd4', name: 'Ombre, french, tráng gương', price: '10.000₫/ngón', duration: '' },
+      { id: 'd5', name: 'Loang, hoa khô, xà cừ', price: '15 - 30.000₫/ngón', duration: '' },
+      { id: 'd6', name: 'Đá nhỏ, phụ kiện nhỏ', price: '5 - 20.000₫/ngón', duration: '' },
+      { id: 'd7', name: 'Đá lớn, phụ kiện lớn', price: '25 - 40.000₫/ngón', duration: '' },
     ]
   },
   {
     id: 'spa_care',
-    title: 'Chăm Sóc Khác',
+    title: 'Dịch Vụ Khác',
     items: [
-      { id: 's1', name: 'Ngâm Chân Chà Gót', price: '80.000₫', duration: '' }
+      { id: 's1', name: 'Chà gót chân', price: 'Liện hệ', duration: '' }
     ]
   }
 ];
@@ -71,8 +71,6 @@ export const GALLERY_IMAGES = [
 ];
 
 // Danh sách ảnh cho Carousel lướt ngang ở phần Dịch Vụ
-// [HƯỚNG DẪN]: Hãy dán các đường dẫn ảnh Google Drive mới của bạn vào bên dưới,
-// thay thế cho các đường dẫn mẫu hiện có. Nhớ để trong dấu ngoặc kép "" và cách nhau bằng dấu phẩy.
 export const SERVICE_SHOWCASE_IMAGES = [
   "https://drive.google.com/file/d/1OZStHoRM7VX57CJd6D78YdEIp1x8J4ds/view?usp=drive_link",
 "https://drive.google.com/file/d/1pJlXBjnLOh_dXLy1tH7B0-eLuFUrUeKG/view?usp=drive_link",
